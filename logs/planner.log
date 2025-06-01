@@ -1,0 +1,2 @@
+warning: `uv run` is experimental and may change without warning.
+error: Permission denied (os error 13)

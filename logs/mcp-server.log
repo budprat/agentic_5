@@ -1,0 +1,18 @@
+warning: `uv run` is experimental and may change without warning.
+[06/01/25 21:05:14] INFO     Loading agent cards from card repo:    server.py:59
+                             agent_cards                                        
+                    INFO     Reading file: orchestrator_agent.json  server.py:66
+                    INFO     Reading file: car_rental_agent.json    server.py:66
+                    INFO     Reading file: planner_agent.json       server.py:66
+                    INFO     Reading file: air_ticketing_agent.json server.py:66
+                    INFO     Reading file: hotel_booking_agent.json server.py:66
+                    INFO     Finished loading agent cards. Found 5  server.py:83
+                             cards.                                             
+                    INFO     Generating Embeddings for agent cards  server.py:99
+[06/01/25 21:05:17] INFO     Agent cards MCP Server at             server.py:292
+                             localhost:10100 and transport sse                  
+INFO:     Started server process [51853]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:10100 (Press CTRL+C to quit)
+INFO:     127.0.0.1:51688 - "GET /sse HTTP/1.1" 200 OK
