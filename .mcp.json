@@ -11,6 +11,13 @@
           "clvnttpnofghgolxkrqx"
         ]
       },
+          "brightdata": {
+            "command": "npx",
+            "args": ["@brightdata/mcp"],
+            "env": {
+              "API_TOKEN": "9e9ece35cc8225d8b9e866772aea59acb0f9c810904b4616a513be83dc0d7a28"
+            }
+          },
       "brave": {
       "command": "npx",
       "args": [
@@ -38,14 +45,12 @@
       "args": ["-y", "firecrawl-mcp"],
       "env": {
         "FIRECRAWL_API_KEY": "fc-ad179b387b9a42538d0caab119377440",
-
-        "FIRECRAWL_RETRY_MAX_ATTEMPTS": "5",
-        "FIRECRAWL_RETRY_INITIAL_DELAY": "2000",
-        "FIRECRAWL_RETRY_MAX_DELAY": "30000",
-        "FIRECRAWL_RETRY_BACKOFF_FACTOR": "3",
-
-        "FIRECRAWL_CREDIT_WARNING_THRESHOLD": "2000",
-        "FIRECRAWL_CREDIT_CRITICAL_THRESHOLD": "500"
+        "FIRECRAWL_RETRY_MAX_ATTEMPTS": 5,
+        "FIRECRAWL_RETRY_INITIAL_DELAY": 2000,
+        "FIRECRAWL_RETRY_MAX_DELAY": 30000,
+        "FIRECRAWL_RETRY_BACKOFF_FACTOR": 3,
+        "FIRECRAWL_CREDIT_WARNING_THRESHOLD": 2000,
+        "FIRECRAWL_CREDIT_CRITICAL_THRESHOLD": 500
       }
     },
     "notionApi": {
