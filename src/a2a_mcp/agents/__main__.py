@@ -2,6 +2,7 @@
 
 import json
 import logging
+import os
 import sys
 
 from pathlib import Path
@@ -16,9 +17,11 @@ from a2a.server.tasks import InMemoryPushNotifier, InMemoryTaskStore
 from a2a.types import AgentCard
 from a2a_mcp.common import prompts
 from a2a_mcp.common.agent_executor import GenericAgentExecutor
+from a2a_mcp.common.auth import AuthScheme, create_auth_middleware
 from a2a_mcp.agents.adk_travel_agent import TravelAgent
 from a2a_mcp.agents.langgraph_planner_agent import LangraphPlannerAgent
 from a2a_mcp.agents.orchestrator_agent import OrchestratorAgent
+from a2a_mcp.agents.parallel_orchestrator_agent import ParallelOrchestratorAgent
 
 
 logger = logging.getLogger(__name__)
@@ -28,7 +31,12 @@ def get_agent(agent_card: AgentCard):
     """Get the agent, given an agent card."""
     try:
         if agent_card.name == 'Orchestrator Agent':
-            return OrchestratorAgent()
+            # Use parallel orchestrator if ENABLE_PARALLEL env var is set
+            if os.getenv('ENABLE_PARALLEL_EXECUTION', 'true').lower() == 'true':
+                logger.info("Using Parallel Orchestrator Agent")
+                return ParallelOrchestratorAgent()
+            else:
+                return OrchestratorAgent()
         elif agent_card.name == 'Langraph Planner Agent':
             return LangraphPlannerAgent()
         elif agent_card.name == 'Air Ticketing Agent':
@@ -77,10 +85,29 @@ def main(host, port, agent_card):
         server = A2AStarletteApplication(
             agent_card=agent_card, http_handler=request_handler
         )
+        
+        # Add authentication middleware if configured
+        if hasattr(agent_card, 'auth_required') and agent_card.auth_required:
+            auth_schemes = []
+            if hasattr(agent_card, 'auth_schemes'):
+                for scheme in agent_card.auth_schemes:
+                    auth_schemes.append(AuthScheme(**scheme))
+            
+            if auth_schemes:
+                app = server.build()
+                # Add authentication middleware to the app
+                app.add_middleware(create_auth_middleware(auth_schemes))
+                logger.info(f'Authentication enabled with schemes: {[s.type for s in auth_schemes]}')
+            else:
+                app = server.build()
+                logger.warning('auth_required is True but no auth_schemes configured')
+        else:
+            app = server.build()
+            logger.info('Running without authentication')
 
         logger.info(f'Starting server on {host}:{port}')
 
-        uvicorn.run(server.build(), host=host, port=port)
+        uvicorn.run(app, host=host, port=port)
     except FileNotFoundError:
         logger.error(f"Error: File '{agent_card}' not found.")
         sys.exit(1)

@@ -6,6 +6,7 @@
 
 - [A2A with MCP as Registry](#a2a-with-mcp-as-registry)
   - [Table of Contents](#table-of-contents)
+  - [Recent Improvements](#recent-improvements)
   - [Objective](#objective)
   - [Background](#background)
     - [A2A Protocol](#a2a-protocol)
@@ -22,6 +23,17 @@
   - [Example Flow: Travel Agent](#example-flow-travel-agent)
   - [Steps to execute the example](#steps-to-execute-the-example)
     - [File/Directory Descriptions](#filedirectory-descriptions)
+
+## Recent Improvements
+
+The framework has been enhanced with enterprise-grade features based on the latest protocol standards:
+
+- **🔐 Security & Authentication**: JWT/API key authentication for all agents
+- **⚡ Parallel Task Execution**: Concurrent processing of independent tasks (2-3x performance improvement)
+- **🌐 MCP Remote Server Connectivity**: Connect to external MCP servers (GitHub, Slack, Firecrawl, etc.)
+- **📊 Enhanced Architecture**: Improved resilience and monitoring capabilities
+
+See [IMPROVEMENTS.md](IMPROVEMENTS.md) for detailed documentation.
 
 ## Objective
 

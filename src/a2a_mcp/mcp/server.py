@@ -3,6 +3,7 @@ import json
 import os
 import sqlite3
 import traceback
+import asyncio
 
 from pathlib import Path
 
@@ -14,6 +15,7 @@ import requests
 from a2a_mcp.common.utils import init_api_key
 from mcp.server.fastmcp import FastMCP
 from mcp.server.fastmcp.utilities.logging import get_logger
+from a2a_mcp.mcp.remote_mcp_connector import RemoteMCPRegistry
 
 
 logger = get_logger(__name__)
@@ -129,6 +131,10 @@ def serve(host, port, transport):  # noqa: PLR0915
     mcp = FastMCP('agent-cards', host=host, port=port)
 
     df = build_agent_card_embeddings()
+    
+    # Initialize remote MCP registry
+    remote_registry = RemoteMCPRegistry()
+    logger.info('Initialized Remote MCP Registry')
 
     @mcp.tool(
         name='find_agent',
@@ -288,6 +294,123 @@ def serve(host, port, transport):  # noqa: PLR0915
         ).to_list()
 
         return resources
+
+    @mcp.tool(
+        name='call_remote_tool',
+        description='Call a tool on a remote MCP server',
+    )
+    async def call_remote_tool(
+        server_name: str,
+        tool_name: str,
+        arguments: dict
+    ) -> dict:
+        """Call a tool on a specific remote MCP server.
+        
+        Args:
+            server_name: Name of the remote MCP server
+            tool_name: Name of the tool to call
+            arguments: Dictionary of arguments to pass to the tool
+            
+        Returns:
+            The result from the remote tool call
+        """
+        try:
+            result = await remote_registry.connector.call_remote_tool(
+                server_name, tool_name, arguments
+            )
+            return {'success': True, 'result': result}
+        except Exception as e:
+            logger.error(f'Error calling remote tool: {e}')
+            return {'success': False, 'error': str(e)}
+
+    @mcp.tool(
+        name='list_remote_servers',
+        description='List all configured remote MCP servers',
+    )
+    def list_remote_servers() -> dict:
+        """List all configured remote MCP servers.
+        
+        Returns:
+            Dictionary containing information about all remote servers
+        """
+        servers = []
+        for name, server in remote_registry.connector.servers.items():
+            servers.append({
+                'name': name,
+                'transport': server.transport,
+                'description': server.description,
+                'url': server.url if server.transport == 'sse' else None,
+                'command': server.command if server.transport == 'stdio' else None
+            })
+        return {'servers': servers}
+
+    @mcp.tool(
+        name='discover_remote_tools',
+        description='Discover all tools available from remote MCP servers',
+    )
+    async def discover_remote_tools(server_name: str = None) -> dict:
+        """Discover tools available from remote MCP servers.
+        
+        Args:
+            server_name: Optional specific server name to query
+            
+        Returns:
+            Dictionary of available tools grouped by server
+        """
+        try:
+            if server_name:
+                tools = remote_registry.connector.get_available_tools(server_name)
+            else:
+                tools = await remote_registry.get_all_available_tools()
+            return {'success': True, 'tools': tools}
+        except Exception as e:
+            logger.error(f'Error discovering remote tools: {e}')
+            return {'success': False, 'error': str(e)}
+
+    @mcp.tool(
+        name='register_remote_server',
+        description='Register a new remote MCP server',
+    )
+    def register_remote_server(
+        name: str,
+        transport: str,
+        url: str = None,
+        command: str = None,
+        args: list = None,
+        env: dict = None,
+        description: str = None
+    ) -> dict:
+        """Register a new remote MCP server.
+        
+        Args:
+            name: Unique name for the server
+            transport: Transport type ('sse' or 'stdio')
+            url: URL for SSE transport
+            command: Command for stdio transport
+            args: Command arguments for stdio transport
+            env: Environment variables
+            description: Server description
+            
+        Returns:
+            Success status
+        """
+        try:
+            from a2a_mcp.mcp.remote_mcp_connector import RemoteMCPServer
+            
+            server = RemoteMCPServer(
+                name=name,
+                transport=transport,
+                url=url,
+                command=command,
+                args=args,
+                env=env,
+                description=description
+            )
+            remote_registry.connector.register_server(server)
+            return {'success': True, 'message': f'Server {name} registered successfully'}
+        except Exception as e:
+            logger.error(f'Error registering remote server: {e}')
+            return {'success': False, 'error': str(e)}
 
     logger.info(
         f'Agent cards MCP Server at {host}:{port} and transport {transport}'

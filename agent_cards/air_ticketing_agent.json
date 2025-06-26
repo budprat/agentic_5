@@ -13,7 +13,8 @@
     "authentication": {
         "credentials": null,
         "schemes": [
-            "public"
+            "bearer",
+            "apiKey"
         ]
     },
     "defaultInputModes": [
@@ -37,6 +38,19 @@
             ],
             "inputModes": null,
             "outputModes": null
+        }
+    ],
+    "auth_required": true,
+    "auth_schemes": [
+        {
+            "type": "bearer",
+            "scheme": "bearer",
+            "bearerFormat": "JWT"
+        },
+        {
+            "type": "apiKey",
+            "in": "header",
+            "name": "X-API-Key"
         }
     ]
 }
