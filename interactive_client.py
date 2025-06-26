@@ -65,49 +65,79 @@ class A2AMCPClient:
             context_id = uuid4().hex
         
         responses = []
+        current_message = message
         
         async with httpx.AsyncClient(timeout=60.0) as http_client:
             a2a_client = A2AClient(http_client, agent_card)
             
-            request = SendStreamingMessageRequest(
-                id=str(uuid4()),
-                params=MessageSendParams(
-                    message={
-                        'role': 'user',
-                        'parts': [{'kind': 'text', 'text': message}],
-                        'messageId': uuid4().hex,
-                        'taskId': uuid4().hex,
-                        'contextId': context_id,
-                    }
+            while True:  # Loop to handle multiple input requests
+                request = SendStreamingMessageRequest(
+                    id=str(uuid4()),
+                    params=MessageSendParams(
+                        message={
+                            'role': 'user',
+                            'parts': [{'kind': 'text', 'text': current_message}],
+                            'messageId': uuid4().hex,
+                            'taskId': uuid4().hex,
+                            'contextId': context_id,
+                        }
+                    )
                 )
-            )
-            
-            print(f"\n→ Sending to {agent_card.name}: {message}")
-            print("← Receiving responses...\n")
-            
-            async for chunk in a2a_client.send_message_streaming(request):
-                if hasattr(chunk, 'root') and hasattr(chunk.root, 'result'):
-                    result = chunk.root.result
-                    response_data = {
-                        'type': type(result).__name__,
-                        'data': result
-                    }
-                    responses.append(response_data)
-                    
-                    if stream_output:
-                        # Display different types of responses
-                        if hasattr(result, 'status'):
-                            if hasattr(result.status, 'state'):
-                                print(f"  Status: {result.status.state}")
-                            if hasattr(result.status, 'message'):
-                                if hasattr(result.status.message, 'parts'):
-                                    for part in result.status.message.parts:
+                
+                print(f"\n→ Sending to {agent_card.name}: {current_message}")
+                print("← Receiving responses...\n")
+                
+                input_required = False
+                question_text = ""
+                
+                async for chunk in a2a_client.send_message_streaming(request):
+                    if hasattr(chunk, 'root') and hasattr(chunk.root, 'result'):
+                        result = chunk.root.result
+                        response_data = {
+                            'type': type(result).__name__,
+                            'data': result
+                        }
+                        responses.append(response_data)
+                        
+                        if stream_output:
+                            # Display different types of responses
+                            if hasattr(result, 'status'):
+                                if hasattr(result.status, 'state'):
+                                    print(f"  Status: {result.status.state}")
+                                    
+                                    # Check if input is required
+                                    if str(result.status.state) == 'TaskState.input_required':
+                                        input_required = True
+                                        
+                                if hasattr(result.status, 'message'):
+                                    if hasattr(result.status.message, 'parts'):
+                                        for part in result.status.message.parts:
+                                            if hasattr(part, 'root') and hasattr(part.root, 'text'):
+                                                text = part.root.text
+                                                print(f"  Message: {text}")
+                                                if input_required:
+                                                    question_text = text
+                            elif hasattr(result, 'artifact'):
+                                print(f"  Artifact: {result.artifact.name}")
+                                if hasattr(result.artifact, 'parts'):
+                                    for part in result.artifact.parts:
                                         if hasattr(part, 'root') and hasattr(part.root, 'text'):
-                                            print(f"  Message: {part.root.text}")
-                        elif hasattr(result, 'artifact'):
-                            print(f"  Artifact: {result.artifact.name}")
-                        else:
-                            print(f"  {type(result).__name__}")
+                                            print(f"  Content: {part.root.text}")
+                            else:
+                                print(f"  {type(result).__name__}")
+                
+                # If input is required, prompt user and continue
+                if input_required and question_text:
+                    print(f"\n🤖 Agent is asking: {question_text}")
+                    user_response = input("Your response: ").strip()
+                    if user_response:
+                        current_message = user_response
+                        continue  # Send the response back to agent
+                    else:
+                        print("No response provided, ending conversation.")
+                        break
+                else:
+                    break  # No more input needed, conversation complete
         
         return responses
 

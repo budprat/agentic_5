@@ -19,7 +19,7 @@ mkdir -p logs
 
 # Start MCP Server
 echo "Starting MCP Server on port 10100..."
-nohup uv run a2a-mcp --run mcp-server --transport sse --host localhost --port 10100 > logs/mcp-server.log 2>&1 &
+nohup .venv/bin/python -c "import a2a_mcp; a2a_mcp.main()" --run mcp-server --transport sse --host localhost --port 10100 > logs/mcp-server.log 2>&1 &
 echo $! > logs/mcp-server.pid
 
 # Wait for MCP server to start
@@ -27,27 +27,27 @@ sleep 3
 
 # Start Orchestrator Agent
 echo "Starting Orchestrator Agent on port 10101..."
-nohup uv run src/a2a_mcp/agents/ --agent-card agent_cards/orchestrator_agent.json --port 10101 > logs/orchestrator.log 2>&1 &
+nohup .venv/bin/python -m a2a_mcp.agents --agent-card agent_cards/orchestrator_agent.json --port 10101 > logs/orchestrator.log 2>&1 &
 echo $! > logs/orchestrator.pid
 
 # Start Planner Agent
 echo "Starting Planner Agent on port 10102..."
-nohup uv run src/a2a_mcp/agents/ --agent-card agent_cards/planner_agent.json --port 10102 > logs/planner.log 2>&1 &
+nohup .venv/bin/python -m a2a_mcp.agents --agent-card agent_cards/planner_agent.json --port 10102 > logs/planner.log 2>&1 &
 echo $! > logs/planner.pid
 
 # Start Air Ticketing Agent
 echo "Starting Air Ticketing Agent on port 10103..."
-nohup uv run src/a2a_mcp/agents/ --agent-card agent_cards/air_ticketing_agent.json --port 10103 > logs/air-ticketing.log 2>&1 &
+nohup .venv/bin/python -m a2a_mcp.agents --agent-card agent_cards/air_ticketing_agent.json --port 10103 > logs/air-ticketing.log 2>&1 &
 echo $! > logs/air-ticketing.pid
 
 # Start Hotel Booking Agent
 echo "Starting Hotel Booking Agent on port 10104..."
-nohup uv run src/a2a_mcp/agents/ --agent-card agent_cards/hotel_booking_agent.json --port 10104 > logs/hotel-booking.log 2>&1 &
+nohup .venv/bin/python -m a2a_mcp.agents --agent-card agent_cards/hotel_booking_agent.json --port 10104 > logs/hotel-booking.log 2>&1 &
 echo $! > logs/hotel-booking.pid
 
 # Start Car Rental Agent
 echo "Starting Car Rental Agent on port 10105..."
-nohup uv run src/a2a_mcp/agents/ --agent-card agent_cards/car_rental_agent.json --port 10105 > logs/car-rental.log 2>&1 &
+nohup .venv/bin/python -m a2a_mcp.agents --agent-card agent_cards/car_rental_agent.json --port 10105 > logs/car-rental.log 2>&1 &
 echo $! > logs/car-rental.pid
 
 echo ""
