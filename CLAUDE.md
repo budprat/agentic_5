@@ -83,3 +83,10 @@ python simple_client.py
 - Google API key required for Planner Agent (uses Gemini)
 - Logs are written to `logs/` directory
 - Each agent runs on a separate port (10001-10005)
+
+## NotionAI MCP Server Rules
+IMPORTANT: When working with Notion through the NotionAI MCP server:
+- **WRITE ONLY TO THE "AI" PAGE** (ID: 21e0f849-e0a2-80c3-8b72-ccb0a1b61ab9)
+- All other Notion pages are READ-ONLY for reference and data gathering
+- See `notion_mcp_rules.md` for detailed usage guidelines
+- Available pages list in `notion_pages_complete_list.md` (90+ pages organized by category)

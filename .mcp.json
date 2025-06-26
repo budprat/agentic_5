@@ -20,7 +20,8 @@
         "@brightdata/mcp"
       ],
       "env": {
-        "API_TOKEN": "9e9ece35cc8225d8b9e866772aea59acb0f9c810904b4616a513be83dc0d7a28"
+        "API_TOKEN": "9e9ece35cc8225d8b9e866772aea59acb0f9c810904b4616a513be83dc0d7a28",
+        "WEB_UNLOCKER_ZONE": "mcp_unlocker"
       }
     },
     "brave": {
