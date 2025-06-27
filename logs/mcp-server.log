@@ -1,18 +1,428 @@
-warning: `uv run` is experimental and may change without warning.
-[06/01/25 21:05:14] INFO     Loading agent cards from card repo:    server.py:59
+[06/26/25 17:53:22] INFO     Loading agent cards from card repo:    server.py:61
                              agent_cards                                        
-                    INFO     Reading file: orchestrator_agent.json  server.py:66
-                    INFO     Reading file: car_rental_agent.json    server.py:66
-                    INFO     Reading file: planner_agent.json       server.py:66
-                    INFO     Reading file: air_ticketing_agent.json server.py:66
-                    INFO     Reading file: hotel_booking_agent.json server.py:66
-                    INFO     Finished loading agent cards. Found 5  server.py:83
+                    INFO     Reading file: orchestrator_agent.json  server.py:68
+                    INFO     Reading file: planner_agent.json       server.py:68
+                    INFO     Reading file: car_rental_agent.json    server.py:68
+                    INFO     Reading file: air_ticketing_agent.json server.py:68
+                    INFO     Reading file: hotel_booking_agent.json server.py:68
+                    INFO     Finished loading agent cards. Found 5  server.py:85
                              cards.                                             
-                    INFO     Generating Embeddings for agent cards  server.py:99
-[06/01/25 21:05:17] INFO     Agent cards MCP Server at             server.py:292
+                    INFO     Generating Embeddings for agent cards server.py:101
+[06/26/25 17:53:24] INFO     Loading 8 remote MCP    remote_mcp_connector.py:259
+                             servers from                                       
+                             configuration                                      
+                    INFO     Registered remote MCP    remote_mcp_connector.py:54
+                             server: supabase                                   
+                    INFO     Registered remote MCP    remote_mcp_connector.py:54
+                             server: brightdata                                 
+                    INFO     Registered remote MCP    remote_mcp_connector.py:54
+                             server: brave                                      
+                    INFO     Registered remote MCP    remote_mcp_connector.py:54
+                             server: puppeteer                                  
+                    INFO     Registered remote MCP    remote_mcp_connector.py:54
+                             server: context7                                   
+                    INFO     Registered remote MCP    remote_mcp_connector.py:54
+                             server: upstash                                    
+                    INFO     Registered remote MCP    remote_mcp_connector.py:54
+                             server: firecrawl                                  
+                    INFO     Registered remote MCP    remote_mcp_connector.py:54
+                             server: notionAI                                   
+                    INFO     Initialized Remote MCP Registry       server.py:137
+                    INFO     Agent cards MCP Server at             server.py:415
                              localhost:10100 and transport sse                  
-INFO:     Started server process [51853]
+INFO:     Started server process [29030]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://localhost:10100 (Press CTRL+C to quit)
-INFO:     127.0.0.1:51688 - "GET /sse HTTP/1.1" 200 OK
+INFO:     ::1:35908 - "GET /sse HTTP/1.1" 200 OK
+INFO:     ::1:35922 - "POST /messages/?session_id=6180f7dc7563459ebc3a6849311d6f57 HTTP/1.1" 202 Accepted
+INFO:     ::1:35922 - "POST /messages/?session_id=6180f7dc7563459ebc3a6849311d6f57 HTTP/1.1" 202 Accepted
+INFO:     ::1:35922 - "POST /messages/?session_id=6180f7dc7563459ebc3a6849311d6f57 HTTP/1.1" 202 Accepted
+[06/26/25 17:53:36] INFO     Processing request of type            server.py:523
+                             CallToolRequest                                    
+INFO:     ::1:35924 - "GET /sse HTTP/1.1" 200 OK
+INFO:     ::1:35932 - "POST /messages/?session_id=900a8822a0694828927f9ba7b09e00c2 HTTP/1.1" 202 Accepted
+INFO:     ::1:35932 - "POST /messages/?session_id=900a8822a0694828927f9ba7b09e00c2 HTTP/1.1" 202 Accepted
+INFO:     ::1:35932 - "POST /messages/?session_id=900a8822a0694828927f9ba7b09e00c2 HTTP/1.1" 202 Accepted
+[06/26/25 17:53:37] INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resources               server.py:269
+INFO:     ::1:35932 - "POST /messages/?session_id=900a8822a0694828927f9ba7b09e00c2 HTTP/1.1" 202 Accepted
+                    INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resource                server.py:286
+                             resource://agent_cards/orchestrator_a              
+                             gent                                               
+INFO:     ::1:35932 - "POST /messages/?session_id=900a8822a0694828927f9ba7b09e00c2 HTTP/1.1" 202 Accepted
+                    INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resource                server.py:286
+                             resource://agent_cards/planner_agent               
+INFO:     ::1:35932 - "POST /messages/?session_id=900a8822a0694828927f9ba7b09e00c2 HTTP/1.1" 202 Accepted
+                    INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resource                server.py:286
+                             resource://agent_cards/car_rental_age              
+                             nt                                                 
+INFO:     ::1:35932 - "POST /messages/?session_id=900a8822a0694828927f9ba7b09e00c2 HTTP/1.1" 202 Accepted
+                    INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resource                server.py:286
+                             resource://agent_cards/air_ticketing_              
+                             agent                                              
+INFO:     ::1:35932 - "POST /messages/?session_id=900a8822a0694828927f9ba7b09e00c2 HTTP/1.1" 202 Accepted
+                    INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resource                server.py:286
+                             resource://agent_cards/hotel_booking_              
+                             agent                                              
+INFO:     ::1:35940 - "GET /sse HTTP/1.1" 200 OK
+INFO:     ::1:35952 - "POST /messages/?session_id=b3958ead9472489fb300b1130ecc1cd3 HTTP/1.1" 202 Accepted
+INFO:     ::1:35952 - "POST /messages/?session_id=b3958ead9472489fb300b1130ecc1cd3 HTTP/1.1" 202 Accepted
+INFO:     ::1:35952 - "POST /messages/?session_id=b3958ead9472489fb300b1130ecc1cd3 HTTP/1.1" 202 Accepted
+                    INFO     Processing request of type            server.py:523
+                             CallToolRequest                                    
+                    INFO     Query sqllite : SELECT carrier,       server.py:234
+                             flight_number, ticket_class, price                 
+                             FROM flights WHERE from_airport='SFO'              
+                             AND to_airport='LHR'                               
+INFO:     ::1:35956 - "GET /sse HTTP/1.1" 200 OK
+INFO:     ::1:35972 - "POST /messages/?session_id=02a39564901041bbbaca12111103091d HTTP/1.1" 202 Accepted
+INFO:     ::1:35972 - "POST /messages/?session_id=02a39564901041bbbaca12111103091d HTTP/1.1" 202 Accepted
+INFO:     ::1:35972 - "POST /messages/?session_id=02a39564901041bbbaca12111103091d HTTP/1.1" 202 Accepted
+                    INFO     Processing request of type            server.py:523
+                             CallToolRequest                                    
+                    INFO     Query sqllite :                       server.py:234
+                                                 SELECT carrier,                
+                             flight_number, ticket_class, price                 
+                                                 FROM flights                   
+                                                 WHERE                          
+                             from_airport='SFO' AND                             
+                             to_airport='LHR'                                   
+                                                 ORDER BY price                 
+                             ASC                                                
+                                                 LIMIT 3                        
+                                                                                
+INFO:     ::1:35972 - "POST /messages/?session_id=02a39564901041bbbaca12111103091d HTTP/1.1" 202 Accepted
+                    INFO     Processing request of type            server.py:523
+                             CallToolRequest                                    
+                    INFO     Query sqllite :                       server.py:234
+                                                 SELECT name,                   
+                             room_type, price_per_night                         
+                                                 FROM hotels                    
+                                                 WHERE                          
+                             city='London' AND hotel_type='HOTEL'               
+                                                 ORDER BY                       
+                             price_per_night DESC                               
+                                                 LIMIT 3                        
+                                                                                
+INFO:     ::1:35980 - "GET /sse HTTP/1.1" 200 OK
+INFO:     ::1:35984 - "POST /messages/?session_id=f18944d9f0ba4ddbbcb8484f7e06dc27 HTTP/1.1" 202 Accepted
+INFO:     ::1:35984 - "POST /messages/?session_id=f18944d9f0ba4ddbbcb8484f7e06dc27 HTTP/1.1" 202 Accepted
+INFO:     ::1:35984 - "POST /messages/?session_id=f18944d9f0ba4ddbbcb8484f7e06dc27 HTTP/1.1" 202 Accepted
+                    INFO     Processing request of type            server.py:523
+                             CallToolRequest                                    
+INFO:     ::1:35990 - "GET /sse HTTP/1.1" 200 OK
+INFO:     ::1:35994 - "POST /messages/?session_id=b15b16934af24de49f5c2ed8c2b6026c HTTP/1.1" 202 Accepted
+INFO:     ::1:35994 - "POST /messages/?session_id=b15b16934af24de49f5c2ed8c2b6026c HTTP/1.1" 202 Accepted
+INFO:     ::1:35994 - "POST /messages/?session_id=b15b16934af24de49f5c2ed8c2b6026c HTTP/1.1" 202 Accepted
+                    INFO     Processing request of type            server.py:523
+                             ListToolsRequest                                   
+INFO:     ::1:59812 - "GET /sse HTTP/1.1" 200 OK
+INFO:     ::1:59822 - "POST /messages/?session_id=5f3dd65632c644d3a29669cfbd4ac7fa HTTP/1.1" 202 Accepted
+INFO:     ::1:59822 - "POST /messages/?session_id=5f3dd65632c644d3a29669cfbd4ac7fa HTTP/1.1" 202 Accepted
+INFO:     ::1:59822 - "POST /messages/?session_id=5f3dd65632c644d3a29669cfbd4ac7fa HTTP/1.1" 202 Accepted
+[06/26/25 17:54:38] INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resources               server.py:269
+INFO:     ::1:59822 - "POST /messages/?session_id=5f3dd65632c644d3a29669cfbd4ac7fa HTTP/1.1" 202 Accepted
+                    INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resource                server.py:286
+                             resource://agent_cards/orchestrator_a              
+                             gent                                               
+INFO:     ::1:59822 - "POST /messages/?session_id=5f3dd65632c644d3a29669cfbd4ac7fa HTTP/1.1" 202 Accepted
+                    INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resource                server.py:286
+                             resource://agent_cards/planner_agent               
+INFO:     ::1:59822 - "POST /messages/?session_id=5f3dd65632c644d3a29669cfbd4ac7fa HTTP/1.1" 202 Accepted
+                    INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resource                server.py:286
+                             resource://agent_cards/car_rental_age              
+                             nt                                                 
+INFO:     ::1:59822 - "POST /messages/?session_id=5f3dd65632c644d3a29669cfbd4ac7fa HTTP/1.1" 202 Accepted
+                    INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resource                server.py:286
+                             resource://agent_cards/air_ticketing_              
+                             agent                                              
+INFO:     ::1:59822 - "POST /messages/?session_id=5f3dd65632c644d3a29669cfbd4ac7fa HTTP/1.1" 202 Accepted
+                    INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resource                server.py:286
+                             resource://agent_cards/hotel_booking_              
+                             agent                                              
+INFO:     ::1:59838 - "GET /sse HTTP/1.1" 200 OK
+INFO:     ::1:59844 - "POST /messages/?session_id=aee862c91f8d46178429929d9de29998 HTTP/1.1" 202 Accepted
+INFO:     ::1:59844 - "POST /messages/?session_id=aee862c91f8d46178429929d9de29998 HTTP/1.1" 202 Accepted
+INFO:     ::1:59844 - "POST /messages/?session_id=aee862c91f8d46178429929d9de29998 HTTP/1.1" 202 Accepted
+                    INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resource                server.py:286
+                             resource://agent_cards/planner_agent               
+INFO:     ::1:60274 - "GET /sse HTTP/1.1" 200 OK
+INFO:     ::1:60284 - "POST /messages/?session_id=75659ce7f845429cb60b5332e42d4433 HTTP/1.1" 202 Accepted
+INFO:     ::1:60284 - "POST /messages/?session_id=75659ce7f845429cb60b5332e42d4433 HTTP/1.1" 202 Accepted
+INFO:     ::1:60284 - "POST /messages/?session_id=75659ce7f845429cb60b5332e42d4433 HTTP/1.1" 202 Accepted
+[06/26/25 17:58:41] INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resources               server.py:269
+INFO:     ::1:60284 - "POST /messages/?session_id=75659ce7f845429cb60b5332e42d4433 HTTP/1.1" 202 Accepted
+                    INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resource                server.py:286
+                             resource://agent_cards/orchestrator_a              
+                             gent                                               
+INFO:     ::1:60284 - "POST /messages/?session_id=75659ce7f845429cb60b5332e42d4433 HTTP/1.1" 202 Accepted
+                    INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resource                server.py:286
+                             resource://agent_cards/planner_agent               
+INFO:     ::1:60284 - "POST /messages/?session_id=75659ce7f845429cb60b5332e42d4433 HTTP/1.1" 202 Accepted
+                    INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resource                server.py:286
+                             resource://agent_cards/car_rental_age              
+                             nt                                                 
+INFO:     ::1:60284 - "POST /messages/?session_id=75659ce7f845429cb60b5332e42d4433 HTTP/1.1" 202 Accepted
+                    INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resource                server.py:286
+                             resource://agent_cards/air_ticketing_              
+                             agent                                              
+INFO:     ::1:60284 - "POST /messages/?session_id=75659ce7f845429cb60b5332e42d4433 HTTP/1.1" 202 Accepted
+                    INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resource                server.py:286
+                             resource://agent_cards/hotel_booking_              
+                             agent                                              
+INFO:     ::1:60298 - "GET /sse HTTP/1.1" 200 OK
+INFO:     ::1:60302 - "POST /messages/?session_id=32c882ac92644509ab25c09d8a4bd010 HTTP/1.1" 202 Accepted
+INFO:     ::1:60302 - "POST /messages/?session_id=32c882ac92644509ab25c09d8a4bd010 HTTP/1.1" 202 Accepted
+INFO:     ::1:60302 - "POST /messages/?session_id=32c882ac92644509ab25c09d8a4bd010 HTTP/1.1" 202 Accepted
+[06/26/25 17:58:42] INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resource                server.py:286
+                             resource://agent_cards/planner_agent               
+INFO:     ::1:58552 - "GET /sse HTTP/1.1" 200 OK
+INFO:     ::1:58566 - "POST /messages/?session_id=23146fbe29224965a51d2f9fcacb7926 HTTP/1.1" 202 Accepted
+INFO:     ::1:58566 - "POST /messages/?session_id=23146fbe29224965a51d2f9fcacb7926 HTTP/1.1" 202 Accepted
+INFO:     ::1:58566 - "POST /messages/?session_id=23146fbe29224965a51d2f9fcacb7926 HTTP/1.1" 202 Accepted
+[06/26/25 17:58:50] INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resource                server.py:286
+                             resource://agent_cards/planner_agent               
+INFO:     ::1:58568 - "GET /sse HTTP/1.1" 200 OK
+INFO:     ::1:58580 - "POST /messages/?session_id=c95e101042fb4a2ea31b882a111b2204 HTTP/1.1" 202 Accepted
+INFO:     ::1:58580 - "POST /messages/?session_id=c95e101042fb4a2ea31b882a111b2204 HTTP/1.1" 202 Accepted
+INFO:     ::1:58580 - "POST /messages/?session_id=c95e101042fb4a2ea31b882a111b2204 HTTP/1.1" 202 Accepted
+[06/26/25 17:58:58] INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resource                server.py:286
+                             resource://agent_cards/planner_agent               
+INFO:     ::1:47102 - "GET /sse HTTP/1.1" 200 OK
+INFO:     ::1:47116 - "POST /messages/?session_id=6e59262e61a04fcf94e14957879229fd HTTP/1.1" 202 Accepted
+INFO:     ::1:47116 - "POST /messages/?session_id=6e59262e61a04fcf94e14957879229fd HTTP/1.1" 202 Accepted
+INFO:     ::1:47116 - "POST /messages/?session_id=6e59262e61a04fcf94e14957879229fd HTTP/1.1" 202 Accepted
+[06/26/25 17:59:04] INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resource                server.py:286
+                             resource://agent_cards/planner_agent               
+INFO:     ::1:58692 - "GET /sse HTTP/1.1" 200 OK
+INFO:     ::1:58706 - "POST /messages/?session_id=efb86c93c9094a39926be2e38646257f HTTP/1.1" 202 Accepted
+INFO:     ::1:58706 - "POST /messages/?session_id=efb86c93c9094a39926be2e38646257f HTTP/1.1" 202 Accepted
+INFO:     ::1:58706 - "POST /messages/?session_id=efb86c93c9094a39926be2e38646257f HTTP/1.1" 202 Accepted
+[06/26/25 17:59:13] INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resource                server.py:286
+                             resource://agent_cards/planner_agent               
+INFO:     ::1:39002 - "GET /sse HTTP/1.1" 200 OK
+INFO:     ::1:39012 - "POST /messages/?session_id=7c4116d882d44f0fb0187273258dd1f9 HTTP/1.1" 202 Accepted
+INFO:     ::1:39012 - "POST /messages/?session_id=7c4116d882d44f0fb0187273258dd1f9 HTTP/1.1" 202 Accepted
+INFO:     ::1:39012 - "POST /messages/?session_id=7c4116d882d44f0fb0187273258dd1f9 HTTP/1.1" 202 Accepted
+[06/26/25 17:59:23] INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resource                server.py:286
+                             resource://agent_cards/planner_agent               
+INFO:     ::1:59628 - "GET /sse HTTP/1.1" 200 OK
+INFO:     ::1:59642 - "POST /messages/?session_id=96cc8e95a5e64dc8982259673ffb8254 HTTP/1.1" 202 Accepted
+INFO:     ::1:59642 - "POST /messages/?session_id=96cc8e95a5e64dc8982259673ffb8254 HTTP/1.1" 202 Accepted
+INFO:     ::1:59642 - "POST /messages/?session_id=96cc8e95a5e64dc8982259673ffb8254 HTTP/1.1" 202 Accepted
+[06/26/25 17:59:32] INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resource                server.py:286
+                             resource://agent_cards/planner_agent               
+INFO:     ::1:41996 - "GET /sse HTTP/1.1" 200 OK
+INFO:     ::1:41998 - "POST /messages/?session_id=2a194a1d089e41e891ce70632ed7bf83 HTTP/1.1" 202 Accepted
+INFO:     ::1:41998 - "POST /messages/?session_id=2a194a1d089e41e891ce70632ed7bf83 HTTP/1.1" 202 Accepted
+INFO:     ::1:41998 - "POST /messages/?session_id=2a194a1d089e41e891ce70632ed7bf83 HTTP/1.1" 202 Accepted
+[06/26/25 17:59:39] INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resource                server.py:286
+                             resource://agent_cards/planner_agent               
+INFO:     ::1:42002 - "GET /sse HTTP/1.1" 200 OK
+INFO:     ::1:42004 - "POST /messages/?session_id=9bedcb6d00d0468296cceed3fe03fcdf HTTP/1.1" 202 Accepted
+INFO:     ::1:42004 - "POST /messages/?session_id=9bedcb6d00d0468296cceed3fe03fcdf HTTP/1.1" 202 Accepted
+INFO:     ::1:42004 - "POST /messages/?session_id=9bedcb6d00d0468296cceed3fe03fcdf HTTP/1.1" 202 Accepted
+[06/26/25 17:59:44] INFO     Processing request of type            server.py:523
+                             CallToolRequest                                    
+INFO:     ::1:42012 - "GET /sse HTTP/1.1" 200 OK
+INFO:     ::1:42020 - "POST /messages/?session_id=c225b514c8f24e618d834ca80af93750 HTTP/1.1" 202 Accepted
+INFO:     ::1:42020 - "POST /messages/?session_id=c225b514c8f24e618d834ca80af93750 HTTP/1.1" 202 Accepted
+INFO:     ::1:42020 - "POST /messages/?session_id=c225b514c8f24e618d834ca80af93750 HTTP/1.1" 202 Accepted
+                    INFO     Processing request of type            server.py:523
+                             ListToolsRequest                                   
+INFO:     ::1:42020 - "POST /messages/?session_id=c225b514c8f24e618d834ca80af93750 HTTP/1.1" 202 Accepted
+[06/26/25 17:59:45] INFO     Processing request of type            server.py:523
+                             CallToolRequest                                    
+                    INFO     Query sqllite : SELECT carrier,       server.py:234
+                             flight_number, from_airport,                       
+                             to_airport, ticket_class, price FROM               
+                             flights WHERE from_airport = 'SFO'                 
+                             AND to_airport = 'LHR' AND                         
+                             ticket_class = 'ECONOMY'                           
+INFO:     ::1:42020 - "POST /messages/?session_id=c225b514c8f24e618d834ca80af93750 HTTP/1.1" 202 Accepted
+                    INFO     Processing request of type            server.py:523
+                             CallToolRequest                                    
+                    INFO     Query sqllite : SELECT carrier,       server.py:234
+                             flight_number, from_airport,                       
+                             to_airport, ticket_class, price FROM               
+                             flights WHERE from_airport = 'LHR'                 
+                             AND to_airport = 'SFO' AND                         
+                             ticket_class = 'ECONOMY'                           
+INFO:     ::1:33198 - "GET /sse HTTP/1.1" 200 OK
+INFO:     ::1:33214 - "POST /messages/?session_id=74801b56161d457abd0b62a53d3db138 HTTP/1.1" 202 Accepted
+INFO:     ::1:33214 - "POST /messages/?session_id=74801b56161d457abd0b62a53d3db138 HTTP/1.1" 202 Accepted
+INFO:     ::1:33214 - "POST /messages/?session_id=74801b56161d457abd0b62a53d3db138 HTTP/1.1" 202 Accepted
+[06/26/25 18:03:39] INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resources               server.py:269
+INFO:     ::1:33214 - "POST /messages/?session_id=74801b56161d457abd0b62a53d3db138 HTTP/1.1" 202 Accepted
+                    INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resource                server.py:286
+                             resource://agent_cards/orchestrator_a              
+                             gent                                               
+INFO:     ::1:33214 - "POST /messages/?session_id=74801b56161d457abd0b62a53d3db138 HTTP/1.1" 202 Accepted
+                    INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resource                server.py:286
+                             resource://agent_cards/planner_agent               
+INFO:     ::1:33214 - "POST /messages/?session_id=74801b56161d457abd0b62a53d3db138 HTTP/1.1" 202 Accepted
+                    INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resource                server.py:286
+                             resource://agent_cards/car_rental_age              
+                             nt                                                 
+INFO:     ::1:33214 - "POST /messages/?session_id=74801b56161d457abd0b62a53d3db138 HTTP/1.1" 202 Accepted
+                    INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resource                server.py:286
+                             resource://agent_cards/air_ticketing_              
+                             agent                                              
+INFO:     ::1:33214 - "POST /messages/?session_id=74801b56161d457abd0b62a53d3db138 HTTP/1.1" 202 Accepted
+                    INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resource                server.py:286
+                             resource://agent_cards/hotel_booking_              
+                             agent                                              
+INFO:     ::1:33216 - "GET /sse HTTP/1.1" 200 OK
+INFO:     ::1:33228 - "POST /messages/?session_id=ba679852fc8e47488e2a5b23da631ac2 HTTP/1.1" 202 Accepted
+INFO:     ::1:33228 - "POST /messages/?session_id=ba679852fc8e47488e2a5b23da631ac2 HTTP/1.1" 202 Accepted
+INFO:     ::1:33228 - "POST /messages/?session_id=ba679852fc8e47488e2a5b23da631ac2 HTTP/1.1" 202 Accepted
+                    INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resource                server.py:286
+                             resource://agent_cards/planner_agent               
+INFO:     ::1:33238 - "GET /sse HTTP/1.1" 200 OK
+INFO:     ::1:33240 - "POST /messages/?session_id=c1d554638fc54b0f97516972a7e2382f HTTP/1.1" 202 Accepted
+INFO:     ::1:33240 - "POST /messages/?session_id=c1d554638fc54b0f97516972a7e2382f HTTP/1.1" 202 Accepted
+INFO:     ::1:33240 - "POST /messages/?session_id=c1d554638fc54b0f97516972a7e2382f HTTP/1.1" 202 Accepted
+[06/26/25 18:03:45] INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resource                server.py:286
+                             resource://agent_cards/planner_agent               
+INFO:     ::1:51632 - "GET /sse HTTP/1.1" 200 OK
+INFO:     ::1:51640 - "POST /messages/?session_id=c1e3465f93b247cea598b443da1a3b69 HTTP/1.1" 202 Accepted
+INFO:     ::1:51640 - "POST /messages/?session_id=c1e3465f93b247cea598b443da1a3b69 HTTP/1.1" 202 Accepted
+INFO:     ::1:51640 - "POST /messages/?session_id=c1e3465f93b247cea598b443da1a3b69 HTTP/1.1" 202 Accepted
+[06/26/25 18:03:53] INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resource                server.py:286
+                             resource://agent_cards/planner_agent               
+INFO:     ::1:51642 - "GET /sse HTTP/1.1" 200 OK
+INFO:     ::1:51646 - "POST /messages/?session_id=42c84c923b2f4710aba8153030cfdd0e HTTP/1.1" 202 Accepted
+INFO:     ::1:51646 - "POST /messages/?session_id=42c84c923b2f4710aba8153030cfdd0e HTTP/1.1" 202 Accepted
+INFO:     ::1:51646 - "POST /messages/?session_id=42c84c923b2f4710aba8153030cfdd0e HTTP/1.1" 202 Accepted
+[06/26/25 18:03:58] INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resource                server.py:286
+                             resource://agent_cards/planner_agent               
+INFO:     ::1:54710 - "GET /sse HTTP/1.1" 200 OK
+INFO:     ::1:46540 - "POST /messages/?session_id=624a3a56bbfe435482aafc540e40e27f HTTP/1.1" 202 Accepted
+INFO:     ::1:46540 - "POST /messages/?session_id=624a3a56bbfe435482aafc540e40e27f HTTP/1.1" 202 Accepted
+INFO:     ::1:46540 - "POST /messages/?session_id=624a3a56bbfe435482aafc540e40e27f HTTP/1.1" 202 Accepted
+[06/26/25 18:04:09] INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resource                server.py:286
+                             resource://agent_cards/planner_agent               
+INFO:     ::1:34152 - "GET /sse HTTP/1.1" 200 OK
+INFO:     ::1:34160 - "POST /messages/?session_id=e4b9ebfbf6d24f6883ff16a8e67e2959 HTTP/1.1" 202 Accepted
+INFO:     ::1:34160 - "POST /messages/?session_id=e4b9ebfbf6d24f6883ff16a8e67e2959 HTTP/1.1" 202 Accepted
+INFO:     ::1:34160 - "POST /messages/?session_id=e4b9ebfbf6d24f6883ff16a8e67e2959 HTTP/1.1" 202 Accepted
+[06/26/25 18:29:57] INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resource                server.py:286
+                             resource://agent_cards/planner_agent               
+INFO:     ::1:38294 - "GET /sse HTTP/1.1" 200 OK
+INFO:     ::1:38300 - "POST /messages/?session_id=0cd03507f722400b8b79c5ec3b5bcc6d HTTP/1.1" 202 Accepted
+INFO:     ::1:38300 - "POST /messages/?session_id=0cd03507f722400b8b79c5ec3b5bcc6d HTTP/1.1" 202 Accepted
+INFO:     ::1:38300 - "POST /messages/?session_id=0cd03507f722400b8b79c5ec3b5bcc6d HTTP/1.1" 202 Accepted
+[06/26/25 18:30:04] INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resource                server.py:286
+                             resource://agent_cards/planner_agent               
+INFO:     ::1:38550 - "GET /sse HTTP/1.1" 200 OK
+INFO:     ::1:38560 - "POST /messages/?session_id=c22d11692d5c468c88ef22c3c3aaabd7 HTTP/1.1" 202 Accepted
+INFO:     ::1:38560 - "POST /messages/?session_id=c22d11692d5c468c88ef22c3c3aaabd7 HTTP/1.1" 202 Accepted
+INFO:     ::1:38560 - "POST /messages/?session_id=c22d11692d5c468c88ef22c3c3aaabd7 HTTP/1.1" 202 Accepted
+[06/26/25 18:30:10] INFO     Processing request of type            server.py:523
+                             ReadResourceRequest                                
+                    INFO     Starting read resource                server.py:286
+                             resource://agent_cards/planner_agent               
+INFO:     ::1:38566 - "GET /sse HTTP/1.1" 200 OK
+INFO:     ::1:38570 - "POST /messages/?session_id=ba5e7d44c239414bb0d4ac65650314cd HTTP/1.1" 202 Accepted
+INFO:     ::1:38570 - "POST /messages/?session_id=ba5e7d44c239414bb0d4ac65650314cd HTTP/1.1" 202 Accepted
+INFO:     ::1:38570 - "POST /messages/?session_id=ba5e7d44c239414bb0d4ac65650314cd HTTP/1.1" 202 Accepted
+[06/26/25 18:30:15] INFO     Processing request of type            server.py:523
+                             CallToolRequest                                    
+INFO:     ::1:38574 - "POST /messages/?session_id=c225b514c8f24e618d834ca80af93750 HTTP/1.1" 202 Accepted
+[06/26/25 18:30:16] INFO     Processing request of type            server.py:523
+                             CallToolRequest                                    
+                    INFO     Query sqllite : SELECT carrier,       server.py:234
+                             flight_number, from_airport,                       
+                             to_airport, ticket_class, price FROM               
+                             flights WHERE from_airport = 'SFO'                 
+                             AND to_airport = 'LHR' AND                         
+                             ticket_class = 'ECONOMY'                           
+INFO:     ::1:38574 - "POST /messages/?session_id=c225b514c8f24e618d834ca80af93750 HTTP/1.1" 202 Accepted
+                    INFO     Processing request of type            server.py:523
+                             CallToolRequest                                    
+                    INFO     Query sqllite : SELECT carrier,       server.py:234
+                             flight_number, from_airport,                       
+                             to_airport, ticket_class, price FROM               
+                             flights WHERE from_airport = 'LHR'                 
+                             AND to_airport = 'SFO' AND                         
+                             ticket_class = 'ECONOMY'                           

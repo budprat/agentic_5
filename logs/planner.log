@@ -1,2 +1,25 @@
-warning: `uv run` is experimental and may change without warning.
-error: Permission denied (os error 13)
+/home/coder/project/a2a-mcp/.venv/lib/python3.11/site-packages/websockets/legacy/__init__.py:6: DeprecationWarning: websockets.legacy is deprecated; see https://websockets.readthedocs.io/en/stable/howto/upgrade.html for upgrade instructions
+  warnings.warn(  # deprecated in 14.0 - 2024-11-09
+/home/coder/project/a2a-mcp/.venv/lib/python3.11/site-packages/uvicorn/protocols/websockets/websockets_impl.py:17: DeprecationWarning: websockets.server.WebSocketServerProtocol is deprecated
+  from websockets.server import WebSocketServerProtocol
+INFO:     Started server process [29494]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:10102 (Press CTRL+C to quit)
+INFO:     ::1:48122 - "POST / HTTP/1.1" 200 OK
+INFO:     ::1:39862 - "POST / HTTP/1.1" 200 OK
+INFO:     ::1:38846 - "POST / HTTP/1.1" 200 OK
+INFO:     ::1:38858 - "POST / HTTP/1.1" 200 OK
+INFO:     ::1:38246 - "POST / HTTP/1.1" 200 OK
+INFO:     ::1:33712 - "POST / HTTP/1.1" 200 OK
+INFO:     ::1:46008 - "POST / HTTP/1.1" 200 OK
+INFO:     ::1:49264 - "POST / HTTP/1.1" 200 OK
+INFO:     ::1:37040 - "POST / HTTP/1.1" 200 OK
+INFO:     ::1:45058 - "POST / HTTP/1.1" 200 OK
+INFO:     ::1:45068 - "POST / HTTP/1.1" 200 OK
+INFO:     ::1:47280 - "POST / HTTP/1.1" 200 OK
+INFO:     ::1:47290 - "POST / HTTP/1.1" 200 OK
+INFO:     ::1:51360 - "POST / HTTP/1.1" 200 OK
+INFO:     ::1:49948 - "POST / HTTP/1.1" 200 OK
+INFO:     ::1:58986 - "POST / HTTP/1.1" 200 OK
+INFO:     ::1:33770 - "POST / HTTP/1.1" 200 OK

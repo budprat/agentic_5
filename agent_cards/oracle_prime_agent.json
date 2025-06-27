@@ -1,0 +1,57 @@
+{
+    "name": "Oracle Prime",
+    "description": "Master investment orchestrator with risk management capabilities",
+    "url": "http://localhost:10501/",
+    "provider": null,
+    "version": "1.0.0",
+    "capabilities": {
+        "streaming": "True",
+        "pushNotifications": "True",
+        "stateTransitionHistory": "False"
+    },
+    "auth_required": true,
+    "auth_schemes": [
+        {
+            "type": "bearer",
+            "scheme": "bearer",
+            "bearerFormat": "JWT"
+        }
+    ],
+    "defaultInputModes": ["text", "text/plain"],
+    "defaultOutputModes": ["text", "text/plain"],
+    "skills": [
+        {
+            "id": "portfolio_coordination",
+            "name": "Portfolio Coordination",
+            "description": "Orchestrates investment research across multiple analysis agents",
+            "tags": ["orchestration", "portfolio", "coordination", "workflow"],
+            "examples": [
+                "Analyze TSLA for investment opportunity",
+                "Should I buy Apple stock?",
+                "Evaluate Microsoft fundamentals and technicals"
+            ]
+        },
+        {
+            "id": "risk_management",
+            "name": "Risk Management Integration",
+            "description": "Enforces position sizing, drawdown limits, and portfolio correlation constraints",
+            "tags": ["risk", "portfolio", "position-sizing", "compliance"],
+            "examples": [
+                "Check if this trade fits my risk parameters",
+                "Validate position size for GOOGL",
+                "Review portfolio risk metrics"
+            ]
+        },
+        {
+            "id": "investment_synthesis",
+            "name": "Investment Recommendation Synthesis",
+            "description": "Combines multiple analysis sources into actionable investment recommendations",
+            "tags": ["synthesis", "recommendation", "analysis", "decision"],
+            "examples": [
+                "Generate investment thesis for NVDA",
+                "Summarize all analysis for Tesla",
+                "Provide buy/sell recommendation"
+            ]
+        }
+    ]
+}
