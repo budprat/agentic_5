@@ -5,6 +5,10 @@ import asyncio
 from datetime import datetime
 import os
 from supabase import create_client, Client
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 async def show_database_contents():
     print("\n" + "="*80)
@@ -12,8 +16,8 @@ async def show_database_contents():
     print("="*80)
     
     # Initialize Supabase client
-    url = "https://udjwjoymlofdocclufxv.supabase.co"
-    key = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVkandqb3ltbG9mZG9jY2x1Znh2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NTk0OTAzNiwiZXhwIjoyMDYxNTI1MDM2fQ.QHJg2OXToufUp1zZO9Y1bUvpXuFp1MFj9SiAc3bSeTE")
+    url = os.getenv("SUPABASE_URL")
+    key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
     
     supabase: Client = create_client(url, key)
     

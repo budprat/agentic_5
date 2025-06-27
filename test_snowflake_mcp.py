@@ -5,13 +5,10 @@ import os
 import asyncio
 import json
 from datetime import datetime
+from dotenv import load_dotenv
 
-# Set environment variables
-os.environ['SNOWFLAKE_ACCOUNT'] = 'NBTQRQH-YX22629'
-os.environ['SNOWFLAKE_USER'] = 'PBUDHWAR'
-os.environ['SNOWFLAKE_PASSWORD'] = 'Tordywcehhavvyrwi4'
-os.environ['SNOWFLAKE_DATABASE'] = 'SNOWFLAKE'
-os.environ['SNOWFLAKE_WAREHOUSE'] = 'COMPUTE_WH'
+# Load environment variables
+load_dotenv()
 
 # Import the Snowflake MCP components
 from snowflake_mcp import SnowflakeConnection

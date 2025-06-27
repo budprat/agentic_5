@@ -3,6 +3,9 @@
 .env.local
 .env.*.local
 
+# MCP Configuration (contains API keys)
+.mcp.json
+
 # Python
 __pycache__/
 *.py[cod]
@@ -120,3 +123,9 @@ dmypy.json
 
 # pytype static type analyzer
 .pytype/
+
+# Test output files
+proof_output.txt
+*_test_report.json
+*_demo.log
+test_*.log

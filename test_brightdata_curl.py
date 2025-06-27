@@ -4,6 +4,11 @@
 import asyncio
 import aiohttp
 import json
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 async def test_brightdata_api():
     """Test the exact BrightData API configuration."""
@@ -12,7 +17,7 @@ async def test_brightdata_api():
     url = "https://api.brightdata.com/datasets/v3/trigger?dataset_id=gd_lvz8ah06191smkebj4&include_errors=true&type=discover_new&discover_by=keyword"
     
     headers = {
-        "Authorization": "Bearer 9e9ece35cc8225d8b9e866772aea59acb0f9c810904b4616a513be83dc0d7a28",
+        "Authorization": f"Bearer {os.getenv('BRIGHTDATA_API_TOKEN')}",
         "Content-Type": "application/json"
     }
     
@@ -57,7 +62,7 @@ async def test_with_different_symbols():
         
         url = "https://api.brightdata.com/datasets/v3/trigger?dataset_id=gd_lvz8ah06191smkebj4&include_errors=true&type=discover_new&discover_by=keyword"
         headers = {
-            "Authorization": "Bearer 9e9ece35cc8225d8b9e866772aea59acb0f9c810904b4616a513be83dc0d7a28",
+            "Authorization": f"Bearer {os.getenv('BRIGHTDATA_API_TOKEN')}",
             "Content-Type": "application/json"
         }
         data = [{"keyword": symbol, "date": "Today", "sort_by": "Hot", "num_of_posts": 10}]

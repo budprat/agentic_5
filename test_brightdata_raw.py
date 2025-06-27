@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
 """Test BrightData API raw response to debug JSON parsing issue."""
 
+import os
 import asyncio
 import aiohttp
 import json
+from dotenv import load_dotenv
 
 async def test_brightdata_raw():
     """Test BrightData API and capture raw response."""
+    load_dotenv()
     
     # Test configuration
-    token = "9e9ece35cc8225d8b9e866772aea59acb0f9c810904b4616a513be83dc0d7a28"
+    token = os.getenv('BRIGHTDATA_API_TOKEN')
     dataset_id = "gd_lvz8ah06191smkebj4"
     
     # Step 1: Trigger data collection

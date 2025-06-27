@@ -4,10 +4,10 @@
 import os
 from supabase import create_client
 from datetime import datetime
+from dotenv import load_dotenv
 
-# Set environment
-os.environ['SUPABASE_URL'] = 'https://udjwjoymlofdocclufxv.supabase.co'
-os.environ['SUPABASE_SERVICE_ROLE_KEY'] = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVkandqb3ltbG9mZG9jY2x1Znh2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NTk0OTAzNiwiZXhwIjoyMDYxNTI1MDM2fQ.QHJg2OXToufUp1zZO9Y1bUvpXuFp1MFj9SiAc3bSeTE'
+# Load environment variables
+load_dotenv()
 
 def main():
     print("\n" + "="*80)
@@ -16,7 +16,7 @@ def main():
     print("\nShowing REAL data stored in Supabase database...")
     
     # Connect to Supabase
-    supabase = create_client(os.environ['SUPABASE_URL'], os.environ['SUPABASE_SERVICE_ROLE_KEY'])
+    supabase = create_client(os.getenv('SUPABASE_URL'), os.getenv('SUPABASE_SERVICE_ROLE_KEY'))
     
     # 1. Show Trading Signals
     print("\n\n📊 TRADING SIGNALS (Most Recent)")

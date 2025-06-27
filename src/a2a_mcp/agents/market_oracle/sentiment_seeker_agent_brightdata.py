@@ -1,5 +1,6 @@
 """Sentiment Seeker - Social Media Sentiment Analysis using BrightData."""
 
+import os
 import logging
 import json
 import re
@@ -8,6 +9,7 @@ import aiohttp
 from collections.abc import AsyncIterable
 from typing import Dict, Any, List
 from datetime import datetime, timedelta
+from dotenv import load_dotenv
 
 from a2a_mcp.common.base_agent import BaseAgent
 from a2a_mcp.common.utils import init_api_key
@@ -75,6 +77,7 @@ class SentimentSeekerAgentBrightData(BaseAgent):
     """Social media sentiment analysis using BrightData."""
 
     def __init__(self):
+        load_dotenv()
         init_api_key()
         super().__init__(
             agent_name="Sentiment Seeker BrightData",
@@ -84,7 +87,7 @@ class SentimentSeekerAgentBrightData(BaseAgent):
         self.supabase = SupabaseClient()
         self.model = genai.Client()
         # BrightData API configuration
-        self.brightdata_token = "9e9ece35cc8225d8b9e866772aea59acb0f9c810904b4616a513be83dc0d7a28"
+        self.brightdata_token = os.getenv('BRIGHTDATA_API_TOKEN')
         self.dataset_id = "gd_lvz8ah06191smkebj4"
         self.base_url = "https://api.brightdata.com/datasets/v3"
         # Initialize cache and parser

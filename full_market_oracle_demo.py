@@ -7,10 +7,10 @@ import sys
 from datetime import datetime
 import json
 from typing import Dict, Any
+from dotenv import load_dotenv
 
-# Set environment
-os.environ['SUPABASE_URL'] = 'https://udjwjoymlofdocclufxv.supabase.co'
-os.environ['SUPABASE_SERVICE_ROLE_KEY'] = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVkandqb3ltbG9mZG9jY2x1Znh2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NTk0OTAzNiwiZXhwIjoyMDYxNTI1MDM2fQ.QHJg2OXToufUp1zZO9Y1bUvpXuFp1MFj9SiAc3bSeTE'
+# Load environment variables
+load_dotenv()
 
 # Import Oracle Prime
 from src.a2a_mcp.agents.market_oracle.oracle_prime_agent_supabase import OraclePrimeAgentSupabase
@@ -22,7 +22,7 @@ class MarketOracleFullDemo:
     def __init__(self):
         print("\n🔧 INITIALIZING MARKET ORACLE...")
         self.oracle = OraclePrimeAgentSupabase()
-        self.supabase = create_client(os.environ['SUPABASE_URL'], os.environ['SUPABASE_SERVICE_ROLE_KEY'])
+        self.supabase = create_client(os.getenv('SUPABASE_URL'), os.getenv('SUPABASE_SERVICE_ROLE_KEY'))
         print("✅ All systems ready!")
         
     def print_section(self, title: str):
