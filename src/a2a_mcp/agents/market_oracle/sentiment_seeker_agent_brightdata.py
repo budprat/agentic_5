@@ -12,6 +12,8 @@ from datetime import datetime, timedelta
 from a2a_mcp.common.base_agent import BaseAgent
 from a2a_mcp.common.utils import init_api_key
 from a2a_mcp.common.supabase_client import SupabaseClient
+from a2a_mcp.common.stock_mcp_client import StockMCPClient
+from a2a_mcp.common.brightdata_cache import BrightDataCache, BrightDataParser
 from google import genai
 
 logger = logging.getLogger(__name__)
@@ -85,10 +87,19 @@ class SentimentSeekerAgentBrightData(BaseAgent):
         self.brightdata_token = "9e9ece35cc8225d8b9e866772aea59acb0f9c810904b4616a513be83dc0d7a28"
         self.dataset_id = "gd_lvz8ah06191smkebj4"
         self.base_url = "https://api.brightdata.com/datasets/v3"
+        # Initialize cache and parser
+        self.cache = BrightDataCache()
+        self.parser = BrightDataParser()
+        self.stock_mcp = StockMCPClient()
 
     async def fetch_reddit_data(self, keyword: str) -> Dict[str, Any]:
-        """Fetch Reddit data from BrightData API."""
+        """Fetch Reddit data from BrightData API with caching."""
         try:
+            # Check cache first
+            cached_data = await self.cache.get(keyword)
+            if cached_data:
+                logger.info(f"Using cached data for {keyword}")
+                return cached_data
             # Prepare the request URL with parameters
             url = f"https://api.brightdata.com/datasets/v3/trigger?dataset_id={self.dataset_id}&include_errors=true&type=discover_new&discover_by=keyword"
             
@@ -97,9 +108,9 @@ class SentimentSeekerAgentBrightData(BaseAgent):
                 "Content-Type": "application/json"
             }
             
-            # Search data format matching the curl example
+            # Search data format matching the curl example with limited posts
             search_data = [
-                {"keyword": keyword, "date": "Today", "sort_by": "Hot"}
+                {"keyword": keyword, "date": "Today", "sort_by": "Hot", "num_of_posts": 10}
             ]
             
             logger.info(f"Fetching Reddit data for {keyword} from BrightData...")
@@ -115,8 +126,14 @@ class SentimentSeekerAgentBrightData(BaseAgent):
                         # Check if we got a snapshot ID to poll for results
                         if 'snapshot_id' in data:
                             # Poll for results
-                            await asyncio.sleep(5)  # Give it time to process
+                            await asyncio.sleep(10)  # Give it more time to process
                             results = await self.get_brightdata_results(data['snapshot_id'])
+                            
+                            # Parse and cache the results
+                            if results and 'error' not in results:
+                                parsed_results = self.parser.parse_reddit_posts(results)
+                                await self.cache.set(keyword, parsed_results)
+                                return parsed_results
                             return results
                         return data
                     else:
@@ -134,12 +151,48 @@ class SentimentSeekerAgentBrightData(BaseAgent):
             url = f"{self.base_url}/snapshot/{snapshot_id}"
             headers = {"Authorization": f"Bearer {self.brightdata_token}"}
             
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url, headers=headers) as response:
-                    if response.status == 200:
-                        return await response.json()
-                    else:
-                        return {"error": f"Failed to get results: {response.status}"}
+            # Poll for results with retries
+            max_retries = 30
+            retry_delay = 3  # seconds
+            
+            for attempt in range(max_retries):
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(url, headers=headers) as response:
+                        logger.info(f"Polling attempt {attempt + 1}: Status {response.status}")
+                        
+                        if response.status == 200:
+                            # Try to get text response for NDJSON format
+                            text_response = await response.text()
+                            
+                            # Check if it's NDJSON (multiple JSON objects separated by newlines)
+                            if text_response.count('\n') > 0 and text_response.startswith('{'):
+                                logger.info(f"Got NDJSON response with {text_response.count(chr(10)) + 1} lines")
+                                return text_response  # Return raw text for parser
+                            else:
+                                # Try to parse as regular JSON
+                                try:
+                                    data = json.loads(text_response)
+                                    # Check if data is ready
+                                    if data.get('status') == 'ready' or data.get('data'):
+                                        logger.info(f"Results ready: {data}")
+                                        return data
+                                    else:
+                                        logger.info(f"Results not ready yet: {data}")
+                                except json.JSONDecodeError:
+                                    logger.error("Failed to parse response as JSON")
+                                    return {"error": "Invalid JSON response"}
+                        elif response.status == 202:
+                            # Still processing
+                            logger.info("Results still processing (202)...")
+                        else:
+                            logger.error(f"Unexpected status: {response.status}")
+                            return {"error": f"Failed to get results: {response.status}"}
+                
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(retry_delay)
+            
+            return {"error": "Results not ready after maximum retries"}
+            
         except Exception as e:
             logger.error(f"Error getting BrightData results: {e}")
             return {"error": str(e)}
@@ -147,23 +200,34 @@ class SentimentSeekerAgentBrightData(BaseAgent):
     async def fetch_stock_predictions(self, symbol: str) -> Dict[str, Any]:
         """Fetch ML predictions from stock predictions MCP."""
         try:
-            import os
-            stock_mcp_url = os.getenv('STOCK_MCP', 'https://tonic-stock-predictions.hf.space/gradio_api/mcp/sse')
+            logger.info(f"Fetching stock predictions for {symbol}")
             
-            # This would integrate with the stock predictions MCP
-            # For now, return placeholder data
-            logger.info(f"Stock MCP URL: {stock_mcp_url}")
+            # Use the Stock MCP client
+            prediction_data = await self.stock_mcp.get_prediction(symbol)
             
+            if 'error' in prediction_data:
+                logger.warning(f"Stock MCP error: {prediction_data['error']}")
+                
+            # Format for our use
+            prediction = prediction_data.get('prediction', {})
             return {
-                "ml_prediction": "bullish",
-                "confidence": 0.75,
-                "predicted_move": "+2.5%",
-                "timeframe": "1 week"
+                "ml_prediction": prediction.get('direction', 'neutral'),
+                "confidence": prediction.get('confidence', 0.5),
+                "predicted_move": f"{prediction.get('predicted_price_change_percent', 0):+.1f}%",
+                "timeframe": prediction.get('timeframe', '1 week'),
+                "factors": prediction.get('factors', []),
+                "support": prediction.get('key_levels', {}).get('support'),
+                "resistance": prediction.get('key_levels', {}).get('resistance'),
+                "model_accuracy": prediction_data.get('model_info', {}).get('accuracy_score', 0)
             }
             
         except Exception as e:
             logger.error(f"Error fetching stock predictions: {e}")
-            return {}
+            return {
+                "ml_prediction": "unavailable",
+                "confidence": 0,
+                "error": str(e)
+            }
 
     def calculate_sentiment_metrics(self, posts: List[Dict]) -> Dict[str, Any]:
         """Calculate sentiment metrics from Reddit posts."""
@@ -185,9 +249,11 @@ class SentimentSeekerAgentBrightData(BaseAgent):
         negative_count = 0
         
         for post in posts:
-            text = (post.get('title', '') + ' ' + post.get('text', '')).lower()
-            positive_count += sum(1 for word in positive_words if word in text)
-            negative_count += sum(1 for word in negative_words if word in text)
+            title = post.get('title') or ''
+            text = post.get('text') or ''
+            combined_text = (title + ' ' + text).lower()
+            positive_count += sum(1 for word in positive_words if word in combined_text)
+            negative_count += sum(1 for word in negative_words if word in combined_text)
         
         total_sentiment_words = positive_count + negative_count
         if total_sentiment_words > 0:

@@ -9,6 +9,7 @@ from datetime import datetime
 from a2a_mcp.common.base_agent import BaseAgent
 from a2a_mcp.common.utils import init_api_key
 from a2a_mcp.common.supabase_client import SupabaseClient
+from a2a_mcp.common.stock_mcp_client import StockMCPClient
 from a2a_mcp.common.parallel_workflow import (
     ParallelWorkflowGraph, 
     ParallelWorkflowNode,
@@ -87,7 +88,7 @@ class OraclePrimeAgentSupabase(BaseAgent):
         self.context_id = None
         self.enable_parallel = True
         self.supabase = SupabaseClient()
-        self.stock_mcp_url = os.getenv('STOCK_MCP', 'https://tonic-stock-predictions.hf.space/gradio_api/mcp/sse')
+        self.stock_mcp = StockMCPClient()
 
     async def load_portfolio_context(self, user_id: str = "demo_user"):
         """Load portfolio context from Supabase."""
@@ -173,40 +174,43 @@ class OraclePrimeAgentSupabase(BaseAgent):
     async def fetch_stock_predictions(self, symbol: str) -> Dict[str, Any]:
         """Fetch ML predictions from stock predictions MCP."""
         try:
-            logger.info(f"Fetching predictions for {symbol} from {self.stock_mcp_url}")
+            logger.info(f"Fetching predictions for {symbol} using Stock MCP client")
             
-            # For demo purposes, return simulated predictions
-            # In production, this would connect to the MCP SSE endpoint
+            # Use the Stock MCP client
+            prediction_data = await self.stock_mcp.get_prediction(symbol)
+            
+            # Transform response to match our format
+            prediction = prediction_data.get('prediction', {})
+            
             predictions = {
                 "symbol": symbol,
                 "ml_prediction": {
-                    "direction": "bullish",
-                    "confidence": 0.82,
-                    "predicted_price_1d": 152.50,
-                    "predicted_price_7d": 158.00,
-                    "predicted_price_30d": 165.00,
-                    "volatility_forecast": "moderate",
-                    "risk_score": 0.35
+                    "direction": prediction.get('direction', 'neutral'),
+                    "confidence": prediction.get('confidence', 0.5),
+                    "predicted_price_change": prediction.get('predicted_price_change_percent', 0),
+                    "volatility_forecast": "moderate" if abs(prediction.get('predicted_price_change_percent', 0)) < 3 else "high",
+                    "risk_score": 1 - prediction.get('confidence', 0.5)
                 },
                 "technical_signals": {
-                    "rsi": 58,
-                    "macd": "bullish_crossover",
-                    "moving_averages": "above_200_sma",
-                    "support": 145.00,
-                    "resistance": 160.00
+                    "support": prediction.get('key_levels', {}).get('support'),
+                    "resistance": prediction.get('key_levels', {}).get('resistance'),
+                    "factors": prediction.get('factors', [])
                 },
-                "model_metadata": {
-                    "model": "tonic-stock-predictor",
-                    "last_trained": datetime.now().isoformat(),
-                    "accuracy": 0.76
-                }
+                "model_metadata": prediction_data.get('model_info', {})
             }
             
             return predictions
             
         except Exception as e:
             logger.error(f"Error fetching stock predictions: {e}")
-            return {}
+            return {
+                "symbol": symbol,
+                "error": str(e),
+                "ml_prediction": {
+                    "direction": "unavailable",
+                    "confidence": 0
+                }
+            }
 
     async def generate_investment_summary(self) -> str:
         """Generate comprehensive investment recommendation."""

@@ -1,0 +1,60 @@
+BrightData error, using simulated data: Failed to get results: 202
+/home/coder/project/a2a-mcp/.venv/lib/python3.11/site-packages/supabase/_sync/client.py:303: DeprecationWarning: The 'timeout' parameter is deprecated. Please configure it in the http client instead.
+  return SyncPostgrestClient(
+/home/coder/project/a2a-mcp/.venv/lib/python3.11/site-packages/supabase/_sync/client.py:303: DeprecationWarning: The 'verify' parameter is deprecated. Please configure it in the http client instead.
+  return SyncPostgrestClient(
+Testing imports...
+✅ BrightData Sentiment Seeker imported successfully
+
+🚀 Testing BrightData and Stock MCP Integration
+
+Environment Check:
+  BRIGHTDATA_API_TOKEN: ✅
+  STOCK_MCP: ✅
+  SUPABASE_URL: ✅
+
+==================================================
+Testing Stock Predictions MCP Configuration
+==================================================
+
+✅ STOCK_MCP configured: https://tonic-stock-predictions.hf.space/gradio_api/mcp/sse
+✅ Oracle Prime Stock MCP URL: https://tonic-stock-predictions.hf.space/gradio_api/mcp/sse
+
+==================================================
+Testing BrightData Reddit Sentiment Analysis
+==================================================
+
+Query: What is the Reddit sentiment on TSLA?
+----------------------------------------
+Note: Using BrightData API with 'Today' filter for hot posts
+  Sentiment Seeker: Fetching Reddit data for TSLA via BrightData...
+  Sentiment Seeker: Analyzing sentiment patterns...
+  Sentiment Seeker: Fetching ML predictions...
+  Sentiment Seeker: Generating sentiment analysis...
+
+📊 Sentiment Analysis Results:
+Symbol: TSLA
+Sentiment Score: 0.75
+Confidence: 0.75
+Volume: low
+Data Source: BrightData Reddit API
+
+🤖 ML Predictions:
+  Direction: bullish
+  Confidence: 0.75
+  Predicted Move: +2.5%
+
+💬 Summary: Overall sentiment is bullish, driven by positive earnings and technical analysis. However, there are concerns about overvaluation, and a slight divergence exists between retail and smart money sentiment, suggesting some caution is warranted. The volume of discussion is low.
+
+💾 Data saved to Supabase tables:
+  - sentiment_data
+  - trading_signals (strong sentiment)
+
+==================================================
+✅ Tests Complete!
+==================================================
+
+Next steps:
+1. Update the agent runner to use SentimentSeekerAgentBrightData
+2. Start the full system: ./start_market_oracle.sh
+3. Run the integration test

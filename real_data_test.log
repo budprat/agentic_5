@@ -1,0 +1,213 @@
+2025-06-27 14:20:30,249 - google_adk.google.adk.models.registry - INFO - Updating LLM class for gemini-.* from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
+2025-06-27 14:20:30,249 - google_adk.google.adk.models.registry - INFO - Updating LLM class for projects\/.+\/locations\/.+\/endpoints\/.+ from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
+2025-06-27 14:20:30,249 - google_adk.google.adk.models.registry - INFO - Updating LLM class for projects\/.+\/locations\/.+\/publishers\/google\/models\/gemini.+ from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
+2025-06-27 14:20:30,249 - google_adk.google.adk.models.registry - INFO - Updating LLM class for gemini-.* from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
+2025-06-27 14:20:30,249 - google_adk.google.adk.models.registry - INFO - Updating LLM class for projects\/.+\/locations\/.+\/endpoints\/.+ from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
+2025-06-27 14:20:30,250 - google_adk.google.adk.models.registry - INFO - Updating LLM class for projects\/.+\/locations\/.+\/publishers\/google\/models\/gemini.+ from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
+2025-06-27 14:20:30,832 - src.a2a_mcp.common.brightdata_cache - INFO - Cache miss for TSLA
+2025-06-27 14:20:30,832 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Sentiment Seeker analyzing: Analyze Reddit sentiment for TSLA (session: test_TSLA)
+2025-06-27 14:20:30,832 - a2a_mcp.common.brightdata_cache - INFO - Cache miss for TSLA
+2025-06-27 14:20:30,832 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Fetching Reddit data for TSLA from BrightData...
+2025-06-27 14:20:30,832 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Request URL: https://api.brightdata.com/datasets/v3/trigger?dataset_id=gd_lvz8ah06191smkebj4&include_errors=true&type=discover_new&discover_by=keyword
+2025-06-27 14:20:30,833 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Request data: [{'keyword': 'TSLA', 'date': 'Today', 'sort_by': 'Hot', 'num_of_posts': 10}]
+2025-06-27 14:20:31,232 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - BrightData request successful: {'snapshot_id': 's_mcewg9j72tygbjxsr'}
+2025-06-27 14:20:43,579 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Polling attempt 1: Status 202
+2025-06-27 14:20:43,579 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Results still processing (202)...
+2025-06-27 14:20:48,908 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Polling attempt 2: Status 202
+2025-06-27 14:20:48,908 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Results still processing (202)...
+2025-06-27 14:20:53,240 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Polling attempt 3: Status 202
+2025-06-27 14:20:53,240 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Results still processing (202)...
+2025-06-27 14:20:57,097 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Polling attempt 4: Status 200
+2025-06-27 14:20:57,295 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - ERROR - Error getting BrightData results: Extra data: line 2 column 1 (char 11999)
+2025-06-27 14:20:57,296 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - WARNING - BrightData error, using simulated data: Extra data: line 2 column 1 (char 11999)
+2025-06-27 14:20:57,296 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Fetching stock predictions for TSLA
+2025-06-27 14:20:57,296 - google_genai.models - INFO - AFC is enabled with max remote calls: 10.
+2025-06-27 14:21:00,825 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent "HTTP/1.1 200 OK"
+2025-06-27 14:21:00,828 - google_genai.models - INFO - AFC remote call 1 is done.
+2025-06-27 14:21:01,491 - httpx - INFO - HTTP Request: POST https://udjwjoymlofdocclufxv.supabase.co/rest/v1/sentiment_data "HTTP/2 201 Created"
+2025-06-27 14:21:03,498 - src.a2a_mcp.common.brightdata_cache - INFO - Cache miss for NVDA
+2025-06-27 14:21:03,498 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Sentiment Seeker analyzing: Analyze Reddit sentiment for NVDA (session: test_NVDA)
+2025-06-27 14:21:03,498 - a2a_mcp.common.brightdata_cache - INFO - Cache miss for NVDA
+2025-06-27 14:21:03,498 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Fetching Reddit data for NVDA from BrightData...
+2025-06-27 14:21:03,498 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Request URL: https://api.brightdata.com/datasets/v3/trigger?dataset_id=gd_lvz8ah06191smkebj4&include_errors=true&type=discover_new&discover_by=keyword
+2025-06-27 14:21:03,498 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Request data: [{'keyword': 'NVDA', 'date': 'Today', 'sort_by': 'Hot', 'num_of_posts': 10}]
+2025-06-27 14:21:03,913 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - BrightData request successful: {'snapshot_id': 's_mcewgyr2rkvdrqnv5'}
+2025-06-27 14:21:16,410 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Polling attempt 1: Status 202
+2025-06-27 14:21:16,410 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Results still processing (202)...
+2025-06-27 14:21:21,760 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Polling attempt 2: Status 202
+2025-06-27 14:21:21,760 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Results still processing (202)...
+2025-06-27 14:21:27,091 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Polling attempt 3: Status 202
+2025-06-27 14:21:27,092 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Results still processing (202)...
+2025-06-27 14:21:32,428 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Polling attempt 4: Status 202
+2025-06-27 14:21:32,429 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Results still processing (202)...
+2025-06-27 14:21:36,100 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Polling attempt 5: Status 200
+2025-06-27 14:21:36,299 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - ERROR - Error getting BrightData results: Extra data: line 2 column 1 (char 10321)
+2025-06-27 14:21:36,300 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - WARNING - BrightData error, using simulated data: Extra data: line 2 column 1 (char 10321)
+2025-06-27 14:21:36,300 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Fetching stock predictions for NVDA
+2025-06-27 14:21:36,300 - google_genai.models - INFO - AFC is enabled with max remote calls: 10.
+2025-06-27 14:21:39,453 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent "HTTP/1.1 200 OK"
+2025-06-27 14:21:39,454 - google_genai.models - INFO - AFC remote call 1 is done.
+2025-06-27 14:21:39,949 - httpx - INFO - HTTP Request: POST https://udjwjoymlofdocclufxv.supabase.co/rest/v1/sentiment_data "HTTP/2 201 Created"
+2025-06-27 14:21:41,954 - src.a2a_mcp.common.brightdata_cache - INFO - Cache miss for GME
+2025-06-27 14:21:41,954 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Sentiment Seeker analyzing: Analyze Reddit sentiment for GME (session: test_GME)
+2025-06-27 14:21:41,954 - a2a_mcp.common.brightdata_cache - INFO - Cache miss for GME
+2025-06-27 14:21:41,954 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Fetching Reddit data for GME from BrightData...
+2025-06-27 14:21:41,954 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Request URL: https://api.brightdata.com/datasets/v3/trigger?dataset_id=gd_lvz8ah06191smkebj4&include_errors=true&type=discover_new&discover_by=keyword
+2025-06-27 14:21:41,954 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Request data: [{'keyword': 'GME', 'date': 'Today', 'sort_by': 'Hot', 'num_of_posts': 10}]
+2025-06-27 14:21:42,344 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - BrightData request successful: {'snapshot_id': 's_mcewhsee1c3ovf5xoz'}
+2025-06-27 14:21:54,683 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Polling attempt 1: Status 202
+2025-06-27 14:21:54,683 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Results still processing (202)...
+2025-06-27 14:22:00,019 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Polling attempt 2: Status 202
+2025-06-27 14:22:00,019 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Results still processing (202)...
+2025-06-27 14:22:05,349 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Polling attempt 3: Status 202
+2025-06-27 14:22:05,349 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Results still processing (202)...
+2025-06-27 14:22:09,205 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Polling attempt 4: Status 200
+2025-06-27 14:22:09,404 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - ERROR - Error getting BrightData results: Extra data: line 2 column 1 (char 13465)
+2025-06-27 14:22:09,404 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - WARNING - BrightData error, using simulated data: Extra data: line 2 column 1 (char 13465)
+2025-06-27 14:22:09,404 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Fetching stock predictions for GME
+2025-06-27 14:22:09,404 - google_genai.models - INFO - AFC is enabled with max remote calls: 10.
+2025-06-27 14:22:12,908 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent "HTTP/1.1 200 OK"
+2025-06-27 14:22:12,909 - google_genai.models - INFO - AFC remote call 1 is done.
+2025-06-27 14:22:13,373 - httpx - INFO - HTTP Request: POST https://udjwjoymlofdocclufxv.supabase.co/rest/v1/sentiment_data "HTTP/2 201 Created"
+2025-06-27 14:22:15,378 - src.a2a_mcp.common.brightdata_cache - INFO - Cache miss for AMC
+2025-06-27 14:22:15,378 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Sentiment Seeker analyzing: Analyze Reddit sentiment for AMC (session: test_AMC)
+2025-06-27 14:22:15,378 - a2a_mcp.common.brightdata_cache - INFO - Cache miss for AMC
+2025-06-27 14:22:15,378 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Fetching Reddit data for AMC from BrightData...
+2025-06-27 14:22:15,378 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Request URL: https://api.brightdata.com/datasets/v3/trigger?dataset_id=gd_lvz8ah06191smkebj4&include_errors=true&type=discover_new&discover_by=keyword
+2025-06-27 14:22:15,378 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Request data: [{'keyword': 'AMC', 'date': 'Today', 'sort_by': 'Hot', 'num_of_posts': 10}]
+2025-06-27 14:22:15,794 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - BrightData request successful: {'snapshot_id': 's_mcewii7t28xo5wts4m'}
+2025-06-27 14:22:28,127 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Polling attempt 1: Status 202
+2025-06-27 14:22:28,127 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Results still processing (202)...
+2025-06-27 14:22:33,456 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Polling attempt 2: Status 202
+2025-06-27 14:22:33,456 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Results still processing (202)...
+2025-06-27 14:22:37,790 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Polling attempt 3: Status 202
+2025-06-27 14:22:37,790 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Results still processing (202)...
+2025-06-27 14:22:42,119 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Polling attempt 4: Status 202
+2025-06-27 14:22:42,119 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Results still processing (202)...
+2025-06-27 14:22:49,313 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Polling attempt 5: Status 200
+2025-06-27 14:22:49,511 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - ERROR - Error getting BrightData results: Extra data: line 2 column 1 (char 12742)
+2025-06-27 14:22:49,511 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - WARNING - BrightData error, using simulated data: Extra data: line 2 column 1 (char 12742)
+2025-06-27 14:22:49,511 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Fetching stock predictions for AMC
+2025-06-27 14:22:49,512 - google_genai.models - INFO - AFC is enabled with max remote calls: 10.
+2025-06-27 14:22:52,327 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent "HTTP/1.1 200 OK"
+2025-06-27 14:22:52,329 - google_genai.models - INFO - AFC remote call 1 is done.
+2025-06-27 14:22:52,658 - httpx - INFO - HTTP Request: POST https://udjwjoymlofdocclufxv.supabase.co/rest/v1/sentiment_data "HTTP/2 201 Created"
+2025-06-27 14:22:54,661 - src.a2a_mcp.common.brightdata_cache - INFO - Cache miss for AAPL
+2025-06-27 14:22:54,661 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Sentiment Seeker analyzing: Analyze Reddit sentiment for AAPL (session: test_AAPL)
+2025-06-27 14:22:54,661 - a2a_mcp.common.brightdata_cache - INFO - Cache miss for AAPL
+2025-06-27 14:22:54,662 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Fetching Reddit data for AAPL from BrightData...
+2025-06-27 14:22:54,662 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Request URL: https://api.brightdata.com/datasets/v3/trigger?dataset_id=gd_lvz8ah06191smkebj4&include_errors=true&type=discover_new&discover_by=keyword
+2025-06-27 14:22:54,662 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Request data: [{'keyword': 'AAPL', 'date': 'Today', 'sort_by': 'Hot', 'num_of_posts': 10}]
+2025-06-27 14:22:55,081 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - BrightData request successful: {'snapshot_id': 's_mcewjcj2w4xolb0v9'}
+2025-06-27 14:23:06,422 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Polling attempt 1: Status 202
+2025-06-27 14:23:06,422 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Results still processing (202)...
+2025-06-27 14:23:10,749 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Polling attempt 2: Status 202
+2025-06-27 14:23:10,749 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Results still processing (202)...
+2025-06-27 14:23:16,076 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Polling attempt 3: Status 202
+2025-06-27 14:23:16,076 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Results still processing (202)...
+2025-06-27 14:23:21,402 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Polling attempt 4: Status 202
+2025-06-27 14:23:21,402 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Results still processing (202)...
+2025-06-27 14:45:16,681 - google_adk.google.adk.models.registry - INFO - Updating LLM class for gemini-.* from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
+2025-06-27 14:45:16,681 - google_adk.google.adk.models.registry - INFO - Updating LLM class for projects\/.+\/locations\/.+\/endpoints\/.+ from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
+2025-06-27 14:45:16,682 - google_adk.google.adk.models.registry - INFO - Updating LLM class for projects\/.+\/locations\/.+\/publishers\/google\/models\/gemini.+ from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
+2025-06-27 14:45:16,682 - google_adk.google.adk.models.registry - INFO - Updating LLM class for gemini-.* from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
+2025-06-27 14:45:16,682 - google_adk.google.adk.models.registry - INFO - Updating LLM class for projects\/.+\/locations\/.+\/endpoints\/.+ from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
+2025-06-27 14:45:16,682 - google_adk.google.adk.models.registry - INFO - Updating LLM class for projects\/.+\/locations\/.+\/publishers\/google\/models\/gemini.+ from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
+2025-06-27 14:45:17,148 - src.a2a_mcp.common.brightdata_cache - INFO - Cache hit (file) for TSLA
+2025-06-27 14:45:17,148 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Sentiment Seeker analyzing: Analyze Reddit sentiment for TSLA (session: test_TSLA)
+2025-06-27 14:45:17,149 - a2a_mcp.common.brightdata_cache - INFO - Cache hit (file) for TSLA
+2025-06-27 14:45:17,149 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Using cached data for TSLA
+2025-06-27 14:45:17,150 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Fetching stock predictions for TSLA
+2025-06-27 14:45:17,150 - google_genai.models - INFO - AFC is enabled with max remote calls: 10.
+2025-06-27 14:45:20,675 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent "HTTP/1.1 200 OK"
+2025-06-27 14:45:20,677 - google_genai.models - INFO - AFC remote call 1 is done.
+2025-06-27 14:45:21,198 - httpx - INFO - HTTP Request: POST https://udjwjoymlofdocclufxv.supabase.co/rest/v1/sentiment_data "HTTP/2 201 Created"
+2025-06-27 14:45:23,205 - src.a2a_mcp.common.brightdata_cache - INFO - Cache hit (file) for NVDA
+2025-06-27 14:45:23,205 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Sentiment Seeker analyzing: Analyze Reddit sentiment for NVDA (session: test_NVDA)
+2025-06-27 14:45:23,206 - a2a_mcp.common.brightdata_cache - INFO - Cache hit (file) for NVDA
+2025-06-27 14:45:23,206 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Using cached data for NVDA
+2025-06-27 14:45:23,206 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Fetching stock predictions for NVDA
+2025-06-27 14:45:23,207 - google_genai.models - INFO - AFC is enabled with max remote calls: 10.
+2025-06-27 14:45:26,380 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent "HTTP/1.1 200 OK"
+2025-06-27 14:45:26,381 - google_genai.models - INFO - AFC remote call 1 is done.
+2025-06-27 14:45:26,827 - httpx - INFO - HTTP Request: POST https://udjwjoymlofdocclufxv.supabase.co/rest/v1/sentiment_data "HTTP/2 201 Created"
+2025-06-27 14:45:28,830 - src.a2a_mcp.common.brightdata_cache - INFO - Cache miss for GME
+2025-06-27 14:45:28,830 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Sentiment Seeker analyzing: Analyze Reddit sentiment for GME (session: test_GME)
+2025-06-27 14:45:28,831 - a2a_mcp.common.brightdata_cache - INFO - Cache miss for GME
+2025-06-27 14:45:28,831 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Fetching Reddit data for GME from BrightData...
+2025-06-27 14:45:28,831 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Request URL: https://api.brightdata.com/datasets/v3/trigger?dataset_id=gd_lvz8ah06191smkebj4&include_errors=true&type=discover_new&discover_by=keyword
+2025-06-27 14:45:28,831 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Request data: [{'keyword': 'GME', 'date': 'Today', 'sort_by': 'Hot', 'num_of_posts': 10}]
+2025-06-27 14:45:29,238 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - BrightData request successful: {'snapshot_id': 's_mcexcdej1iyo5m41q9'}
+2025-06-27 14:45:40,595 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Polling attempt 1: Status 202
+2025-06-27 14:45:40,595 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Results still processing (202)...
+2025-06-27 14:45:45,945 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Polling attempt 2: Status 202
+2025-06-27 14:45:45,945 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Results still processing (202)...
+2025-06-27 14:45:51,280 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Polling attempt 3: Status 202
+2025-06-27 14:45:51,280 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Results still processing (202)...
+2025-06-27 14:45:55,106 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Polling attempt 4: Status 200
+2025-06-27 14:45:55,303 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Got NDJSON response with 11 lines
+2025-06-27 14:45:55,306 - a2a_mcp.common.brightdata_cache - INFO - Cached results for GME
+2025-06-27 14:45:55,307 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Fetching stock predictions for GME
+2025-06-27 14:45:55,307 - google_genai.models - INFO - AFC is enabled with max remote calls: 10.
+2025-06-27 14:45:59,153 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent "HTTP/1.1 200 OK"
+2025-06-27 14:45:59,154 - google_genai.models - INFO - AFC remote call 1 is done.
+2025-06-27 14:45:59,651 - httpx - INFO - HTTP Request: POST https://udjwjoymlofdocclufxv.supabase.co/rest/v1/sentiment_data "HTTP/2 201 Created"
+2025-06-27 14:46:01,655 - src.a2a_mcp.common.brightdata_cache - INFO - Cache miss for AMC
+2025-06-27 14:46:01,655 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Sentiment Seeker analyzing: Analyze Reddit sentiment for AMC (session: test_AMC)
+2025-06-27 14:46:01,655 - a2a_mcp.common.brightdata_cache - INFO - Cache miss for AMC
+2025-06-27 14:46:01,655 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Fetching Reddit data for AMC from BrightData...
+2025-06-27 14:46:01,655 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Request URL: https://api.brightdata.com/datasets/v3/trigger?dataset_id=gd_lvz8ah06191smkebj4&include_errors=true&type=discover_new&discover_by=keyword
+2025-06-27 14:46:01,655 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Request data: [{'keyword': 'AMC', 'date': 'Today', 'sort_by': 'Hot', 'num_of_posts': 10}]
+2025-06-27 14:46:02,048 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - BrightData request successful: {'snapshot_id': 's_mcexd2pw1cov62zmvo'}
+2025-06-27 14:46:14,386 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Polling attempt 1: Status 202
+2025-06-27 14:46:14,386 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Results still processing (202)...
+2025-06-27 14:46:19,714 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Polling attempt 2: Status 202
+2025-06-27 14:46:19,715 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Results still processing (202)...
+2025-06-27 14:46:25,052 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Polling attempt 3: Status 202
+2025-06-27 14:46:25,052 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Results still processing (202)...
+2025-06-27 14:46:30,381 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Polling attempt 4: Status 202
+2025-06-27 14:46:30,381 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Results still processing (202)...
+2025-06-27 14:46:34,015 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Polling attempt 5: Status 200
+2025-06-27 14:46:34,213 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Got NDJSON response with 11 lines
+2025-06-27 14:46:34,217 - a2a_mcp.common.brightdata_cache - INFO - Cached results for AMC
+2025-06-27 14:46:34,217 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Fetching stock predictions for AMC
+2025-06-27 14:46:34,218 - google_genai.models - INFO - AFC is enabled with max remote calls: 10.
+2025-06-27 14:46:37,748 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent "HTTP/1.1 200 OK"
+2025-06-27 14:46:37,749 - google_genai.models - INFO - AFC remote call 1 is done.
+2025-06-27 14:46:38,355 - httpx - INFO - HTTP Request: POST https://udjwjoymlofdocclufxv.supabase.co/rest/v1/sentiment_data "HTTP/2 201 Created"
+2025-06-27 14:46:40,360 - src.a2a_mcp.common.brightdata_cache - INFO - Cache hit (file) for AAPL
+2025-06-27 14:46:40,360 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Sentiment Seeker analyzing: Analyze Reddit sentiment for AAPL (session: test_AAPL)
+2025-06-27 14:46:40,361 - a2a_mcp.common.brightdata_cache - INFO - Cache hit (file) for AAPL
+2025-06-27 14:46:40,361 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Using cached data for AAPL
+2025-06-27 14:46:40,361 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Fetching stock predictions for AAPL
+2025-06-27 14:46:40,361 - google_genai.models - INFO - AFC is enabled with max remote calls: 10.
+2025-06-27 14:46:43,462 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent "HTTP/1.1 200 OK"
+2025-06-27 14:46:43,463 - google_genai.models - INFO - AFC remote call 1 is done.
+2025-06-27 14:46:43,896 - httpx - INFO - HTTP Request: POST https://udjwjoymlofdocclufxv.supabase.co/rest/v1/sentiment_data "HTTP/2 201 Created"
+2025-06-27 14:46:45,904 - asyncio - ERROR - Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x7f7cab2da5d0>
+2025-06-27 14:46:46,404 - httpx - INFO - HTTP Request: POST https://udjwjoymlofdocclufxv.supabase.co/rest/v1/trading_signals "HTTP/2 201 Created"
+2025-06-27 14:46:46,826 - httpx - INFO - HTTP Request: POST https://udjwjoymlofdocclufxv.supabase.co/rest/v1/trading_signals "HTTP/2 201 Created"
+2025-06-27 14:46:46,991 - httpx - INFO - HTTP Request: POST https://udjwjoymlofdocclufxv.supabase.co/rest/v1/trading_signals "HTTP/2 201 Created"
+2025-06-27 14:46:47,421 - httpx - INFO - HTTP Request: POST https://udjwjoymlofdocclufxv.supabase.co/rest/v1/trading_signals "HTTP/2 201 Created"
+2025-06-27 14:46:47,873 - httpx - INFO - HTTP Request: GET https://udjwjoymlofdocclufxv.supabase.co/rest/v1/trading_signals?select=%2A&symbol=eq.TSLA&order=created_at.desc&limit=5 "HTTP/2 200 OK"
+2025-06-27 14:46:48,047 - httpx - INFO - HTTP Request: GET https://udjwjoymlofdocclufxv.supabase.co/rest/v1/trading_signals?select=%2A&symbol=eq.NVDA&order=created_at.desc&limit=5 "HTTP/2 200 OK"
+2025-06-27 14:46:48,205 - httpx - INFO - HTTP Request: GET https://udjwjoymlofdocclufxv.supabase.co/rest/v1/trading_signals?select=%2A&symbol=eq.AAPL&order=created_at.desc&limit=5 "HTTP/2 200 OK"
+2025-06-27 14:46:48,370 - httpx - INFO - HTTP Request: GET https://udjwjoymlofdocclufxv.supabase.co/rest/v1/portfolios?select=%2A&user_id=eq.market_oracle_test&limit=1 "HTTP/2 200 OK"
+2025-06-27 14:46:48,815 - httpx - INFO - HTTP Request: POST https://udjwjoymlofdocclufxv.supabase.co/rest/v1/portfolios "HTTP/2 201 Created"
+2025-06-27 14:46:48,974 - httpx - INFO - HTTP Request: POST https://udjwjoymlofdocclufxv.supabase.co/rest/v1/positions "HTTP/2 201 Created"
+2025-06-27 14:46:49,398 - httpx - INFO - HTTP Request: POST https://udjwjoymlofdocclufxv.supabase.co/rest/v1/positions "HTTP/2 201 Created"
+2025-06-27 14:46:49,840 - httpx - INFO - HTTP Request: POST https://udjwjoymlofdocclufxv.supabase.co/rest/v1/positions "HTTP/2 201 Created"
+2025-06-27 14:46:50,266 - httpx - INFO - HTTP Request: GET https://udjwjoymlofdocclufxv.supabase.co/rest/v1/positions?select=%2A&portfolio_id=eq.1923a373-ef16-49e0-ae60-bdc49757d35c "HTTP/2 200 OK"
+2025-06-27 14:46:50,337 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Sentiment Seeker analyzing: Analyze Reddit sentiment for TSLA (session: workflow_test)
+2025-06-27 14:46:50,339 - a2a_mcp.common.brightdata_cache - INFO - Cache hit (file) for TSLA
+2025-06-27 14:46:50,339 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Using cached data for TSLA
+2025-06-27 14:46:50,339 - src.a2a_mcp.agents.market_oracle.sentiment_seeker_agent_brightdata - INFO - Fetching stock predictions for TSLA
+2025-06-27 14:46:50,339 - google_genai.models - INFO - AFC is enabled with max remote calls: 10.
+2025-06-27 14:46:53,609 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent "HTTP/1.1 200 OK"
+2025-06-27 14:46:53,610 - google_genai.models - INFO - AFC remote call 1 is done.
+2025-06-27 14:46:54,040 - httpx - INFO - HTTP Request: POST https://udjwjoymlofdocclufxv.supabase.co/rest/v1/sentiment_data "HTTP/2 201 Created"
+2025-06-27 14:46:54,466 - httpx - INFO - HTTP Request: POST https://udjwjoymlofdocclufxv.supabase.co/rest/v1/trading_signals "HTTP/2 201 Created"
+2025-06-27 14:46:54,626 - httpx - INFO - HTTP Request: POST https://udjwjoymlofdocclufxv.supabase.co/rest/v1/investment_research "HTTP/2 201 Created"
+2025-06-27 14:46:54,630 - asyncio - ERROR - Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x7f7cab346bd0>

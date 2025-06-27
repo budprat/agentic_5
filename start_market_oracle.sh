@@ -70,7 +70,7 @@ check_var "SUPABASE_SERVICE_ROLE_KEY"
 
 # Test Supabase connection
 echo -e "\n${YELLOW}Testing Supabase Connection...${NC}"
-if python -c "import os; from src.a2a_mcp.common.supabase_client import SupabaseClient; client = SupabaseClient.get_client(); print('Connected')" 2>/dev/null; then
+if .venv/bin/python -c "import os; from src.a2a_mcp.common.supabase_client import SupabaseClient; client = SupabaseClient.get_client(); print('Connected')" 2>/dev/null; then
     echo -e "${GREEN}✓ Supabase connection successful${NC}"
 else
     echo -e "${RED}✗ Failed to connect to Supabase${NC}"

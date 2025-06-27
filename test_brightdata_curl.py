@@ -16,8 +16,8 @@ async def test_brightdata_api():
         "Content-Type": "application/json"
     }
     
-    # Test with TSLA as in the example
-    data = [{"keyword": "TSLA", "date": "Today", "sort_by": "Hot"}]
+    # Test with TSLA as in the example - limited to 10 posts
+    data = [{"keyword": "TSLA", "date": "Today", "sort_by": "Hot", "num_of_posts": 10}]
     
     print("Testing BrightData API with configuration:")
     print(f"URL: {url}")
@@ -60,7 +60,7 @@ async def test_with_different_symbols():
             "Authorization": "Bearer 9e9ece35cc8225d8b9e866772aea59acb0f9c810904b4616a513be83dc0d7a28",
             "Content-Type": "application/json"
         }
-        data = [{"keyword": symbol, "date": "Today", "sort_by": "Hot"}]
+        data = [{"keyword": symbol, "date": "Today", "sort_by": "Hot", "num_of_posts": 10}]
         
         try:
             async with aiohttp.ClientSession() as session:
