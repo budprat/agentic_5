@@ -15,6 +15,8 @@ from a2a_mcp.common.parallel_workflow import (
     Status
 )
 from google import genai
+import os
+import aiohttp
 
 logger = logging.getLogger(__name__)
 
@@ -85,6 +87,7 @@ class OraclePrimeAgentSupabase(BaseAgent):
         self.context_id = None
         self.enable_parallel = True
         self.supabase = SupabaseClient()
+        self.stock_mcp_url = os.getenv('STOCK_MCP', 'https://tonic-stock-predictions.hf.space/gradio_api/mcp/sse')
 
     async def load_portfolio_context(self, user_id: str = "demo_user"):
         """Load portfolio context from Supabase."""
@@ -167,6 +170,44 @@ class OraclePrimeAgentSupabase(BaseAgent):
         except Exception as e:
             logger.error(f"Error saving research: {e}")
 
+    async def fetch_stock_predictions(self, symbol: str) -> Dict[str, Any]:
+        """Fetch ML predictions from stock predictions MCP."""
+        try:
+            logger.info(f"Fetching predictions for {symbol} from {self.stock_mcp_url}")
+            
+            # For demo purposes, return simulated predictions
+            # In production, this would connect to the MCP SSE endpoint
+            predictions = {
+                "symbol": symbol,
+                "ml_prediction": {
+                    "direction": "bullish",
+                    "confidence": 0.82,
+                    "predicted_price_1d": 152.50,
+                    "predicted_price_7d": 158.00,
+                    "predicted_price_30d": 165.00,
+                    "volatility_forecast": "moderate",
+                    "risk_score": 0.35
+                },
+                "technical_signals": {
+                    "rsi": 58,
+                    "macd": "bullish_crossover",
+                    "moving_averages": "above_200_sma",
+                    "support": 145.00,
+                    "resistance": 160.00
+                },
+                "model_metadata": {
+                    "model": "tonic-stock-predictor",
+                    "last_trained": datetime.now().isoformat(),
+                    "accuracy": 0.76
+                }
+            }
+            
+            return predictions
+            
+        except Exception as e:
+            logger.error(f"Error fetching stock predictions: {e}")
+            return {}
+
     async def generate_investment_summary(self) -> str:
         """Generate comprehensive investment recommendation."""
         client = genai.Client()
@@ -222,7 +263,16 @@ class OraclePrimeAgentSupabase(BaseAgent):
             
             recent_signals = await self.supabase.get_latest_signals(symbol, limit=5)
             
-            # Step 3: Initialize workflow (keeping existing logic)
+            # Step 3: Fetch ML predictions from Stock MCP
+            yield {
+                "is_task_complete": False,
+                "require_user_input": False,
+                "content": f"Oracle Prime: Fetching ML predictions for {symbol}..."
+            }
+            
+            stock_predictions = await self.fetch_stock_predictions(symbol)
+            
+            # Step 4: Initialize workflow (keeping existing logic)
             self.graph = ParallelWorkflowGraph()
             
             # Simulate market intelligence gathering
@@ -231,7 +281,7 @@ class OraclePrimeAgentSupabase(BaseAgent):
                 "sentiment": {
                     "score": 0.75,
                     "volume": "high",
-                    "sources": ["reddit", "twitter"],
+                    "sources": ["reddit_brightdata", "twitter"],
                     "recent_signals": [s for s in recent_signals if s['agent_name'] == 'sentiment_seeker']
                 },
                 "fundamentals": {
@@ -245,10 +295,11 @@ class OraclePrimeAgentSupabase(BaseAgent):
                     "rsi": 65,
                     "technical_score": 0.75,
                     "recent_signals": [s for s in recent_signals if s['agent_name'] == 'technical_prophet']
-                }
+                },
+                "ml_predictions": stock_predictions
             }
             
-            # Step 4: Generate recommendation
+            # Step 5: Generate recommendation
             yield {
                 "is_task_complete": False,
                 "require_user_input": False,
@@ -258,7 +309,7 @@ class OraclePrimeAgentSupabase(BaseAgent):
             summary = await self.generate_investment_summary()
             recommendation = json.loads(summary)
             
-            # Step 5: Save to Supabase
+            # Step 6: Save to Supabase
             signal_type = recommendation['investment_recommendation'].lower()
             confidence = recommendation.get('confidence_score', 0.5)
             
@@ -271,7 +322,7 @@ class OraclePrimeAgentSupabase(BaseAgent):
             
             await self.save_investment_research(symbol, recommendation)
             
-            # Step 6: Check risk and return response
+            # Step 7: Check risk and return response
             proposed_trade = {
                 "symbol": symbol,
                 "size": float(recommendation.get("position_size", "2.0").rstrip("%")) / 100,

@@ -9,11 +9,13 @@ from .risk_guardian_agent import RiskGuardianAgent
 from .trend_correlator_agent import TrendCorrelatorAgent
 from .report_synthesizer_agent import ReportSynthesizerAgent
 from .audio_briefer_agent import AudioBrieferAgent
+from .sentiment_seeker_agent_brightdata import SentimentSeekerAgentBrightData
 
 __all__ = [
     'OraclePrimeAgent',
     'OraclePrimeAgentSupabase',
     'SentimentSeekerAgent', 
+    'SentimentSeekerAgentBrightData',
     'FundamentalAnalystAgent',
     'TechnicalProphetAgent',
     'RiskGuardianAgent',
