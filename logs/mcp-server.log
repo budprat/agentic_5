@@ -426,3 +426,9 @@ INFO:     ::1:38574 - "POST /messages/?session_id=c225b514c8f24e618d834ca80af937
                              flights WHERE from_airport = 'LHR'                 
                              AND to_airport = 'SFO' AND                         
                              ticket_class = 'ECONOMY'                           
+INFO:     ::1:41784 - "GET /sse HTTP/1.1" 200 OK
+INFO:     ::1:41786 - "POST /messages/?session_id=1fafc8d3f71347089be6868e04d9844e HTTP/1.1" 202 Accepted
+INFO:     ::1:41786 - "POST /messages/?session_id=1fafc8d3f71347089be6868e04d9844e HTTP/1.1" 202 Accepted
+INFO:     ::1:41786 - "POST /messages/?session_id=1fafc8d3f71347089be6868e04d9844e HTTP/1.1" 202 Accepted
+[06/27/25 13:21:39] INFO     Processing request of type            server.py:523
+                             ListToolsRequest                                   

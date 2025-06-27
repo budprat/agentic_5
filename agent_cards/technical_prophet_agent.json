@@ -1,0 +1,58 @@
+{
+  "name": "Technical Prophet",
+  "description": "ML-powered technical analysis and price prediction agent",
+  "version": "1.0.0",
+  "endpoint": "http://localhost:10013",
+  "capabilities": [
+    "technical_analysis",
+    "price_prediction",
+    "pattern_recognition",
+    "ml_forecasting"
+  ],
+  "specialization": "Technical indicators, chart patterns, and ML-based price predictions",
+  "model": {
+    "provider": "google",
+    "name": "gemini-2.0-flash",
+    "temperature": 0.0
+  },
+  "tools": [
+    {
+      "name": "calculate_indicators",
+      "description": "Calculate RSI, MACD, Bollinger Bands, and other technical indicators"
+    },
+    {
+      "name": "ml_prediction",
+      "description": "Generate ML-based price predictions using historical data"
+    },
+    {
+      "name": "pattern_recognition",
+      "description": "Identify chart patterns and technical formations"
+    }
+  ],
+  "data_sources": [
+    "market_data",
+    "price_history",
+    "volume_data",
+    "technical_indicators"
+  ],
+  "output_format": {
+    "signal_type": "buy/sell/hold",
+    "confidence_score": "0.0-1.0",
+    "technical_score": "0.0-1.0",
+    "price_targets": {
+      "short_term": "1-7 days",
+      "medium_term": "1-3 months"
+    },
+    "ml_predictions": {
+      "direction": "up/down",
+      "probability": "0.0-1.0"
+    }
+  },
+  "integration": {
+    "supabase_tables": [
+      "trading_signals",
+      "market_trends"
+    ],
+    "mcp_connections": []
+  }
+}

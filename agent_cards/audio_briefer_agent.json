@@ -1,0 +1,72 @@
+{
+  "name": "Audio Briefer",
+  "description": "Voice briefing and audio report generation agent",
+  "version": "1.0.0",
+  "endpoint": "http://localhost:10017",
+  "capabilities": [
+    "voice_script_generation",
+    "ssml_formatting",
+    "briefing_creation",
+    "tts_preparation"
+  ],
+  "specialization": "Creating natural, conversational audio briefings for portfolio updates",
+  "model": {
+    "provider": "google",
+    "name": "gemini-2.0-flash",
+    "temperature": 0.3
+  },
+  "tools": [
+    {
+      "name": "generate_script",
+      "description": "Create natural language scripts for voice briefings"
+    },
+    {
+      "name": "format_ssml",
+      "description": "Format scripts with SSML for text-to-speech"
+    },
+    {
+      "name": "personalize_briefing",
+      "description": "Customize briefings based on user preferences"
+    }
+  ],
+  "briefing_types": [
+    "daily",
+    "weekly",
+    "alert",
+    "portfolio_summary",
+    "market_update"
+  ],
+  "voice_parameters": {
+    "tone": ["professional", "casual", "urgent"],
+    "pace": ["normal", "slow", "fast"],
+    "emphasis": "key points highlighted",
+    "duration": "60-180 seconds typical"
+  },
+  "audio_formats": {
+    "script": "plain text and SSML",
+    "tts_config": {
+      "voice": "en-US-Neural2-F",
+      "speaking_rate": 1.0,
+      "pitch": 0.0,
+      "output_format": "mp3"
+    }
+  },
+  "content_sections": [
+    "greeting",
+    "portfolio_overview",
+    "market_summary",
+    "key_recommendations",
+    "risk_alerts",
+    "closing"
+  ],
+  "integration": {
+    "supabase_tables": [
+      "audio_briefings",
+      "portfolios",
+      "trading_signals"
+    ],
+    "mcp_connections": [
+      "elevenlabs_mcp"
+    ]
+  }
+}

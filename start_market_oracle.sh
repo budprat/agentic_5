@@ -62,13 +62,20 @@ check_var "NOTION_API_KEY"
 echo -e "\nAudio Briefer (ElevenLabs):"
 check_var "ELEVENLABS_API_KEY"
 
-# Check if database exists
-echo -e "\n${YELLOW}Checking Database...${NC}"
-if [ -f "market_oracle.db" ]; then
-    echo -e "${GREEN}✓ Database exists${NC}"
+# Check Supabase configuration
+echo -e "\n${YELLOW}Checking Supabase Configuration...${NC}"
+check_var "SUPABASE_URL"
+check_var "SUPABASE_ANON_KEY"
+check_var "SUPABASE_SERVICE_ROLE_KEY"
+
+# Test Supabase connection
+echo -e "\n${YELLOW}Testing Supabase Connection...${NC}"
+if python -c "import os; from src.a2a_mcp.common.supabase_client import SupabaseClient; client = SupabaseClient.get_client(); print('Connected')" 2>/dev/null; then
+    echo -e "${GREEN}✓ Supabase connection successful${NC}"
 else
-    echo -e "${YELLOW}! Database not found. Creating...${NC}"
-    python init_market_oracle_database.py
+    echo -e "${RED}✗ Failed to connect to Supabase${NC}"
+    echo "Please check your Supabase credentials in .env"
+    exit 1
 fi
 
 # Check if MCP server is already running
@@ -117,13 +124,11 @@ echo -e "\n${YELLOW}Starting Market Oracle Agents...${NC}"
 start_agent "Oracle Prime" "oracle_prime_agent.json" 10501
 start_agent "Sentiment Seeker" "sentiment_seeker_agent.json" 10502
 start_agent "Fundamental Analyst" "fundamental_analyst_agent.json" 10503
-
-# Note: The following agents need to be implemented
-# start_agent "Technical Prophet" "technical_prophet_agent.json" 10504
-# start_agent "Risk Guardian" "risk_guardian_agent.json" 10505
-# start_agent "Trend Correlator" "trend_correlator_agent.json" 10506
-# start_agent "Report Synthesizer" "report_synthesizer_agent.json" 10507
-# start_agent "Audio Briefer" "audio_briefer_agent.json" 10508
+start_agent "Technical Prophet" "technical_prophet_agent.json" 10504
+start_agent "Risk Guardian" "risk_guardian_agent.json" 10505
+start_agent "Trend Correlator" "trend_correlator_agent.json" 10506
+start_agent "Report Synthesizer" "report_synthesizer_agent.json" 10507
+start_agent "Audio Briefer" "audio_briefer_agent.json" 10508
 
 echo -e "\n${GREEN}=================================="
 echo "Market Oracle is running!"
@@ -134,6 +139,11 @@ echo "  - MCP Server: http://localhost:10100"
 echo "  - Oracle Prime: http://localhost:10501"
 echo "  - Sentiment Seeker: http://localhost:10502"
 echo "  - Fundamental Analyst: http://localhost:10503"
+echo "  - Technical Prophet: http://localhost:10504"
+echo "  - Risk Guardian: http://localhost:10505"
+echo "  - Trend Correlator: http://localhost:10506"
+echo "  - Report Synthesizer: http://localhost:10507"
+echo "  - Audio Briefer: http://localhost:10508"
 echo ""
 echo "Logs are available in the logs/ directory"
 echo ""
