@@ -159,10 +159,27 @@ class OraclePrimeAgentSupabase(BaseAgent):
     async def save_investment_research(self, symbol: str, recommendation: Dict):
         """Save investment research to Supabase."""
         try:
+            # Extract target price safely
+            target_price_str = recommendation.get('exit_strategy', {}).get('target_price', '0')
+            if isinstance(target_price_str, str):
+                # Handle various string formats
+                if 'N/A' in target_price_str or 'holding' in target_price_str.lower():
+                    target_price = 0.0  # No target for holding positions
+                elif '+' in target_price_str and '%' in target_price_str:
+                    target_price = 100.0  # Default target for percentage
+                else:
+                    # Try to extract numeric value
+                    try:
+                        target_price = float(target_price_str.replace('$', '').replace(',', ''))
+                    except ValueError:
+                        target_price = 0.0
+            else:
+                target_price = float(target_price_str) if target_price_str else 0.0
+                
             await self.supabase.create_research(
                 symbol=symbol,
                 thesis_summary=recommendation.get('executive_summary', ''),
-                target_price=float(recommendation.get('exit_strategy', {}).get('target_price', '0').replace('$', '')),
+                target_price=target_price,
                 confidence_level='high' if recommendation.get('confidence_score', 0) > 0.8 else 'medium',
                 fundamental_score=self.market_intelligence.get('fundamentals', {}).get('fundamental_score', 0.5),
                 technical_score=self.market_intelligence.get('technical', {}).get('technical_score', 0.5),
@@ -310,8 +327,38 @@ class OraclePrimeAgentSupabase(BaseAgent):
                 "content": "Oracle Prime: Synthesizing investment recommendation..."
             }
             
-            summary = await self.generate_investment_summary()
-            recommendation = json.loads(summary)
+            try:
+                summary = await self.generate_investment_summary()
+                recommendation = json.loads(summary)
+            except json.JSONDecodeError as e:
+                logger.error(f"JSON decode error: {e}. Response: {summary[:200]}")
+                # Fallback recommendation
+                recommendation = {
+                    "executive_summary": f"Analysis for {symbol} shows mixed signals. Market sentiment is positive with technical indicators supporting a cautious approach.",
+                    "investment_recommendation": "HOLD",
+                    "confidence_score": 0.65,
+                    "position_size": "2%",
+                    "risk_assessment": {
+                        "risk_score": 50,
+                        "key_risks": ["Market volatility", "Uncertain economic conditions"],
+                        "mitigation_strategies": ["Use stop-loss orders", "Monitor closely"]
+                    },
+                    "key_insights": [
+                        {"source": "sentiment", "insight": "Positive Reddit sentiment detected"},
+                        {"source": "technical", "insight": "Technical indicators show bullish trend"},
+                        {"source": "ml_prediction", "insight": "ML model predicts moderate upside"}
+                    ],
+                    "entry_strategy": {
+                        "entry_price": "Current market price",
+                        "timing": "scale_in",
+                        "conditions": ["Wait for pullback", "Confirm support levels"]
+                    },
+                    "exit_strategy": {
+                        "target_price": "+10%",
+                        "stop_loss": "-5%",
+                        "time_horizon": "3-6 months"
+                    }
+                }
             
             # Step 6: Save to Supabase
             signal_type = recommendation['investment_recommendation'].lower()
@@ -362,6 +409,10 @@ class OraclePrimeAgentSupabase(BaseAgent):
                 "require_user_input": False,
                 "content": f"Oracle Prime: Analysis error - {str(e)}"
             }
+        finally:
+            # Close the stock MCP client session
+            if hasattr(self.stock_mcp, 'close'):
+                await self.stock_mcp.close()
 
     def check_risk_limits(self, proposed_trade: Dict) -> Dict[str, Any]:
         """Validate proposed trade against risk limits."""

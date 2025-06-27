@@ -264,7 +264,7 @@ class TrendCorrelatorAgent(BaseAgent):
                 client.table('market_trends').insert({
                     'symbol': symbol,
                     'search_term': term,
-                    'trend_score': data['current_volume'],
+                    'trend_score': int(data['current_volume']),  # Convert to integer
                     'correlation_coefficient': correlation_coefficient,
                     'lead_lag_days': trend_analysis['lead_lag_analysis']['lead_time_days']
                 }).execute()

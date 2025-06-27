@@ -4,7 +4,7 @@ import logging
 import json
 from collections.abc import AsyncIterable
 from typing import Dict, Any, List
-from datetime import datetime
+from datetime import datetime, timedelta
 import base64
 
 from a2a_mcp.common.base_agent import BaseAgent

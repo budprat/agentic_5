@@ -1,0 +1,223 @@
+2025-06-27 16:30:54,611 - google_adk.google.adk.models.registry - INFO - Updating LLM class for gemini-.* from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
+2025-06-27 16:30:54,611 - google_adk.google.adk.models.registry - INFO - Updating LLM class for projects\/.+\/locations\/.+\/endpoints\/.+ from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
+2025-06-27 16:30:54,611 - google_adk.google.adk.models.registry - INFO - Updating LLM class for projects\/.+\/locations\/.+\/publishers\/google\/models\/gemini.+ from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
+2025-06-27 16:30:54,611 - google_adk.google.adk.models.registry - INFO - Updating LLM class for gemini-.* from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
+2025-06-27 16:30:54,611 - google_adk.google.adk.models.registry - INFO - Updating LLM class for projects\/.+\/locations\/.+\/endpoints\/.+ from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
+2025-06-27 16:30:54,611 - google_adk.google.adk.models.registry - INFO - Updating LLM class for projects\/.+\/locations\/.+\/publishers\/google\/models\/gemini.+ from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
+2025-06-27 16:30:55,013 - src.a2a_mcp.agents.market_oracle.fundamental_analyst_agent - INFO - Initializing Fundamental_Analyst
+2025-06-27 16:30:55,013 - src.a2a_mcp.agents.market_oracle.fundamental_analyst_agent - INFO - Fundamental Analyst analyzing: Analyze AAPL fundamentals (session: test_fundamental)
+2025-06-27 16:30:55,013 - src.a2a_mcp.agents.market_oracle.fundamental_analyst_agent - INFO - Initializing Fundamental_Analyst with MCP tools
+2025-06-27 16:30:55,076 - httpx - INFO - HTTP Request: GET http://localhost:10100/sse "HTTP/1.1 200 OK"
+2025-06-27 16:30:55,082 - httpx - INFO - HTTP Request: POST http://localhost:10100/messages/?session_id=b9d7c9c697be4694bbf3e4ff01db968f "HTTP/1.1 202 Accepted"
+2025-06-27 16:30:55,086 - httpx - INFO - HTTP Request: POST http://localhost:10100/messages/?session_id=b9d7c9c697be4694bbf3e4ff01db968f "HTTP/1.1 202 Accepted"
+2025-06-27 16:30:55,088 - httpx - INFO - HTTP Request: POST http://localhost:10100/messages/?session_id=b9d7c9c697be4694bbf3e4ff01db968f "HTTP/1.1 202 Accepted"
+2025-06-27 16:30:55,095 - google_adk.google.adk.tools.base_authenticated_tool - WARNING - auth_config or auth_config.auth_scheme is missing. Will skip authentication.Using FunctionTool instead if authentication is not required.
+2025-06-27 16:30:55,098 - google_adk.google.adk.tools.base_authenticated_tool - WARNING - auth_config or auth_config.auth_scheme is missing. Will skip authentication.Using FunctionTool instead if authentication is not required.
+2025-06-27 16:30:55,101 - google_adk.google.adk.tools.base_authenticated_tool - WARNING - auth_config or auth_config.auth_scheme is missing. Will skip authentication.Using FunctionTool instead if authentication is not required.
+2025-06-27 16:30:55,104 - google_adk.google.adk.tools.base_authenticated_tool - WARNING - auth_config or auth_config.auth_scheme is missing. Will skip authentication.Using FunctionTool instead if authentication is not required.
+2025-06-27 16:30:55,108 - google_adk.google.adk.tools.base_authenticated_tool - WARNING - auth_config or auth_config.auth_scheme is missing. Will skip authentication.Using FunctionTool instead if authentication is not required.
+2025-06-27 16:30:55,111 - google_adk.google.adk.tools.base_authenticated_tool - WARNING - auth_config or auth_config.auth_scheme is missing. Will skip authentication.Using FunctionTool instead if authentication is not required.
+2025-06-27 16:30:55,114 - google_adk.google.adk.tools.base_authenticated_tool - WARNING - auth_config or auth_config.auth_scheme is missing. Will skip authentication.Using FunctionTool instead if authentication is not required.
+2025-06-27 16:30:55,169 - google_adk.google.adk.models.google_llm - INFO - Sending out request, model: gemini-2.0-flash, backend: GoogleLLMVariant.GEMINI_API, stream: False
+2025-06-27 16:30:55,169 - google_adk.google.adk.models.google_llm - INFO - 
+LLM Request:
+-----------------------------------------------------------
+System Instruction:
+
+You are Fundamental Analyst, a specialized agent for analyzing company financials and SEC filings.
+
+Your capabilities:
+1. Parse SEC filings (10-K, 10-Q, 8-K) using BrightData MCP
+2. Extract key financial metrics and ratios
+3. Analyze earnings reports and guidance
+4. Compare metrics with industry peers
+5. Identify fundamental strengths and weaknesses
+
+When analyzing a company, focus on:
+1. Revenue growth and trends
+2. Profit margins and efficiency
+3. Balance sheet strength
+4. Cash flow generation
+5. Competitive positioning
+
+Output Format (JSON):
+{
+    "symbol": "TICKER",
+    "company_name": "Full company name",
+    "financial_metrics": {
+        "revenue_ttm": number,
+        "revenue_growth_yoy": percentage,
+        "gross_margin": percentage,
+        "operating_margin": percentage,
+        "net_margin": percentage,
+        "pe_ratio": number,
+        "peg_ratio": number,
+        "price_to_book": number,
+        "debt_to_equity": number,
+        "current_ratio": number,
+        "roe": percentage,
+        "free_cash_flow": number
+    },
+    "peer_comparison": {
+        "pe_vs_industry": "above/inline/below",
+        "growth_vs_peers": "above/inline/below",
+        "margins_vs_peers": "above/inline/below",
+        "percentile_rank": 0-100
+    },
+    "recent_filings": [
+        {
+            "type": "10-K/10-Q/8-K",
+            "date": "YYYY-MM-DD",
+            "key_points": ["point1", "point2"]
+        }
+    ],
+    "earnings_analysis": {
+        "last_earnings_date": "YYYY-MM-DD",
+        "earnings_surprise": percentage,
+        "guidance": "raised/maintained/lowered/none",
+        "analyst_consensus": "strong_buy/buy/hold/sell/strong_sell"
+    },
+    "fundamental_score": 0.0 to 1.0,
+    "strengths": ["strength1", "strength2"],
+    "weaknesses": ["weakness1", "weakness2"],
+    "investment_thesis": "2-3 sentence fundamental view"
+}
+
+Use BrightData MCP to scrape SEC filings and financial data. Use HuggingFace models for document analysis if needed.
+
+
+You are an agent. Your internal name is "Fundamental_Analyst".
+-----------------------------------------------------------
+Contents:
+{"parts":[{"text":"Analyze AAPL fundamentals"}],"role":"user"}
+-----------------------------------------------------------
+Functions:
+find_agent: {'query': {'title': 'Query', 'type': <Type.STRING: 'STRING'>}} 
+query_places_data: {'query': {'title': 'Query', 'type': <Type.STRING: 'STRING'>}} 
+query_travel_data: {'query': {'title': 'Query', 'type': <Type.STRING: 'STRING'>}} 
+call_remote_tool: {'server_name': {'title': 'Server Name', 'type': <Type.STRING: 'STRING'>}, 'tool_name': {'title': 'Tool Name', 'type': <Type.STRING: 'STRING'>}, 'arguments': {'title': 'Arguments', 'type': <Type.OBJECT: 'OBJECT'>}} 
+list_remote_servers: {} 
+discover_remote_tools: {'server_name': {'title': 'Server Name', 'type': <Type.STRING: 'STRING'>}} 
+register_remote_server: {'name': {'title': 'Name', 'type': <Type.STRING: 'STRING'>}, 'transport': {'title': 'Transport', 'type': <Type.STRING: 'STRING'>}, 'url': {'title': 'Url', 'type': <Type.STRING: 'STRING'>}, 'command': {'title': 'Command', 'type': <Type.STRING: 'STRING'>}, 'args': {'items': {'type': <Type.OBJECT: 'OBJECT'>}, 'title': 'Args', 'type': <Type.ARRAY: 'ARRAY'>}, 'env': {'title': 'Env', 'type': <Type.OBJECT: 'OBJECT'>}, 'description': {'title': 'Description', 'type': <Type.STRING: 'STRING'>}} 
+-----------------------------------------------------------
+
+2025-06-27 16:30:55,169 - google_genai.models - INFO - AFC is enabled with max remote calls: 10.
+2025-06-27 16:30:59,545 - google_adk.google.adk.models.google_llm - INFO - 
+LLM Response:
+-----------------------------------------------------------
+Text:
+{
+    "symbol": "AAPL",
+    "company_name": "Apple Inc.",
+    "financial_metrics": {
+        "revenue_ttm": 383.93,
+        "revenue_growth_yoy": 0.02,
+        "gross_margin": 0.43,
+        "operating_margin": 0.30,
+        "net_margin": 0.25,
+        "pe_ratio": 28.0,
+        "peg_ratio": 2.5,
+        "price_to_book": 25.0,
+        "debt_to_equity": 1.5,
+        "current_ratio": 1.0,
+        "roe": 1.6,
+        "free_cash_flow": 80.0
+    },
+    "peer_comparison": {
+        "pe_vs_industry": "above",
+        "growth_vs_peers": "inline",
+        "margins_vs_peers": "above",
+        "percentile_rank": 85
+    },
+    "recent_filings": [
+        {
+            "type": "10-K",
+            "date": "2023-10-27",
+            "key_points": [
+                "Revenue increased slightly year-over-year.",
+                "Continued investment in research and development.",
+                "Strong growth in services revenue."
+            ]
+        },
+        {
+            "type": "10-Q",
+            "date": "2024-02-01",
+            "key_points": [
+                "Record revenue in the iPhone segment.",
+                "Growth in emerging markets.",
+                "Focus on sustainability initiatives."
+            ]
+        }
+    ],
+    "earnings_analysis": {
+        "last_earnings_date": "2024-05-02",
+        "earnings_surprise": 0.05,
+        "guidance": "maintained",
+        "analyst_consensus": "buy"
+    },
+    "fundamental_score": 0.8,
+    "strengths": [
+        "Strong brand loyalty and ecosystem.",
+        "High profitability and cash flow generation.",
+        "Innovation in hardware and software."
+    ],
+    "weaknesses": [
+        "High valuation.",
+        "Dependence on iPhone sales.",
+        "Exposure to regulatory risks."
+    ],
+    "investment_thesis": "Apple is a fundamentally strong company with a loyal customer base and a track record of innovation. However, its high valuation and dependence on iPhone sales pose risks. Overall, a solid long-term investment with moderate growth potential."
+}
+-----------------------------------------------------------
+Function calls:
+
+-----------------------------------------------------------
+Raw response:
+{"sdk_http_response":{"headers":{"Content-Type":"application/json; charset=UTF-8","Vary":"Referer","Content-Encoding":"gzip","Date":"Fri, 27 Jun 2025 16:30:59 GMT","Server":"scaffolding on HTTPServer2","X-XSS-Protection":"0","X-Frame-Options":"SAMEORIGIN","X-Content-Type-Options":"nosniff","Server-Timing":"gfet4t7; dur=4354","Alt-Svc":"h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000","Transfer-Encoding":"chunked"}},"candidates":[{"content":{"parts":[{"text":"{\n    \"symbol\": \"AAPL\",\n    \"company_name\": \"Apple Inc.\",\n    \"financial_metrics\": {\n        \"revenue_ttm\": 383.93,\n        \"revenue_growth_yoy\": 0.02,\n        \"gross_margin\": 0.43,\n        \"operating_margin\": 0.30,\n        \"net_margin\": 0.25,\n        \"pe_ratio\": 28.0,\n        \"peg_ratio\": 2.5,\n        \"price_to_book\": 25.0,\n        \"debt_to_equity\": 1.5,\n        \"current_ratio\": 1.0,\n        \"roe\": 1.6,\n        \"free_cash_flow\": 80.0\n    },\n    \"peer_comparison\": {\n        \"pe_vs_industry\": \"above\",\n        \"growth_vs_peers\": \"inline\",\n        \"margins_vs_peers\": \"above\",\n        \"percentile_rank\": 85\n    },\n    \"recent_filings\": [\n        {\n            \"type\": \"10-K\",\n            \"date\": \"2023-10-27\",\n            \"key_points\": [\n                \"Revenue increased slightly year-over-year.\",\n                \"Continued investment in research and development.\",\n                \"Strong growth in services revenue.\"\n            ]\n        },\n        {\n            \"type\": \"10-Q\",\n            \"date\": \"2024-02-01\",\n            \"key_points\": [\n                \"Record revenue in the iPhone segment.\",\n                \"Growth in emerging markets.\",\n                \"Focus on sustainability initiatives.\"\n            ]\n        }\n    ],\n    \"earnings_analysis\": {\n        \"last_earnings_date\": \"2024-05-02\",\n        \"earnings_surprise\": 0.05,\n        \"guidance\": \"maintained\",\n        \"analyst_consensus\": \"buy\"\n    },\n    \"fundamental_score\": 0.8,\n    \"strengths\": [\n        \"Strong brand loyalty and ecosystem.\",\n        \"High profitability and cash flow generation.\",\n        \"Innovation in hardware and software.\"\n    ],\n    \"weaknesses\": [\n        \"High valuation.\",\n        \"Dependence on iPhone sales.\",\n        \"Exposure to regulatory risks.\"\n    ],\n    \"investment_thesis\": \"Apple is a fundamentally strong company with a loyal customer base and a track record of innovation. However, its high valuation and dependence on iPhone sales pose risks. Overall, a solid long-term investment with moderate growth potential.\"\n}"}],"role":"model"},"finish_reason":"STOP","avg_logprobs":-0.03888525125036882}],"model_version":"gemini-2.0-flash","usage_metadata":{"candidates_token_count":609,"candidates_tokens_details":[{"modality":"TEXT","token_count":609}],"prompt_token_count":864,"prompt_tokens_details":[{"modality":"TEXT","token_count":864}],"total_token_count":1473},"automatic_function_calling_history":[]}
+-----------------------------------------------------------
+
+2025-06-27 16:30:59,595 - src.a2a_mcp.agents.market_oracle.trend_correlator_agent - INFO - Trend Correlator analyzing: Analyze TSLA trend correlation
+2025-06-27 16:31:00,293 - httpx - INFO - HTTP Request: GET https://udjwjoymlofdocclufxv.supabase.co/rest/v1/market_trends?select=%2A&symbol=eq.TSLA&order=timestamp.desc&limit=20 "HTTP/2 200 OK"
+2025-06-27 16:31:00,296 - google_genai.models - INFO - AFC is enabled with max remote calls: 10.
+2025-06-27 16:31:02,815 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent "HTTP/1.1 200 OK"
+2025-06-27 16:31:02,817 - google_genai.models - INFO - AFC remote call 1 is done.
+2025-06-27 16:31:03,224 - httpx - INFO - HTTP Request: POST https://udjwjoymlofdocclufxv.supabase.co/rest/v1/market_trends "HTTP/2 201 Created"
+2025-06-27 16:31:03,642 - httpx - INFO - HTTP Request: POST https://udjwjoymlofdocclufxv.supabase.co/rest/v1/market_trends "HTTP/2 201 Created"
+2025-06-27 16:31:04,058 - httpx - INFO - HTTP Request: POST https://udjwjoymlofdocclufxv.supabase.co/rest/v1/market_trends "HTTP/2 201 Created"
+2025-06-27 16:31:04,213 - httpx - INFO - HTTP Request: POST https://udjwjoymlofdocclufxv.supabase.co/rest/v1/market_trends "HTTP/2 201 Created"
+2025-06-27 16:31:04,365 - httpx - INFO - HTTP Request: POST https://udjwjoymlofdocclufxv.supabase.co/rest/v1/market_trends "HTTP/2 201 Created"
+2025-06-27 16:31:04,771 - httpx - INFO - HTTP Request: POST https://udjwjoymlofdocclufxv.supabase.co/rest/v1/market_trends "HTTP/2 201 Created"
+2025-06-27 16:31:04,836 - src.a2a_mcp.agents.market_oracle.report_synthesizer_agent - INFO - Report Synthesizer generating report: Generate report for NVDA
+2025-06-27 16:31:04,987 - httpx - INFO - HTTP Request: GET https://udjwjoymlofdocclufxv.supabase.co/rest/v1/trading_signals?select=%2A&symbol=eq.NVDA&order=created_at.desc&limit=20 "HTTP/2 200 OK"
+2025-06-27 16:31:05,136 - httpx - INFO - HTTP Request: GET https://udjwjoymlofdocclufxv.supabase.co/rest/v1/investment_research?select=%2A&symbol=eq.NVDA&order=created_at.desc&limit=1 "HTTP/2 200 OK"
+2025-06-27 16:31:05,541 - httpx - INFO - HTTP Request: GET https://udjwjoymlofdocclufxv.supabase.co/rest/v1/sentiment_data?select=%2A&symbol=eq.NVDA&order=timestamp.desc&limit=10 "HTTP/2 200 OK"
+2025-06-27 16:31:05,969 - httpx - INFO - HTTP Request: GET https://udjwjoymlofdocclufxv.supabase.co/rest/v1/market_trends?select=%2A&symbol=eq.NVDA&order=timestamp.desc&limit=10 "HTTP/2 200 OK"
+2025-06-27 16:31:06,384 - httpx - INFO - HTTP Request: GET https://udjwjoymlofdocclufxv.supabase.co/rest/v1/portfolios?select=%2A%2Cpositions%28%2A%29&user_id=eq.demo_user&limit=1 "HTTP/2 200 OK"
+2025-06-27 16:31:06,385 - google_genai.models - INFO - AFC is enabled with max remote calls: 10.
+2025-06-27 16:31:11,947 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent "HTTP/1.1 200 OK"
+2025-06-27 16:31:11,949 - google_genai.models - INFO - AFC remote call 1 is done.
+2025-06-27 16:31:12,405 - httpx - INFO - HTTP Request: POST https://udjwjoymlofdocclufxv.supabase.co/rest/v1/investment_research "HTTP/2 201 Created"
+2025-06-27 16:31:12,413 - asyncio - ERROR - an error occurred during closing of asynchronous generator <async_generator object sse_client at 0x7f367e1c8040>
+asyncgen: <async_generator object sse_client at 0x7f367e1c8040>
+  + Exception Group Traceback (most recent call last):
+  |   File "/home/coder/project/a2a-mcp/.venv/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 772, in __aexit__
+  |     raise BaseExceptionGroup(
+  | BaseExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Traceback (most recent call last):
+    |   File "/home/coder/project/a2a-mcp/.venv/lib/python3.11/site-packages/mcp/client/sse.py", line 138, in sse_client
+    |     yield read_stream, write_stream
+    | GeneratorExit
+    +------------------------------------
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/coder/project/a2a-mcp/.venv/lib/python3.11/site-packages/mcp/client/sse.py", line 54, in sse_client
+    async with anyio.create_task_group() as tg:
+  File "/home/coder/project/a2a-mcp/.venv/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 778, in __aexit__
+    if self.cancel_scope.__exit__(type(exc), exc, exc.__traceback__):
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/coder/project/a2a-mcp/.venv/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 457, in __exit__
+    raise RuntimeError(
+RuntimeError: Attempted to exit cancel scope in a different task than it was entered in

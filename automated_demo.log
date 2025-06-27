@@ -1,0 +1,88 @@
+2025-06-27 16:45:54,594 - google_adk.google.adk.models.registry - INFO - Updating LLM class for gemini-.* from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
+2025-06-27 16:45:54,595 - google_adk.google.adk.models.registry - INFO - Updating LLM class for projects\/.+\/locations\/.+\/endpoints\/.+ from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
+2025-06-27 16:45:54,595 - google_adk.google.adk.models.registry - INFO - Updating LLM class for projects\/.+\/locations\/.+\/publishers\/google\/models\/gemini.+ from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
+2025-06-27 16:45:54,595 - google_adk.google.adk.models.registry - INFO - Updating LLM class for gemini-.* from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
+2025-06-27 16:45:54,595 - google_adk.google.adk.models.registry - INFO - Updating LLM class for projects\/.+\/locations\/.+\/endpoints\/.+ from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
+2025-06-27 16:45:54,595 - google_adk.google.adk.models.registry - INFO - Updating LLM class for projects\/.+\/locations\/.+\/publishers\/google\/models\/gemini.+ from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
+2025-06-27 16:45:57,041 - src.a2a_mcp.agents.market_oracle.oracle_prime_agent_supabase - INFO - Oracle Prime Supabase analyzing: What is the current Reddit sentiment for TSLA? (session: demo_sentiment)
+2025-06-27 16:45:58,014 - httpx - INFO - HTTP Request: GET https://udjwjoymlofdocclufxv.supabase.co/rest/v1/portfolios?select=%2A&user_id=eq.demo_user&limit=1 "HTTP/2 200 OK"
+2025-06-27 16:45:58,435 - httpx - INFO - HTTP Request: GET https://udjwjoymlofdocclufxv.supabase.co/rest/v1/positions?select=%2A&portfolio_id=eq.0facb728-6f3b-4209-86ba-b8633f51d760&exit_date=is.null "HTTP/2 200 OK"
+2025-06-27 16:45:58,864 - httpx - INFO - HTTP Request: GET https://udjwjoymlofdocclufxv.supabase.co/rest/v1/risk_metrics?select=%2A&portfolio_id=eq.0facb728-6f3b-4209-86ba-b8633f51d760&order=calculated_at.desc&limit=1 "HTTP/2 200 OK"
+2025-06-27 16:45:59,577 - httpx - INFO - HTTP Request: GET https://udjwjoymlofdocclufxv.supabase.co/rest/v1/trading_signals?select=%2A&symbol=eq.TSLA&order=created_at.desc&limit=5 "HTTP/2 200 OK"
+2025-06-27 16:45:59,879 - src.a2a_mcp.agents.market_oracle.oracle_prime_agent_supabase - INFO - Fetching predictions for TSLA using Stock MCP client
+2025-06-27 16:46:00,244 - google_genai.models - INFO - AFC is enabled with max remote calls: 10.
+2025-06-27 16:46:03,795 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent "HTTP/1.1 200 OK"
+2025-06-27 16:46:03,796 - google_genai.models - INFO - AFC remote call 1 is done.
+2025-06-27 16:46:04,208 - httpx - INFO - HTTP Request: POST https://udjwjoymlofdocclufxv.supabase.co/rest/v1/trading_signals "HTTP/2 201 Created"
+2025-06-27 16:46:04,368 - httpx - INFO - HTTP Request: POST https://udjwjoymlofdocclufxv.supabase.co/rest/v1/investment_research "HTTP/2 201 Created"
+2025-06-27 16:46:04,369 - __main__ - ERROR - Demo error: 'dict' object has no attribute 'lower'
+2025-06-27 16:46:09,375 - src.a2a_mcp.agents.market_oracle.oracle_prime_agent_supabase - INFO - Oracle Prime Supabase analyzing: Provide technical analysis for NVDA with price predictions (session: demo_technical)
+2025-06-27 16:46:10,117 - httpx - INFO - HTTP Request: GET https://udjwjoymlofdocclufxv.supabase.co/rest/v1/portfolios?select=%2A&user_id=eq.demo_user&limit=1 "HTTP/2 200 OK"
+2025-06-27 16:46:10,533 - httpx - INFO - HTTP Request: GET https://udjwjoymlofdocclufxv.supabase.co/rest/v1/positions?select=%2A&portfolio_id=eq.0facb728-6f3b-4209-86ba-b8633f51d760&exit_date=is.null "HTTP/2 200 OK"
+2025-06-27 16:46:10,957 - httpx - INFO - HTTP Request: GET https://udjwjoymlofdocclufxv.supabase.co/rest/v1/risk_metrics?select=%2A&portfolio_id=eq.0facb728-6f3b-4209-86ba-b8633f51d760&order=calculated_at.desc&limit=1 "HTTP/2 200 OK"
+2025-06-27 16:46:11,415 - httpx - INFO - HTTP Request: GET https://udjwjoymlofdocclufxv.supabase.co/rest/v1/trading_signals?select=%2A&symbol=eq.NVDA&order=created_at.desc&limit=5 "HTTP/2 200 OK"
+2025-06-27 16:46:11,716 - src.a2a_mcp.agents.market_oracle.oracle_prime_agent_supabase - INFO - Fetching predictions for NVDA using Stock MCP client
+2025-06-27 16:46:12,084 - google_genai.models - INFO - AFC is enabled with max remote calls: 10.
+2025-06-27 16:46:14,796 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent "HTTP/1.1 200 OK"
+2025-06-27 16:46:14,797 - google_genai.models - INFO - AFC remote call 1 is done.
+2025-06-27 16:46:15,222 - httpx - INFO - HTTP Request: POST https://udjwjoymlofdocclufxv.supabase.co/rest/v1/trading_signals "HTTP/2 201 Created"
+2025-06-27 16:46:15,635 - httpx - INFO - HTTP Request: POST https://udjwjoymlofdocclufxv.supabase.co/rest/v1/investment_research "HTTP/2 201 Created"
+2025-06-27 16:46:20,639 - src.a2a_mcp.agents.market_oracle.oracle_prime_agent_supabase - INFO - Oracle Prime Supabase analyzing: Analyze my portfolio risk considering current market conditions (session: demo_risk)
+2025-06-27 16:46:21,408 - httpx - INFO - HTTP Request: GET https://udjwjoymlofdocclufxv.supabase.co/rest/v1/portfolios?select=%2A&user_id=eq.demo_user&limit=1 "HTTP/2 200 OK"
+2025-06-27 16:46:21,817 - httpx - INFO - HTTP Request: GET https://udjwjoymlofdocclufxv.supabase.co/rest/v1/positions?select=%2A&portfolio_id=eq.0facb728-6f3b-4209-86ba-b8633f51d760&exit_date=is.null "HTTP/2 200 OK"
+2025-06-27 16:46:22,226 - httpx - INFO - HTTP Request: GET https://udjwjoymlofdocclufxv.supabase.co/rest/v1/risk_metrics?select=%2A&portfolio_id=eq.0facb728-6f3b-4209-86ba-b8633f51d760&order=calculated_at.desc&limit=1 "HTTP/2 200 OK"
+2025-06-27 16:46:22,682 - httpx - INFO - HTTP Request: GET https://udjwjoymlofdocclufxv.supabase.co/rest/v1/trading_signals?select=%2A&symbol=eq.UNKNOWN&order=created_at.desc&limit=5 "HTTP/2 200 OK"
+2025-06-27 16:46:22,983 - src.a2a_mcp.agents.market_oracle.oracle_prime_agent_supabase - INFO - Fetching predictions for UNKNOWN using Stock MCP client
+2025-06-27 16:46:23,352 - google_genai.models - INFO - AFC is enabled with max remote calls: 10.
+2025-06-27 16:46:26,834 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent "HTTP/1.1 200 OK"
+2025-06-27 16:46:26,835 - google_genai.models - INFO - AFC remote call 1 is done.
+2025-06-27 16:46:27,279 - httpx - INFO - HTTP Request: POST https://udjwjoymlofdocclufxv.supabase.co/rest/v1/trading_signals "HTTP/2 201 Created"
+2025-06-27 16:46:27,282 - src.a2a_mcp.agents.market_oracle.oracle_prime_agent_supabase - ERROR - Error saving research: could not convert string to float: 'N/A - Not entering a new position'
+2025-06-27 16:46:27,282 - src.a2a_mcp.agents.market_oracle.oracle_prime_agent_supabase - ERROR - Oracle Prime error: could not convert string to float: 'N/A'
+2025-06-27 16:46:32,287 - src.a2a_mcp.agents.market_oracle.oracle_prime_agent_supabase - INFO - Oracle Prime Supabase analyzing: Provide complete investment analysis for AAPL including all factors (session: demo_multi)
+2025-06-27 16:46:33,016 - httpx - INFO - HTTP Request: GET https://udjwjoymlofdocclufxv.supabase.co/rest/v1/portfolios?select=%2A&user_id=eq.demo_user&limit=1 "HTTP/2 200 OK"
+2025-06-27 16:46:33,165 - httpx - INFO - HTTP Request: GET https://udjwjoymlofdocclufxv.supabase.co/rest/v1/positions?select=%2A&portfolio_id=eq.0facb728-6f3b-4209-86ba-b8633f51d760&exit_date=is.null "HTTP/2 200 OK"
+2025-06-27 16:46:33,582 - httpx - INFO - HTTP Request: GET https://udjwjoymlofdocclufxv.supabase.co/rest/v1/risk_metrics?select=%2A&portfolio_id=eq.0facb728-6f3b-4209-86ba-b8633f51d760&order=calculated_at.desc&limit=1 "HTTP/2 200 OK"
+2025-06-27 16:46:34,032 - httpx - INFO - HTTP Request: GET https://udjwjoymlofdocclufxv.supabase.co/rest/v1/trading_signals?select=%2A&symbol=eq.AAPL&order=created_at.desc&limit=5 "HTTP/2 200 OK"
+2025-06-27 16:46:34,333 - src.a2a_mcp.agents.market_oracle.oracle_prime_agent_supabase - INFO - Fetching predictions for AAPL using Stock MCP client
+2025-06-27 16:46:34,688 - google_genai.models - INFO - AFC is enabled with max remote calls: 10.
+2025-06-27 16:46:38,404 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent "HTTP/1.1 200 OK"
+2025-06-27 16:46:38,405 - google_genai.models - INFO - AFC remote call 1 is done.
+2025-06-27 16:46:38,820 - httpx - INFO - HTTP Request: POST https://udjwjoymlofdocclufxv.supabase.co/rest/v1/trading_signals "HTTP/2 201 Created"
+2025-06-27 16:46:39,249 - httpx - INFO - HTTP Request: POST https://udjwjoymlofdocclufxv.supabase.co/rest/v1/investment_research "HTTP/2 201 Created"
+2025-06-27 16:46:39,250 - src.a2a_mcp.agents.market_oracle.oracle_prime_agent_supabase - ERROR - Oracle Prime error: could not convert string to float: 'Currently at 17.5% of portfolio. No additional purchase recommended at this time due to position size limits.'
+2025-06-27 16:46:44,255 - src.a2a_mcp.agents.market_oracle.oracle_prime_agent_supabase - INFO - Oracle Prime Supabase analyzing: Quick signal check for TSLA (session: signal_TSLA)
+2025-06-27 16:46:44,729 - httpx - INFO - HTTP Request: GET https://udjwjoymlofdocclufxv.supabase.co/rest/v1/portfolios?select=%2A&user_id=eq.demo_user&limit=1 "HTTP/2 200 OK"
+2025-06-27 16:46:45,173 - httpx - INFO - HTTP Request: GET https://udjwjoymlofdocclufxv.supabase.co/rest/v1/positions?select=%2A&portfolio_id=eq.0facb728-6f3b-4209-86ba-b8633f51d760&exit_date=is.null "HTTP/2 200 OK"
+2025-06-27 16:46:45,341 - httpx - INFO - HTTP Request: GET https://udjwjoymlofdocclufxv.supabase.co/rest/v1/risk_metrics?select=%2A&portfolio_id=eq.0facb728-6f3b-4209-86ba-b8633f51d760&order=calculated_at.desc&limit=1 "HTTP/2 200 OK"
+2025-06-27 16:46:45,783 - httpx - INFO - HTTP Request: GET https://udjwjoymlofdocclufxv.supabase.co/rest/v1/trading_signals?select=%2A&symbol=eq.TSLA&order=created_at.desc&limit=5 "HTTP/2 200 OK"
+2025-06-27 16:46:45,784 - src.a2a_mcp.agents.market_oracle.oracle_prime_agent_supabase - INFO - Fetching predictions for TSLA using Stock MCP client
+2025-06-27 16:46:45,841 - google_genai.models - INFO - AFC is enabled with max remote calls: 10.
+2025-06-27 16:46:49,331 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent "HTTP/1.1 200 OK"
+2025-06-27 16:46:49,332 - google_genai.models - INFO - AFC remote call 1 is done.
+2025-06-27 16:46:49,515 - httpx - INFO - HTTP Request: POST https://udjwjoymlofdocclufxv.supabase.co/rest/v1/trading_signals "HTTP/2 201 Created"
+2025-06-27 16:46:49,939 - httpx - INFO - HTTP Request: POST https://udjwjoymlofdocclufxv.supabase.co/rest/v1/investment_research "HTTP/2 201 Created"
+2025-06-27 16:46:50,941 - src.a2a_mcp.agents.market_oracle.oracle_prime_agent_supabase - INFO - Oracle Prime Supabase analyzing: Quick signal check for NVDA (session: signal_NVDA)
+2025-06-27 16:46:51,106 - httpx - INFO - HTTP Request: GET https://udjwjoymlofdocclufxv.supabase.co/rest/v1/portfolios?select=%2A&user_id=eq.demo_user&limit=1 "HTTP/2 200 OK"
+2025-06-27 16:46:51,528 - httpx - INFO - HTTP Request: GET https://udjwjoymlofdocclufxv.supabase.co/rest/v1/positions?select=%2A&portfolio_id=eq.0facb728-6f3b-4209-86ba-b8633f51d760&exit_date=is.null "HTTP/2 200 OK"
+2025-06-27 16:46:51,958 - httpx - INFO - HTTP Request: GET https://udjwjoymlofdocclufxv.supabase.co/rest/v1/risk_metrics?select=%2A&portfolio_id=eq.0facb728-6f3b-4209-86ba-b8633f51d760&order=calculated_at.desc&limit=1 "HTTP/2 200 OK"
+2025-06-27 16:46:52,409 - httpx - INFO - HTTP Request: GET https://udjwjoymlofdocclufxv.supabase.co/rest/v1/trading_signals?select=%2A&symbol=eq.NVDA&order=created_at.desc&limit=5 "HTTP/2 200 OK"
+2025-06-27 16:46:52,410 - src.a2a_mcp.agents.market_oracle.oracle_prime_agent_supabase - INFO - Fetching predictions for NVDA using Stock MCP client
+2025-06-27 16:46:52,463 - google_genai.models - INFO - AFC is enabled with max remote calls: 10.
+2025-06-27 16:46:55,368 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent "HTTP/1.1 200 OK"
+2025-06-27 16:46:55,370 - google_genai.models - INFO - AFC remote call 1 is done.
+2025-06-27 16:46:55,539 - httpx - INFO - HTTP Request: POST https://udjwjoymlofdocclufxv.supabase.co/rest/v1/trading_signals "HTTP/2 201 Created"
+2025-06-27 16:46:55,980 - httpx - INFO - HTTP Request: POST https://udjwjoymlofdocclufxv.supabase.co/rest/v1/investment_research "HTTP/2 201 Created"
+2025-06-27 16:46:56,982 - src.a2a_mcp.agents.market_oracle.oracle_prime_agent_supabase - INFO - Oracle Prime Supabase analyzing: Quick signal check for AAPL (session: signal_AAPL)
+2025-06-27 16:46:57,144 - httpx - INFO - HTTP Request: GET https://udjwjoymlofdocclufxv.supabase.co/rest/v1/portfolios?select=%2A&user_id=eq.demo_user&limit=1 "HTTP/2 200 OK"
+2025-06-27 16:46:57,307 - httpx - INFO - HTTP Request: GET https://udjwjoymlofdocclufxv.supabase.co/rest/v1/positions?select=%2A&portfolio_id=eq.0facb728-6f3b-4209-86ba-b8633f51d760&exit_date=is.null "HTTP/2 200 OK"
+2025-06-27 16:46:57,469 - httpx - INFO - HTTP Request: GET https://udjwjoymlofdocclufxv.supabase.co/rest/v1/risk_metrics?select=%2A&portfolio_id=eq.0facb728-6f3b-4209-86ba-b8633f51d760&order=calculated_at.desc&limit=1 "HTTP/2 200 OK"
+2025-06-27 16:46:57,882 - httpx - INFO - HTTP Request: GET https://udjwjoymlofdocclufxv.supabase.co/rest/v1/trading_signals?select=%2A&symbol=eq.AAPL&order=created_at.desc&limit=5 "HTTP/2 200 OK"
+2025-06-27 16:46:57,883 - src.a2a_mcp.agents.market_oracle.oracle_prime_agent_supabase - INFO - Fetching predictions for AAPL using Stock MCP client
+2025-06-27 16:46:57,942 - google_genai.models - INFO - AFC is enabled with max remote calls: 10.
+2025-06-27 16:47:00,560 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent "HTTP/1.1 200 OK"
+2025-06-27 16:47:00,561 - google_genai.models - INFO - AFC remote call 1 is done.
+2025-06-27 16:47:01,017 - httpx - INFO - HTTP Request: POST https://udjwjoymlofdocclufxv.supabase.co/rest/v1/trading_signals "HTTP/2 201 Created"
+2025-06-27 16:47:01,175 - httpx - INFO - HTTP Request: POST https://udjwjoymlofdocclufxv.supabase.co/rest/v1/investment_research "HTTP/2 201 Created"
+2025-06-27 16:47:07,182 - asyncio - ERROR - Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x7f068a15df10>

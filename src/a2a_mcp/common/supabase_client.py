@@ -40,6 +40,26 @@ class SupabaseClient:
         # This is a placeholder - actual implementation depends on query type
         pass
     
+    # Add instance methods for easier use
+    def __init__(self):
+        """Initialize with client."""
+        self.client = self.get_client()
+        
+    async def get_portfolios(self, user_id: str, limit: int = 10) -> list:
+        """Get portfolios for a user."""
+        response = self.client.table('portfolios').select("*").eq('user_id', user_id).limit(limit).execute()
+        return response.data
+        
+    async def get_positions(self, portfolio_id: str) -> list:
+        """Get positions for a portfolio."""
+        response = self.client.table('positions').select("*").eq('portfolio_id', portfolio_id).is_('exit_date', 'null').execute()
+        return response.data
+        
+    async def get_latest_signals(self, limit: int = 10) -> list:
+        """Get latest trading signals."""
+        response = self.client.table('trading_signals').select("*").order('created_at', desc=True).limit(limit).execute()
+        return response.data
+    
     # Portfolio operations
     @classmethod
     async def create_portfolio(cls, user_id: str, total_value: float, cash_balance: float) -> Dict[str, Any]:
@@ -175,14 +195,30 @@ class SupabaseClient:
         """Create investment research entry."""
         client = cls.get_client()
         
+        # Ensure all numeric values are properly typed
+        def safe_float(value, default=0.0):
+            """Safely convert value to float."""
+            if value is None:
+                return default
+            if isinstance(value, (int, float)):
+                return float(value)
+            if isinstance(value, str):
+                if value.lower() in ['n/a', 'na', 'none', '']:
+                    return default
+                try:
+                    return float(value.replace('$', '').replace(',', '').replace('%', ''))
+                except ValueError:
+                    return default
+            return default
+            
         data = {
             'symbol': symbol,
             'thesis_summary': thesis_summary,
-            'target_price': target_price,
+            'target_price': safe_float(target_price),
             'confidence_level': confidence_level,
-            'fundamental_score': fundamental_score,
-            'technical_score': technical_score,
-            'sentiment_score': sentiment_score
+            'fundamental_score': safe_float(fundamental_score, 0.5),
+            'technical_score': safe_float(technical_score, 0.5),
+            'sentiment_score': safe_float(sentiment_score, 0.0)
         }
         
         response = client.table('investment_research').insert(data).execute()

@@ -84,7 +84,7 @@ class FundamentalAnalystAgent(BaseAgent):
     def __init__(self):
         init_api_key()
         super().__init__(
-            agent_name="Fundamental Analyst",
+            agent_name="Fundamental_Analyst",
             description="SEC filings and earnings analyzer",
             content_types=['text', 'text/plain']
         )

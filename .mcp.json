@@ -13,6 +13,12 @@
       ],
       "env": {}
     },
+    "snowflake": {
+      "command": "python",
+      "args": [
+        "/home/coder/project/a2a-mcp/snowflake_mcp.py"
+      ]
+    },
     "brightdata": {
       "type": "stdio",
       "command": "npx",

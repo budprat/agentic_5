@@ -152,3 +152,9 @@ class StockMCPClient:
             await asyncio.sleep(0.1)  # Rate limiting
             
         return results
+    
+    async def close(self):
+        """Close the aiohttp session properly."""
+        if self.session:
+            await self.session.close()
+            self.session = None
