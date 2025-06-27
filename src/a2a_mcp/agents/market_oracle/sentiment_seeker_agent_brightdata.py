@@ -89,31 +89,25 @@ class SentimentSeekerAgentBrightData(BaseAgent):
     async def fetch_reddit_data(self, keyword: str) -> Dict[str, Any]:
         """Fetch Reddit data from BrightData API."""
         try:
-            # Prepare the request
-            url = f"{self.base_url}/trigger"
-            params = {
-                "dataset_id": self.dataset_id,
-                "include_errors": "true",
-                "type": "discover_new",
-                "discover_by": "keyword"
-            }
+            # Prepare the request URL with parameters
+            url = f"https://api.brightdata.com/datasets/v3/trigger?dataset_id={self.dataset_id}&include_errors=true&type=discover_new&discover_by=keyword"
             
             headers = {
                 "Authorization": f"Bearer {self.brightdata_token}",
                 "Content-Type": "application/json"
             }
             
-            # Search for stock-related keywords
-            search_terms = [
-                {"keyword": keyword, "date": "All time", "sort_by": "Hot"},
-                {"keyword": f"${keyword}", "date": "All time", "sort_by": "Hot"},
-                {"keyword": f"{keyword} stock", "date": "All time", "sort_by": "Hot"}
+            # Search data format matching the curl example
+            search_data = [
+                {"keyword": keyword, "date": "Today", "sort_by": "Hot"}
             ]
             
             logger.info(f"Fetching Reddit data for {keyword} from BrightData...")
+            logger.info(f"Request URL: {url}")
+            logger.info(f"Request data: {search_data}")
             
             async with aiohttp.ClientSession() as session:
-                async with session.post(url, params=params, headers=headers, json=search_terms) as response:
+                async with session.post(url, headers=headers, json=search_data) as response:
                     if response.status == 200:
                         data = await response.json()
                         logger.info(f"BrightData request successful: {data}")

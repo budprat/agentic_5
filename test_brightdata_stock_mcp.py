@@ -23,9 +23,10 @@ async def test_brightdata_sentiment():
     agent = SentimentSeekerAgentBrightData()
     
     # Test query
-    query = "What is the Reddit sentiment on AAPL?"
+    query = "What is the Reddit sentiment on TSLA?"
     print(f"Query: {query}")
     print("-" * 40)
+    print("Note: Using BrightData API with 'Today' filter for hot posts")
     
     try:
         async for response in agent.stream(query, "test_session", "test_task"):

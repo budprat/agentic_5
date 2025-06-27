@@ -55,8 +55,8 @@
       "trading_signals"
     ],
     "brightdata_config": {
-      "keywords": ["stock symbol", "$symbol", "symbol stock"],
-      "date_range": "All time",
+      "keywords": ["symbol"],
+      "date_range": "Today",
       "sort_by": "Hot"
     }
   }
