@@ -186,6 +186,48 @@ class SupabaseClient:
             'data_points': len(data)
         }
     
+    # Agent analysis operations
+    @classmethod
+    async def save_agent_analysis(cls, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Save generic agent analysis data."""
+        client = cls.get_client()
+        
+        # Map to appropriate table based on analysis type
+        analysis_type = data.get('analysis_type', 'general')
+        
+        if analysis_type == 'sentiment':
+            # Save to sentiment_data table
+            sentiment_data = {
+                'symbol': data.get('symbol'),
+                'source': data.get('agent_name', 'unknown'),
+                'sentiment_score': data.get('sentiment_score', 0),
+                'volume_score': data.get('volume_score', 0)
+            }
+            response = client.table('sentiment_data').insert(sentiment_data).execute()
+            
+        elif analysis_type == 'investment_research':
+            # Save to investment_research table
+            await cls.save_investment_research(data)
+            return data
+            
+        elif analysis_type == 'trading_signal':
+            # Save to trading_signals table
+            signal_data = {
+                'symbol': data.get('symbol'),
+                'signal_type': data.get('signal_type', 'ANALYSIS'),
+                'action': data.get('action', 'HOLD'),
+                'confidence': data.get('confidence', 0.5),
+                'metadata': data.get('metadata', {})
+            }
+            response = client.table('trading_signals').insert(signal_data).execute()
+            
+        else:
+            # Save to a generic agent_interactions table if it exists
+            # For now, just return the data
+            return data
+            
+        return response.data[0] if response and response.data else data
+    
     # Investment research operations
     @classmethod
     async def create_research(cls, symbol: str, thesis_summary: str, 

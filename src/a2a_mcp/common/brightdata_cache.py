@@ -5,7 +5,6 @@ import logging
 import asyncio
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
-import aiofiles
 import os
 
 logger = logging.getLogger(__name__)
@@ -44,8 +43,9 @@ class BrightDataCache:
         cache_file = self._get_cache_file(cache_key)
         if os.path.exists(cache_file):
             try:
-                async with aiofiles.open(cache_file, 'r') as f:
-                    content = await f.read()
+                # Use synchronous file operations to avoid cancellation issues
+                with open(cache_file, 'r') as f:
+                    content = f.read()
                     cached = json.loads(content)
                     
                 if self._is_valid(cached):
@@ -81,8 +81,9 @@ class BrightDataCache:
         
         # Save to file cache
         try:
-            async with aiofiles.open(cache_file, 'w') as f:
-                await f.write(json.dumps(cache_entry, indent=2))
+            # Use synchronous file operations to avoid cancellation issues
+            with open(cache_file, 'w') as f:
+                f.write(json.dumps(cache_entry, indent=2))
             logger.info(f"Cached results for {keyword}")
         except Exception as e:
             logger.error(f"Error saving cache: {e}")

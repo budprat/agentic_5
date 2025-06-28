@@ -121,7 +121,6 @@ class TechnicalProphetAgent(BaseAgent):
         try:
             signals = await self.supabase.get_latest_signals(
                 symbol=symbol,
-                agent_name="Technical Prophet",
                 limit=10
             )
             return signals

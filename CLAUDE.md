@@ -90,3 +90,10 @@ IMPORTANT: When working with Notion through the NotionAI MCP server:
 - All other Notion pages are READ-ONLY for reference and data gathering
 - See `notion_mcp_rules.md` for detailed usage guidelines
 - Available pages list in `notion_pages_complete_list.md` (90+ pages organized by category)
+
+## Development Rules
+- **NEVER bypass errors by creating simpler demos or test files**. Always fix the actual issues in the existing code.
+- When encountering errors during testing, ALWAYS fix the root cause rather than creating workarounds or simplified versions.
+- Do not create "simple" or "basic" versions of tests when the full tests fail - fix the actual problems.
+- **NEVER use mock data or placeholder data** when real data sources fail. Fix the actual integration issues instead of returning fake data.
+- If an API or service is not working, fix the connection/authentication/timeout issues rather than bypassing with mock responses.

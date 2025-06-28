@@ -2,7 +2,6 @@
   return SyncPostgrestClient(
 /home/coder/project/a2a-mcp/.venv/lib/python3.11/site-packages/supabase/_sync/client.py:303: DeprecationWarning: The 'verify' parameter is deprecated. Please configure it in the http client instead.
   return SyncPostgrestClient(
-Oracle Prime error: could not convert string to float: 'Current position is within acceptable limits.'
 /home/coder/project/a2a-mcp/.venv/lib/python3.11/site-packages/google/adk/tools/mcp_tool/mcp_tool.py:85: UserWarning: [EXPERIMENTAL] BaseAuthenticatedTool: This feature is experimental and may change or be removed in future versions without notice. It may introduce breaking changes at any time.
   super().__init__(
 auth_config or auth_config.auth_scheme is missing. Will skip authentication.Using FunctionTool instead if authentication is not required.
@@ -42,7 +41,7 @@ RuntimeError: Attempted to exit cancel scope in a different task than it was ent
 ✅ Supabase connection available
 
 🚀 Market Oracle Agent Test Suite
-📅 2025-06-28 12:42:12.373400
+📅 2025-06-28 12:43:53.479097
 ============================================================
 
 ============================================================
@@ -53,7 +52,7 @@ RuntimeError: Attempted to exit cancel scope in a different task than it was ent
 
 📤 Sending request: Analyze AAPL stock
 ✅ Oracle Prime (Master) responded successfully
-📊 Response length: 319 characters
+📊 Response length: 5955 characters
 📝 Response preview: Oracle Prime: Loading portfolio data from Supabase...Oracle Prime: Checking recent signals for AAPL...Oracle Prime: Fetching ML predictions for AAPL...Oracle Prime: Synthesizing investment recommendat...
 
 ============================================================
@@ -75,19 +74,19 @@ RuntimeError: Attempted to exit cancel scope in a different task than it was ent
 
 📤 Sending request: Analyze AAPL technical indicators
 ✅ Technical Prophet responded successfully
-📊 Response length: 7905 characters
+📊 Response length: 8203 characters
 📝 Response preview: Technical Prophet: Fetching price data for AAPL...Technical Prophet: Calculating technical indicators...Technical Prophet: Analyzing historical patterns...Technical Prophet: Running ML prediction mode...
 
 ============================================================
-🧪 Testing News Hawk
+🧪 Testing Sentiment Seeker
 ============================================================
-✅ Initializing News Hawk...
-✅ News Hawk initialized successfully
+✅ Initializing Sentiment Seeker...
+✅ Sentiment Seeker initialized successfully
 
-📤 Sending request: Get latest AAPL news
+📤 Sending request: Analyze AAPL sentiment
 Traceback (most recent call last):
-  File "/home/coder/project/a2a-mcp/src/a2a_mcp/agents/market_oracle/news_hawk_agent.py", line 79, in search_news
-    async with session.get(url, headers=headers, params=params) as response:
+  File "/home/coder/project/a2a-mcp/src/a2a_mcp/agents/market_oracle/sentiment_seeker_agent_brightdata.py", line 129, in fetch_reddit_data
+    async with session.post(url, headers=headers, json=search_data) as response:
   File "/home/coder/project/a2a-mcp/.venv/lib/python3.11/site-packages/aiohttp/client.py", line 1482, in __aenter__
     self._resp: _RetType = await self._coro
                            ^^^^^^^^^^^^^^^^
@@ -109,12 +108,12 @@ Traceback (most recent call last):
   File "/home/coder/project/a2a-mcp/.venv/lib/python3.11/site-packages/aiohttp/connector.py", line 1128, in _resolve_host
     return await asyncio.shield(resolved_host_task)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-asyncio.exceptions.CancelledError: Cancelled by cancel scope 7fb16b1e7d50
+asyncio.exceptions.CancelledError: Cancelled by cancel scope 7f7b28f33050
 
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
-  File "/home/coder/project/a2a-mcp/test_all_market_oracle_agents.py", line 221, in <module>
+  File "/home/coder/project/a2a-mcp/test_all_market_oracle_agents.py", line 229, in <module>
     successful, failed = asyncio.run(test_all_agents())
                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "/usr/lib/python3.11/asyncio/runners.py", line 190, in run
@@ -126,16 +125,16 @@ Traceback (most recent call last):
   File "/usr/lib/python3.11/asyncio/base_events.py", line 653, in run_until_complete
     return future.result()
            ^^^^^^^^^^^^^^^
-  File "/home/coder/project/a2a-mcp/test_all_market_oracle_agents.py", line 117, in test_all_agents
+  File "/home/coder/project/a2a-mcp/test_all_market_oracle_agents.py", line 125, in test_all_agents
     success, error = await test_agent(agent_class, agent_name, test_request)
                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/coder/project/a2a-mcp/test_all_market_oracle_agents.py", line 46, in test_agent
-    async for chunk in agent.stream(test_request):
-  File "/home/coder/project/a2a-mcp/src/a2a_mcp/agents/market_oracle/news_hawk_agent.py", line 190, in stream
-    news_items = await self.search_news(f"{symbol} stock", count=15)
-                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/coder/project/a2a-mcp/src/a2a_mcp/agents/market_oracle/news_hawk_agent.py", line 78, in search_news
+  File "/home/coder/project/a2a-mcp/test_all_market_oracle_agents.py", line 60, in test_agent
+    async for chunk in agent.stream(test_request, context_id, task_id):
+  File "/home/coder/project/a2a-mcp/src/a2a_mcp/agents/market_oracle/sentiment_seeker_agent_brightdata.py", line 320, in stream
+    reddit_data = await self.fetch_reddit_data(symbol)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/coder/project/a2a-mcp/src/a2a_mcp/agents/market_oracle/sentiment_seeker_agent_brightdata.py", line 128, in fetch_reddit_data
     async with aiohttp.ClientSession(timeout=timeout) as session:
   File "/home/coder/project/a2a-mcp/.venv/lib/python3.11/site-packages/aiohttp/connector.py", line 136, in _wait_for_close
     async def _wait_for_close(waiters: List[Awaitable[object]]) -> None:
-asyncio.exceptions.CancelledError: Cancelled by cancel scope 7fb16b1e7d50
+asyncio.exceptions.CancelledError: Cancelled by cancel scope 7f7b28f33050

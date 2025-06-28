@@ -103,6 +103,10 @@ class SentimentSeekerAgentBrightData(BaseAgent):
             if cached_data:
                 logger.info(f"Using cached data for {keyword}")
                 return cached_data
+            
+            # Check if BrightData token is available
+            if not self.brightdata_token:
+                raise ValueError("BrightData API token not configured")
             # Prepare the request URL with parameters
             url = f"https://api.brightdata.com/datasets/v3/trigger?dataset_id={self.dataset_id}&include_errors=true&type=discover_new&discover_by=keyword"
             
@@ -120,7 +124,8 @@ class SentimentSeekerAgentBrightData(BaseAgent):
             logger.info(f"Request URL: {url}")
             logger.info(f"Request data: {search_data}")
             
-            async with aiohttp.ClientSession() as session:
+            timeout = aiohttp.ClientTimeout(total=60)  # 1 minute timeout
+            async with aiohttp.ClientSession(timeout=timeout) as session:
                 async with session.post(url, headers=headers, json=search_data) as response:
                     if response.status == 200:
                         data = await response.json()
@@ -129,7 +134,7 @@ class SentimentSeekerAgentBrightData(BaseAgent):
                         # Check if we got a snapshot ID to poll for results
                         if 'snapshot_id' in data:
                             # Poll for results
-                            await asyncio.sleep(10)  # Give it more time to process
+                            await asyncio.sleep(2)  # Reduced initial wait
                             results = await self.get_brightdata_results(data['snapshot_id'])
                             
                             # Parse and cache the results
@@ -144,9 +149,15 @@ class SentimentSeekerAgentBrightData(BaseAgent):
                         logger.error(f"BrightData API error: {response.status} - {error_text}")
                         return {"error": f"API error: {response.status}"}
                         
+        except asyncio.TimeoutError:
+            logger.error(f"BrightData API timeout for {keyword}")
+            return {"error": "BrightData API timeout", "posts": []}
+        except aiohttp.ClientError as e:
+            logger.error(f"Network error fetching Reddit data: {e}")
+            return {"error": f"Network error: {str(e)}", "posts": []}
         except Exception as e:
             logger.error(f"Error fetching Reddit data: {e}")
-            return {"error": str(e)}
+            return {"error": str(e), "posts": []}
 
     async def get_brightdata_results(self, snapshot_id: str) -> Dict[str, Any]:
         """Get results from BrightData snapshot."""
@@ -155,11 +166,12 @@ class SentimentSeekerAgentBrightData(BaseAgent):
             headers = {"Authorization": f"Bearer {self.brightdata_token}"}
             
             # Poll for results with retries
-            max_retries = 30
-            retry_delay = 3  # seconds
+            max_retries = 5  # Reduced from 30 to prevent timeout
+            retry_delay = 2  # seconds
             
             for attempt in range(max_retries):
-                async with aiohttp.ClientSession() as session:
+                timeout = aiohttp.ClientTimeout(total=30)  # 30 second timeout per request
+                async with aiohttp.ClientSession(timeout=timeout) as session:
                     async with session.get(url, headers=headers) as response:
                         logger.info(f"Polling attempt {attempt + 1}: Status {response.status}")
                         
@@ -308,36 +320,9 @@ class SentimentSeekerAgentBrightData(BaseAgent):
             reddit_data = await self.fetch_reddit_data(symbol)
             
             if "error" in reddit_data:
-                # Fallback to simulated data for demo
-                logger.warning(f"BrightData error, using simulated data: {reddit_data['error']}")
-                reddit_data = {
-                    "posts": [
-                        {
-                            "title": f"${symbol} to the moon! 🚀",
-                            "text": "Great earnings, bullish on this stock",
-                            "upvotes": 1250,
-                            "num_comments": 89,
-                            "subreddit": "wallstreetbets",
-                            "created_at": datetime.now().isoformat()
-                        },
-                        {
-                            "title": f"DD on {symbol} - Why I'm buying calls",
-                            "text": "Technical analysis shows strong support...",
-                            "upvotes": 856,
-                            "num_comments": 124,
-                            "subreddit": "stocks",
-                            "created_at": (datetime.now() - timedelta(hours=2)).isoformat()
-                        },
-                        {
-                            "title": f"Be careful with {symbol}",
-                            "text": "Overvalued at current levels",
-                            "upvotes": 234,
-                            "num_comments": 45,
-                            "subreddit": "investing",
-                            "created_at": (datetime.now() - timedelta(hours=5)).isoformat()
-                        }
-                    ]
-                }
+                logger.error(f"BrightData error: {reddit_data['error']}")
+                yield f"❌ Error fetching Reddit data: {reddit_data['error']}\n"
+                return
             
             # Step 2: Calculate basic metrics
             yield {

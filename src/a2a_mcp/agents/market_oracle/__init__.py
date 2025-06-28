@@ -10,6 +10,7 @@ from .trend_correlator_agent import TrendCorrelatorAgent
 from .report_synthesizer_agent import ReportSynthesizerAgent
 from .audio_briefer_agent import AudioBrieferAgent
 from .sentiment_seeker_agent_brightdata import SentimentSeekerAgentBrightData
+from .news_hawk_agent import NewsHawkAgent
 
 __all__ = [
     'OraclePrimeAgent',
@@ -21,5 +22,6 @@ __all__ = [
     'RiskGuardianAgent',
     'TrendCorrelatorAgent',
     'ReportSynthesizerAgent',
-    'AudioBrieferAgent'
+    'AudioBrieferAgent',
+    'NewsHawkAgent'
 ]
