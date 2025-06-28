@@ -73,32 +73,24 @@ async def test_agent(agent_class, agent_name, test_request):
             return True, "Skipped network test"
         
         # For other agents, test normally
-        if agent_name in ["Oracle Prime (Master)", "Audio Briefer"]:
-            # These agents have different stream signatures
-            async for chunk in agent.stream(test_request):
-                if isinstance(chunk, str):
-                    response_chunks.append(chunk)
+        # All agents expect context_id and task_id
+        context_id = f"test-{agent_name.lower().replace(' ', '-')}"
+        task_id = f"task-{datetime.now().timestamp()}"
+        async for chunk in agent.stream(test_request, context_id, task_id):
+            if isinstance(chunk, dict):
+                content = chunk.get('content', '')
+                if content:
+                    response_chunks.append(str(content))
+                elif 'message' in chunk:
+                    response_chunks.append(str(chunk['message']))
+                elif 'text' in chunk:
+                    response_chunks.append(str(chunk['text']))
                 else:
-                    response_chunks.append(str(chunk))
-        else:
-            # Other agents expect context_id and task_id
-            context_id = f"test-{agent_name.lower().replace(' ', '-')}"
-            task_id = f"task-{datetime.now().timestamp()}"
-            async for chunk in agent.stream(test_request, context_id, task_id):
-                if isinstance(chunk, dict):
-                    content = chunk.get('content', '')
-                    if content:
-                        response_chunks.append(str(content))
-                    elif 'message' in chunk:
-                        response_chunks.append(str(chunk['message']))
-                    elif 'text' in chunk:
-                        response_chunks.append(str(chunk['text']))
-                    else:
-                        response_chunks.append(json.dumps(chunk))
-                elif isinstance(chunk, str):
-                    response_chunks.append(chunk)
-                else:
-                    response_chunks.append(str(chunk))
+                    response_chunks.append(json.dumps(chunk))
+            elif isinstance(chunk, str):
+                response_chunks.append(chunk)
+            else:
+                response_chunks.append(str(chunk))
         
         full_response = ''.join(response_chunks)
         

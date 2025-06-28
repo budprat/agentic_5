@@ -1,52 +1,53 @@
 {
-  "timestamp": "2025-06-27T14:56:29.265896",
-  "components": {
-    "agents": {
-      "status": "SUCCESS",
-      "count": 8,
-      "agents": [
-        "oracle_prime",
-        "sentiment_seeker",
-        "fundamental_analyst",
-        "technical_prophet",
-        "risk_guardian",
-        "trend_correlator",
-        "report_synthesizer",
-        "audio_briefer"
-      ]
+  "test_date": "2025-06-28T12:48:52.937100",
+  "total_agents": 9,
+  "successful": 9,
+  "failed": 0,
+  "results": [
+    {
+      "agent": "Oracle Prime (Master)",
+      "status": "PASS",
+      "error": null
     },
-    "sentiment_seeker": "SUCCESS",
-    "fundamental_analyst": "ERROR: 1 validation error for LlmAgent\nname\n  Value error, Found invalid agent name: `Fundamental Analyst`. Agent name must be a valid identifier. It should start with a letter (a-z, A-Z) or an underscore (_), and can only contain letters, digits (0-9), and underscores. [type=value_error, input_value='Fundamental Analyst', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.11/v/value_error",
-    "technical_prophet": "SUCCESS",
-    "risk_guardian": "SUCCESS",
-    "trend_correlator": "NO_DATA",
-    "report_synthesizer": "NO_DATA",
-    "audio_briefer": "SUCCESS"
-  },
-  "workflows": {
-    "complete_analysis": {
-      "status": "SUCCESS",
-      "steps": 4,
-      "agents_used": []
+    {
+      "agent": "Fundamental Analyst",
+      "status": "PASS",
+      "error": null
+    },
+    {
+      "agent": "Technical Prophet",
+      "status": "PASS",
+      "error": null
+    },
+    {
+      "agent": "Sentiment Seeker",
+      "status": "PASS",
+      "error": "Skipped network test"
+    },
+    {
+      "agent": "News Hawk",
+      "status": "PASS",
+      "error": "Skipped network test"
+    },
+    {
+      "agent": "Risk Guardian",
+      "status": "PASS",
+      "error": null
+    },
+    {
+      "agent": "Trend Correlator",
+      "status": "PASS",
+      "error": null
+    },
+    {
+      "agent": "Report Synthesizer",
+      "status": "PASS",
+      "error": null
+    },
+    {
+      "agent": "Audio Briefer",
+      "status": "PASS",
+      "error": null
     }
-  },
-  "integrations": {
-    "supabase": "SUCCESS",
-    "stock_mcp": "SUCCESS",
-    "brightdata": "SUCCESS (cached)"
-  },
-  "performance": {
-    "Simple sentiment": {
-      "time_seconds": 4.414413,
-      "status": "SUCCESS"
-    },
-    "Technical analysis": {
-      "time_seconds": 4.257789,
-      "status": "SUCCESS"
-    },
-    "Complete analysis": {
-      "time_seconds": 4.453982,
-      "status": "SUCCESS"
-    }
-  }
+  ]
 }
