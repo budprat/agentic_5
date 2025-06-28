@@ -133,8 +133,8 @@ class SentimentSeekerAgentBrightData(BaseAgent):
                         
                         # Check if we got a snapshot ID to poll for results
                         if 'snapshot_id' in data:
-                            # Poll for results
-                            await asyncio.sleep(2)  # Reduced initial wait
+                            # Poll for results - BrightData needs time to process
+                            await asyncio.sleep(5)  # Give BrightData time to start processing
                             results = await self.get_brightdata_results(data['snapshot_id'])
                             
                             # Parse and cache the results
@@ -165,8 +165,8 @@ class SentimentSeekerAgentBrightData(BaseAgent):
             url = f"{self.base_url}/snapshot/{snapshot_id}"
             headers = {"Authorization": f"Bearer {self.brightdata_token}"}
             
-            # Poll for results with retries
-            max_retries = 5  # Reduced from 30 to prevent timeout
+            # Poll for results with retries - BrightData typically takes 8-10 seconds
+            max_retries = 15  # Increased to allow for proper polling
             retry_delay = 2  # seconds
             
             for attempt in range(max_retries):
@@ -180,7 +180,7 @@ class SentimentSeekerAgentBrightData(BaseAgent):
                             text_response = await response.text()
                             
                             # Check if it's NDJSON (multiple JSON objects separated by newlines)
-                            if text_response.count('\n') > 0 and text_response.startswith('{'):
+                            if text_response.strip() and '\n' in text_response and text_response.startswith('{'):
                                 logger.info(f"Got NDJSON response with {text_response.count(chr(10)) + 1} lines")
                                 return text_response  # Return raw text for parser
                             else:
@@ -194,10 +194,14 @@ class SentimentSeekerAgentBrightData(BaseAgent):
                                     else:
                                         logger.info(f"Results not ready yet: {data}")
                                 except json.JSONDecodeError:
+                                    # If it's not JSON, it might be NDJSON without newlines
+                                    if text_response.strip().startswith('{'):
+                                        logger.info("Got response, treating as NDJSON")
+                                        return text_response
                                     logger.error("Failed to parse response as JSON")
                                     return {"error": "Invalid JSON response"}
                         elif response.status == 202:
-                            # Still processing
+                            # Still processing - this is normal for the first few attempts
                             logger.info("Results still processing (202)...")
                         else:
                             logger.error(f"Unexpected status: {response.status}")
