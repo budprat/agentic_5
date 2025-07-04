@@ -97,3 +97,5 @@ IMPORTANT: When working with Notion through the NotionAI MCP server:
 - Do not create "simple" or "basic" versions of tests when the full tests fail - fix the actual problems.
 - **NEVER use mock data or placeholder data** when real data sources fail. Fix the actual integration issues instead of returning fake data.
 - If an API or service is not working, fix the connection/authentication/timeout issues rather than bypassing with mock responses.
+- **NEVER create alternative "simple" scripts when tests fail**. Instead, focus on solving the actual issues, debugging the root cause, and implementing proper fixes.
+- When tests encounter errors, investigate and resolve them properly rather than creating shortcuts or workarounds.
