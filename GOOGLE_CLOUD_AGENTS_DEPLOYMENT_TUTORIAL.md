@@ -140,8 +140,8 @@ root_agent = Agent(
 
 ### Environment Variables for Cloud Run:
 ```bash
-GOOGLE_API_KEY=AIzaSyAPltyrmD0xBq_KF7IOg2kEmJDZ3SE-YY0
-GOOGLE_CLOUD_PROJECT=Agents Cloud
+GOOGLE_API_KEY=
+GOOGLE_CLOUD_PROJECT=Agents
 GOOGLE_CLOUD_LOCATION=asia-south2-c
 GOOGLE_GENAI_USE_VERTEXAI=0
 SNOWFLAKE_ACCOUNT=xxx
