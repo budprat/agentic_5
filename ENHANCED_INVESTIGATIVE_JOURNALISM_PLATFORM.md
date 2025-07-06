@@ -132,7 +132,473 @@ async def coordinate_osint_verification(entities):
 
 ---
 
-## 2. Advanced OSINT Sub-Agent Implementation
+## 2. Agent Coordination and Communication Workflows
+
+### 2.1 Detailed Step-by-Step Communication Protocols
+
+#### **2.1.1 Tier 1 to Tier 2 Communication (Orchestrator → Supervisors)**
+
+```python
+# Step-by-step workflow for investigation initiation
+async def coordinate_investigation_workflow(self, investigation_request: dict):
+    """
+    STEP-BY-STEP ORCHESTRATOR → SUPERVISOR COMMUNICATION
+    """
+    
+    # STEP 1: Investigation Planning (Orchestrator → Planner)
+    investigation_plan = await self.communicate_with_planner({
+        "message_type": "INVESTIGATION_PLANNING_REQUEST",
+        "request_id": generate_uuid(),
+        "timestamp": datetime.utcnow().isoformat(),
+        "payload": {
+            "investigation_query": investigation_request.query,
+            "context": investigation_request.context,
+            "priority": investigation_request.priority,
+            "deadline": investigation_request.deadline
+        },
+        "response_format": "structured_plan",
+        "callback_url": f"http://localhost:10701/callback/{request_id}"
+    })
+    
+    # STEP 2: Task Distribution to Supervisors (Parallel)
+    supervisor_tasks = []
+    
+    # OSINT Supervisor Communication
+    if investigation_plan.requires_osint:
+        osint_message = {
+            "message_type": "OSINT_VERIFICATION_REQUEST",
+            "request_id": generate_uuid(),
+            "parent_request_id": investigation_plan.request_id,
+            "timestamp": datetime.utcnow().isoformat(),
+            "supervisor_endpoint": "http://localhost:10703/",
+            "payload": {
+                "entities_to_verify": investigation_plan.entities,
+                "verification_level": "comprehensive",
+                "confidence_threshold": 0.85,
+                "parallel_execution": True,
+                "sub_agent_coordination": {
+                    "max_concurrent_tasks": 6,
+                    "timeout_per_task": 30,
+                    "retry_attempts": 3
+                }
+            },
+            "response_requirements": {
+                "format": "verification_report",
+                "include_evidence_chain": True,
+                "include_confidence_scores": True
+            }
+        }
+        supervisor_tasks.append(self.send_to_supervisor("osint", osint_message))
+    
+    # Corporate Analysis Supervisor Communication
+    if investigation_plan.requires_corporate_analysis:
+        corporate_message = {
+            "message_type": "CORPORATE_ANALYSIS_REQUEST",
+            "request_id": generate_uuid(),
+            "parent_request_id": investigation_plan.request_id,
+            "timestamp": datetime.utcnow().isoformat(),
+            "supervisor_endpoint": "http://localhost:10704/",
+            "payload": {
+                "entities": investigation_plan.corporate_entities,
+                "analysis_type": "comprehensive_network",
+                "include_beneficial_ownership": True,
+                "risk_assessment": True,
+                "graph_analysis": {
+                    "max_depth": 5,
+                    "include_circular_ownership": True,
+                    "shell_company_detection": True
+                }
+            }
+        }
+        supervisor_tasks.append(self.send_to_supervisor("corporate", corporate_message))
+    
+    # Legal Compliance Supervisor Communication
+    if investigation_plan.requires_legal_review:
+        legal_message = {
+            "message_type": "LEGAL_COMPLIANCE_REQUEST",
+            "request_id": generate_uuid(),
+            "parent_request_id": investigation_plan.request_id,
+            "timestamp": datetime.utcnow().isoformat(),
+            "supervisor_endpoint": "http://localhost:10705/",
+            "payload": {
+                "content_for_review": investigation_plan.content,
+                "jurisdiction": "india",
+                "compliance_frameworks": ["defamation", "it_act", "rti"],
+                "risk_tolerance": "low",
+                "publication_intent": True
+            }
+        }
+        supervisor_tasks.append(self.send_to_supervisor("legal", legal_message))
+    
+    # STEP 3: Execute Supervisor Tasks in Parallel
+    supervisor_results = await asyncio.gather(*supervisor_tasks, return_exceptions=True)
+    
+    # STEP 4: Result Aggregation and Error Handling
+    return await self.aggregate_supervisor_results(supervisor_results)
+
+async def send_to_supervisor(self, supervisor_type: str, message: dict) -> dict:
+    """
+    DETAILED A2A PROTOCOL COMMUNICATION WITH SUPERVISORS
+    """
+    try:
+        # Establish secure connection with supervisor
+        async with httpx.AsyncClient(
+            timeout=httpx.Timeout(60.0),
+            verify=True,  # SSL verification
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {self.get_agent_auth_token()}",
+                "X-Request-ID": message["request_id"],
+                "X-Agent-ID": "investigative-orchestrator",
+                "X-Security-Level": "sensitive"
+            }
+        ) as client:
+            
+            response = await client.post(
+                message["supervisor_endpoint"],
+                json=message,
+                timeout=60.0
+            )
+            
+            if response.status_code == 200:
+                return response.json()
+            elif response.status_code == 202:
+                # Async processing - wait for callback
+                return await self.wait_for_supervisor_callback(message["request_id"])
+            else:
+                raise CommunicationError(
+                    f"Supervisor communication failed: {response.status_code}"
+                )
+                
+    except Exception as e:
+        # Retry mechanism with exponential backoff
+        return await self.retry_supervisor_communication(supervisor_type, message, e)
+```
+
+#### **2.1.2 Tier 2 to Tier 3 Communication (Supervisors → Sub-Agents)**
+
+```python
+# OSINT Supervisor coordinating with sub-agents
+async def coordinate_osint_sub_agents(self, verification_request: dict):
+    """
+    STEP-BY-STEP SUPERVISOR → SUB-AGENT COORDINATION
+    """
+    
+    # STEP 1: Entity Triage and Sub-Agent Assignment
+    entity_assignments = await self.triage_entities(verification_request.entities)
+    
+    # STEP 2: Parallel Sub-Agent Task Creation
+    sub_agent_tasks = []
+    task_registry = {}  # Track tasks for result correlation
+    
+    for entity in entity_assignments:
+        if entity.type == "image":
+            # Image verification requires multiple sub-agents
+            image_tasks = [
+                {
+                    "sub_agent": "reverse_image_search",
+                    "endpoint": "http://localhost:10720/",
+                    "message": {
+                        "message_type": "REVERSE_IMAGE_SEARCH_REQUEST",
+                        "request_id": generate_uuid(),
+                        "parent_request_id": verification_request.request_id,
+                        "entity_id": entity.id,
+                        "payload": {
+                            "image_url": entity.url,
+                            "image_hash": entity.hash,
+                            "search_engines": ["google", "tineye", "yandex", "bing"],
+                            "crop_variations": True,
+                            "similarity_threshold": 0.8
+                        },
+                        "timeout": 30
+                    }
+                },
+                {
+                    "sub_agent": "metadata_analysis",
+                    "endpoint": "http://localhost:10721/",
+                    "message": {
+                        "message_type": "METADATA_ANALYSIS_REQUEST",
+                        "request_id": generate_uuid(),
+                        "parent_request_id": verification_request.request_id,
+                        "entity_id": entity.id,
+                        "payload": {
+                            "image_url": entity.url,
+                            "extract_exif": True,
+                            "extract_gps": True,
+                            "analyze_modifications": True,
+                            "device_fingerprinting": True
+                        },
+                        "timeout": 20
+                    }
+                },
+                {
+                    "sub_agent": "digital_forensics",
+                    "endpoint": "http://localhost:10723/",
+                    "message": {
+                        "message_type": "DIGITAL_FORENSICS_REQUEST",
+                        "request_id": generate_uuid(),
+                        "parent_request_id": verification_request.request_id,
+                        "entity_id": entity.id,
+                        "payload": {
+                            "image_url": entity.url,
+                            "detect_manipulation": True,
+                            "analyze_compression": True,
+                            "check_authenticity": True
+                        },
+                        "timeout": 45
+                    }
+                }
+            ]
+            
+            # Register tasks for correlation
+            for task in image_tasks:
+                task_registry[task["message"]["request_id"]] = {
+                    "entity_id": entity.id,
+                    "sub_agent": task["sub_agent"],
+                    "task_type": "image_verification"
+                }
+            
+            sub_agent_tasks.extend(image_tasks)
+    
+    # STEP 3: Execute Sub-Agent Tasks with Semaphore Control
+    async with asyncio.Semaphore(6):  # Max 6 concurrent sub-agent calls
+        sub_agent_results = await asyncio.gather(
+            *[self.call_sub_agent(task) for task in sub_agent_tasks],
+            return_exceptions=True
+        )
+    
+    # STEP 4: Result Correlation and Cross-Validation
+    return await self.correlate_sub_agent_results(sub_agent_results, task_registry)
+
+async def call_sub_agent(self, task: dict) -> dict:
+    """
+    DETAILED SUB-AGENT COMMUNICATION WITH ERROR HANDLING
+    """
+    try:
+        async with httpx.AsyncClient(timeout=task["message"]["timeout"]) as client:
+            response = await client.post(
+                task["endpoint"],
+                json=task["message"],
+                headers={
+                    "Content-Type": "application/json",
+                    "X-Supervisor-ID": "osint-verification-supervisor",
+                    "X-Security-Level": "sensitive",
+                    "X-Task-Priority": "high"
+                }
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                # Add correlation metadata
+                result["correlation_id"] = task["message"]["request_id"]
+                result["sub_agent_type"] = task["sub_agent"]
+                result["processing_time"] = response.elapsed.total_seconds()
+                return result
+            else:
+                raise SubAgentError(f"Sub-agent {task['sub_agent']} failed: {response.status_code}")
+                
+    except asyncio.TimeoutError:
+        return {
+            "error": "timeout",
+            "sub_agent": task["sub_agent"],
+            "correlation_id": task["message"]["request_id"],
+            "retry_recommended": True
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "sub_agent": task["sub_agent"],
+            "correlation_id": task["message"]["request_id"],
+            "retry_recommended": False
+        }
+```
+
+#### **2.1.3 Result Aggregation and State Synchronization**
+
+```python
+async def correlate_sub_agent_results(self, results: list, task_registry: dict) -> dict:
+    """
+    STEP-BY-STEP RESULT CORRELATION AND CROSS-VALIDATION
+    """
+    
+    # STEP 1: Group Results by Entity
+    entity_results = {}
+    failed_tasks = []
+    
+    for result in results:
+        if isinstance(result, Exception):
+            failed_tasks.append(str(result))
+            continue
+            
+        if "error" in result:
+            failed_tasks.append(result)
+            continue
+            
+        correlation_id = result.get("correlation_id")
+        if correlation_id in task_registry:
+            entity_id = task_registry[correlation_id]["entity_id"]
+            sub_agent = task_registry[correlation_id]["sub_agent"]
+            
+            if entity_id not in entity_results:
+                entity_results[entity_id] = {}
+            
+            entity_results[entity_id][sub_agent] = result
+    
+    # STEP 2: Cross-Validation Between Sub-Agents
+    verified_entities = {}
+    
+    for entity_id, sub_agent_results in entity_results.items():
+        cross_validation = await self.cross_validate_entity_results(
+            entity_id, sub_agent_results
+        )
+        verified_entities[entity_id] = cross_validation
+    
+    # STEP 3: Generate Confidence Scores
+    confidence_assessment = await self.calculate_confidence_scores(verified_entities)
+    
+    # STEP 4: Create Evidence Chain
+    evidence_chain = await self.build_evidence_chain(verified_entities)
+    
+    return {
+        "verification_results": verified_entities,
+        "confidence_assessment": confidence_assessment,
+        "evidence_chain": evidence_chain,
+        "failed_tasks": failed_tasks,
+        "processing_summary": {
+            "total_entities": len(entity_results),
+            "successful_verifications": len(verified_entities),
+            "failed_verifications": len(failed_tasks),
+            "overall_confidence": confidence_assessment.get("overall_confidence", 0.0)
+        }
+    }
+
+async def cross_validate_entity_results(self, entity_id: str, results: dict) -> dict:
+    """
+    CROSS-VALIDATION LOGIC BETWEEN MULTIPLE SUB-AGENTS
+    """
+    validation_matrix = {}
+    
+    # Image Entity Cross-Validation Example
+    if "reverse_image_search" in results and "metadata_analysis" in results:
+        # Cross-validate location data
+        reverse_search_location = results["reverse_image_search"].get("location_data")
+        metadata_gps = results["metadata_analysis"].get("gps_coordinates")
+        
+        if reverse_search_location and metadata_gps:
+            location_consistency = await self.validate_location_consistency(
+                reverse_search_location, metadata_gps
+            )
+            validation_matrix["location_consistency"] = location_consistency
+    
+    if "metadata_analysis" in results and "digital_forensics" in results:
+        # Cross-validate authenticity
+        metadata_authenticity = results["metadata_analysis"].get("authenticity_indicators")
+        forensics_authenticity = results["digital_forensics"].get("manipulation_detected")
+        
+        authenticity_consensus = await self.validate_authenticity_consensus(
+            metadata_authenticity, forensics_authenticity
+        )
+        validation_matrix["authenticity_consensus"] = authenticity_consensus
+    
+    return {
+        "entity_id": entity_id,
+        "individual_results": results,
+        "cross_validation": validation_matrix,
+        "consensus_confidence": self.calculate_consensus_confidence(validation_matrix)
+    }
+```
+
+#### **2.1.4 Error Handling and Recovery Workflows**
+
+```python
+class InvestigativeErrorHandler:
+    """
+    COMPREHENSIVE ERROR HANDLING FOR AGENT COMMUNICATION
+    """
+    
+    async def handle_supervisor_failure(self, supervisor_type: str, error: Exception):
+        """Handle supervisor agent failures with graceful degradation."""
+        
+        if isinstance(error, TimeoutError):
+            # Retry with extended timeout
+            return await self.retry_with_backoff(supervisor_type, timeout_multiplier=2.0)
+        
+        elif isinstance(error, ConnectionError):
+            # Check supervisor health and potentially restart
+            health_status = await self.check_supervisor_health(supervisor_type)
+            if not health_status.healthy:
+                await self.restart_supervisor(supervisor_type)
+                return await self.retry_supervisor_task(supervisor_type)
+        
+        elif isinstance(error, AuthenticationError):
+            # Refresh authentication tokens
+            await self.refresh_agent_auth_tokens()
+            return await self.retry_supervisor_task(supervisor_type)
+        
+        else:
+            # Log error and continue with partial results
+            logger.error(f"Supervisor {supervisor_type} failed: {error}")
+            return {"error": str(error), "partial_results": True}
+    
+    async def handle_sub_agent_failure(self, sub_agent_type: str, entity_id: str, error: Exception):
+        """Handle sub-agent failures with alternative approaches."""
+        
+        if sub_agent_type == "reverse_image_search" and isinstance(error, RateLimitError):
+            # Try alternative search engines
+            return await self.try_alternative_image_search_engines(entity_id)
+        
+        elif sub_agent_type == "geolocation_verification" and isinstance(error, ServiceUnavailableError):
+            # Fall back to manual geolocation techniques
+            return await self.manual_geolocation_fallback(entity_id)
+        
+        else:
+            # Mark as failed but continue with other sub-agents
+            return {
+                "sub_agent": sub_agent_type,
+                "entity_id": entity_id,
+                "status": "failed",
+                "error": str(error),
+                "impact": "partial_verification_possible"
+            }
+```
+
+### 2.2 Message Format Specifications
+
+```python
+# Standard message format for all agent communications
+STANDARD_MESSAGE_FORMAT = {
+    "message_type": "string",  # REQUEST/RESPONSE/CALLBACK/ERROR
+    "request_id": "uuid",      # Unique identifier for tracing
+    "parent_request_id": "uuid",  # For correlation in multi-tier
+    "timestamp": "iso8601",    # UTC timestamp
+    "source_agent": {
+        "agent_id": "string",
+        "agent_type": "string",
+        "endpoint": "url"
+    },
+    "target_agent": {
+        "agent_id": "string", 
+        "agent_type": "string",
+        "endpoint": "url"
+    },
+    "security": {
+        "classification": "public|internal|sensitive|top_secret",
+        "encryption_required": "boolean",
+        "auth_token": "jwt_token"
+    },
+    "payload": "object",       # Task-specific data
+    "metadata": {
+        "priority": "low|medium|high|critical",
+        "timeout": "seconds",
+        "retry_policy": "object",
+        "callback_url": "url"
+    }
+}
+```
+
+---
+
+## 3. Advanced OSINT Sub-Agent Implementation
 
 ### 2.1 OSINT Verification Supervisor Agent
 
