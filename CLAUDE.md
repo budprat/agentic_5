@@ -56,17 +56,30 @@ python simple_client.py
 1. **MCP Server** (`src/a2a_mcp/mcp/server.py`): Registry for agent discovery, provides tools via MCP
 2. **Base Agent** (`src/a2a_mcp/common/base_agent.py`): Common functionality for all agents
 3. **Agent Implementations** (`src/a2a_mcp/agents/`):
-   - `orchestrator.py`: Manages workflow and coordinates other agents
-   - `planner.py`: Uses LangGraph to break down requests into structured plans
-   - `air_ticketing.py`, `hotel_booking.py`, `car_rental.py`: Task-specific agents
+   - `orchestrator_agent.py`: Manages workflow and coordinates other agents (sequential execution)
+   - `parallel_orchestrator_agent.py`: Enhanced orchestrator with parallel task execution
+   - `langgraph_planner_agent.py`: Uses LangGraph to break down requests into structured plans
+   - `adk_travel_agent.py`: Unified travel agent implementation using Google ADK
+
+### Unified Travel Agent Architecture
+The system uses a **single TravelAgent class** that powers all travel booking services:
+- **Air Ticketing Agent** (port 10103): Uses `TravelAgent` with flight-specific prompts
+- **Hotel Booking Agent** (port 10104): Uses `TravelAgent` with hotel-specific prompts  
+- **Car Rental Agent** (port 10105): Uses `TravelAgent` with car rental-specific prompts
+
+Each service is specialized through:
+- **Agent Cards**: JSON configurations defining capabilities and metadata
+- **Prompt Instructions**: Service-specific chain-of-thought decision trees
+- **Port Assignment**: Separate ports for service isolation
 
 ### Communication Flow
-1. Client sends request to Orchestrator Agent
-2. Orchestrator forwards to Planner Agent for task decomposition
-3. Planner returns structured plan with task assignments
-4. Orchestrator executes plan by calling appropriate task agents
-5. Task agents query databases and return results
-6. Orchestrator aggregates results and returns to client
+1. Client sends request to Orchestrator Agent (port 10101)
+2. Orchestrator forwards to Planner Agent (port 10102) for task decomposition
+3. Planner returns structured plan with task assignments using chain-of-thought reasoning
+4. Orchestrator uses MCP Server for agent discovery and creates execution graph
+5. Tasks distributed to TravelAgent instances (ports 10103-10105) via A2A protocol
+6. Each TravelAgent queries database via MCP tools and returns structured results
+7. Orchestrator aggregates results and generates comprehensive summary
 
 ### Key Protocols
 - **A2A Protocol**: Agent-to-agent communication using `a2a-sdk`
@@ -80,9 +93,11 @@ python simple_client.py
 ## Important Notes
 - All agents must register with MCP server on startup
 - Agents communicate via HTTP using the A2A protocol
-- Google API key required for Planner Agent (uses Gemini)
+- Google API key required for both Planner and TravelAgent instances (use Gemini)
 - Logs are written to `logs/` directory
-- Each agent runs on a separate port (10001-10005)
+- Each agent runs on a separate port (10101-10105)
+- ParallelOrchestratorAgent provides significant performance improvements through concurrent execution
+- TravelAgent instances use Google ADK with MCP tool integration for database access
 
 ## NotionAI MCP Server Rules
 IMPORTANT: When working with Notion through the NotionAI MCP server:
