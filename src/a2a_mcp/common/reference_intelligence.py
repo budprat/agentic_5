@@ -28,7 +28,7 @@ class ReferenceIntelligenceService:
             "enabled": False,
             "sources": {
                 "arxiv": True,
-                "semantic_scholar": True,
+                "semantic_scholar": False,  # Disabled due to API timeout issues - TODO: investigate further
                 "mcp_scholarly": True,
                 "web_search": False  # Rate limited
             },
@@ -191,7 +191,18 @@ class ReferenceIntelligenceService:
             return {"error": str(e), "papers": [], "source": "arxiv"}
     
     async def _search_semantic_scholar(self, query: str) -> Dict[str, Any]:
-        """Search Semantic Scholar for relevant papers with proper timeout handling."""
+        """Search Semantic Scholar for relevant papers with proper timeout handling.
+        
+        TODO: Currently experiencing API timeout issues despite implementing:
+        - Proper retry logic with exponential backoff
+        - HTTP 500 error handling as per API docs  
+        - Rate limiting compliance (5000 requests per 5 minutes)
+        - Explicit timeout configuration
+        
+        The API status shows operational but calls consistently timeout.
+        Need to investigate: API key requirements, network connectivity, 
+        or alternative client library implementations.
+        """
         try:
             # Define synchronous function to fetch results
             def fetch_semantic_scholar_results():
