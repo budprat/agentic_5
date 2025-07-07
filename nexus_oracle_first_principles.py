@@ -470,7 +470,7 @@ class FirstPrinciplesOracle:
         
         print(f"\n📈 ANALYSIS QUALITY METRICS:")
         print(f"   Research Confidence: {confidence} {'✅' if isinstance(confidence, (int, float)) and confidence >= 0.7 else '⚠️'}")
-        print(f"   Domain Coverage: {domain_coverage} disciplines {'✅' if domain_coverage >= 2 else '⚠️'}")
+        print(f"   Domain Coverage: {domain_coverage} disciplines {'✅' if isinstance(domain_coverage, (int, float)) and domain_coverage >= 2 else '⚠️'}")
         print(f"   Quality Score: {quality_score} {'✅' if isinstance(quality_score, (int, float)) and quality_score >= 0.7 else '⚠️'}")
         print(f"   Responses Generated: {response_count}")
         

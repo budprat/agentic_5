@@ -41,11 +41,14 @@ Quality Thresholds:
 - Required domain coverage: {required_domains}
 - Evidence quality threshold: {evidence_threshold}
 
-IMPORTANT: 
-1. Focus your analysis specifically on answering "{original_query}". Be concrete and actionable.
-2. Cite external academic sources using the format [Author et al., Year] when referencing specific papers.
-3. Include relevant citations in your analysis to support key claims and provide credibility.
-4. If external references are available, integrate them meaningfully into your synthesis.
+CRITICAL CITATION REQUIREMENTS:
+1. You MUST cite external academic sources using the exact format [First Author et al., YEAR] when referencing specific papers from the External Academic References section above. Use the actual publication year listed for each paper.
+2. Include at least 2-3 citations in your executive_summary to demonstrate external validation from the provided references.
+3. Each key_insight should reference relevant external papers when applicable using [First Author et al., YEAR] with actual years from the reference list.
+4. Novel_hypotheses should cite specific supporting external research using exact [Author et al., YEAR] format from the provided papers.
+5. When citing, use the first author's last name from the "Authors" field in the references above, followed by "et al." and the actual publication year.
+6. Focus your analysis specifically on answering "{original_query}" with concrete, actionable insights supported by citations from the external references.
+7. If external references are available, integrate them meaningfully throughout your synthesis with proper citations using exact author names and years from the reference list.
 
 Provide your synthesis in the following JSON format:
 {{
@@ -165,7 +168,20 @@ class NexusOracleAgent(BaseAgent):
                 for i, paper in enumerate(papers[:5], 1):  # Limit to top 5 per source
                     title = paper.get("title", "No title")
                     authors = paper.get("authors", [])
-                    year = paper.get("year", "Unknown")
+                    
+                    # Extract year from published date if not available directly
+                    year = paper.get("year")
+                    if not year and paper.get("published"):
+                        try:
+                            from datetime import datetime
+                            published_str = paper["published"]
+                            if isinstance(published_str, str):
+                                year = datetime.fromisoformat(published_str.replace('Z', '+00:00')).year
+                        except:
+                            year = "Unknown"
+                    if not year:
+                        year = "Unknown"
+                        
                     quality = paper.get("quality_score", 0)
                     
                     author_str = ", ".join(authors[:3])  # First 3 authors
