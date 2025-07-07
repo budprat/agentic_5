@@ -43,13 +43,14 @@ Quality Thresholds:
 - Evidence quality threshold: {evidence_threshold}
 
 CRITICAL CITATION REQUIREMENTS:
-1. You MUST cite external academic sources using the exact format [First Author et al., YEAR] when referencing specific papers from the External Academic References section above. Use the actual publication year listed for each paper.
-2. Include at least 2-3 citations in your executive_summary to demonstrate external validation from the provided references.
-3. Each key_insight should reference relevant external papers when applicable using [First Author et al., YEAR] with actual years from the reference list.
-4. Novel_hypotheses should cite specific supporting external research using exact [Author et al., YEAR] format from the provided papers.
-5. When citing, use the first author's last name from the "Authors" field in the references above, followed by "et al." and the actual publication year.
-6. Focus your analysis specifically on answering "{original_query}" with concrete, actionable insights supported by citations from the external references.
-7. If external references are available, integrate them meaningfully throughout your synthesis with proper citations using exact author names and years from the reference list.
+1. ONLY cite external academic sources that are directly relevant to the current research question: "{original_query}". Do NOT use citations from unrelated topics.
+2. Use the exact format [First Author et al., YEAR] when referencing specific papers from the External Academic References section above that are relevant to "{original_query}".
+3. Before citing any paper, verify its relevance: the paper's title, abstract, or research area must relate to the current query topic.
+4. Include citations in your executive_summary ONLY if the referenced papers actually support the claims being made about "{original_query}".
+5. Each key_insight should reference relevant external papers ONLY when the papers actually relate to the insight topic.
+6. Novel_hypotheses should cite supporting external research ONLY when the referenced papers are genuinely relevant to the hypothesis.
+7. If no external references are relevant to "{original_query}", do NOT force citations. Instead, note that external validation from domain-specific literature would strengthen the analysis.
+8. Focus your analysis specifically on answering "{original_query}" with concrete, actionable insights. Only include citations that genuinely support your analysis of this specific question.
 
 Provide your synthesis in the following JSON format:
 {{
@@ -153,20 +154,33 @@ class NexusOracleAgent(BaseAgent):
         if not self.external_references.get("sources"):
             return "External reference system enabled but no sources found for this query."
         
+        # Get current query for relevance checking
+        current_query = self.research_context.get("query", "").lower() if self.research_context else ""
+        
         formatted_refs = []
         formatted_refs.append("EXTERNAL ACADEMIC REFERENCES:")
         formatted_refs.append("=" * 50)
         
         total_papers = 0
+        total_relevant_papers = 0
+        
         for source_name, source_data in self.external_references["sources"].items():
             papers = source_data.get("papers", [])
-            total_papers += len(papers)
             
-            if papers:
-                formatted_refs.append(f"\n{source_name.upper()} ({len(papers)} papers):")
+            # Filter papers for relevance to current query
+            relevant_papers = []
+            for paper in papers:
+                if self._is_paper_relevant_to_query(paper, current_query):
+                    relevant_papers.append(paper)
+            
+            total_papers += len(papers)
+            total_relevant_papers += len(relevant_papers)
+            
+            if relevant_papers:
+                formatted_refs.append(f"\n{source_name.upper()} ({len(relevant_papers)} relevant papers):")
                 formatted_refs.append("-" * 30)
                 
-                for i, paper in enumerate(papers[:5], 1):  # Limit to top 5 per source
+                for i, paper in enumerate(relevant_papers[:5], 1):  # Limit to top 5 relevant papers per source
                     title = paper.get("title", "No title")
                     authors = paper.get("authors", [])
                     
@@ -198,13 +212,39 @@ class NexusOracleAgent(BaseAgent):
                         formatted_refs.append(f"   Abstract: {abstract}")
                     formatted_refs.append("")
         
-        if total_papers > 0:
-            formatted_refs.append(f"Total external references: {total_papers} papers")
-            formatted_refs.append("Use these references to support and validate your analysis.")
+        if total_relevant_papers > 0:
+            formatted_refs.append(f"Total relevant external references: {total_relevant_papers} papers (filtered from {total_papers} total)")
+            formatted_refs.append("IMPORTANT: Only use these references if they are genuinely relevant to your analysis.")
         else:
-            formatted_refs.append("No relevant papers found in external sources.")
+            formatted_refs.append(f"No relevant papers found for this query (searched {total_papers} papers).")
+            formatted_refs.append("Note: External validation from domain-specific literature would strengthen this analysis.")
         
         return "\n".join(formatted_refs)
+    
+    def _is_paper_relevant_to_query(self, paper: Dict, query: str) -> bool:
+        """Check if a paper is relevant to the current research query."""
+        if not query:
+            return True  # If no query context, include all papers
+        
+        # Extract key terms from query
+        query_terms = set(query.lower().split())
+        
+        # Remove common stop words
+        stop_words = {"how", "can", "what", "is", "the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for", "of", "with", "by", "be", "have", "do", "will", "would", "could", "should"}
+        query_terms = query_terms - stop_words
+        
+        # Check paper title and abstract for relevance
+        paper_text = ""
+        if paper.get("title"):
+            paper_text += paper["title"].lower() + " "
+        if paper.get("abstract"):
+            paper_text += paper["abstract"].lower() + " "
+        
+        # Simple relevance check: at least 2 query terms should appear in paper
+        matching_terms = sum(1 for term in query_terms if term in paper_text)
+        relevance_threshold = min(2, len(query_terms))  # At least 2 terms or all terms if query is very short
+        
+        return matching_terms >= relevance_threshold
 
     async def load_research_context(self, query: str):
         """Load research context and determine domain scope."""
@@ -572,6 +612,9 @@ class NexusOracleAgent(BaseAgent):
         self.graph = None
         self.research_intelligence.clear()
         self.query_history.clear()
+        # Clear external references and citation tracker for new questions
+        self.external_references.clear()
+        self.citation_tracker = CitationTracker()  # Reset citation tracker
 
     async def stream(
         self, query: str, context_id: str, task_id: str
