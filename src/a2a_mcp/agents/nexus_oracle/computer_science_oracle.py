@@ -10,6 +10,8 @@ from datetime import datetime
 from a2a_mcp.common.base_agent import BaseAgent
 from a2a_mcp.common.utils import init_api_key
 from google import genai
+from google.genai import types
+import aiohttp
 
 logger = logging.getLogger(__name__)
 
@@ -198,7 +200,13 @@ class ComputerScienceOracle(BaseAgent):
 
     async def generate_technical_analysis(self, query: str, context: Dict) -> str:
         """Generate comprehensive technical analysis using domain expertise."""
-        client = genai.Client()
+        # Configure client with proper timeout settings
+        http_options = types.HttpOptions(
+            async_client_args={
+                'timeout': aiohttp.ClientTimeout(total=120, connect=30)  # 2 minute timeout for domain analysis
+            }
+        )
+        client = genai.Client(http_options=http_options)
         
         prompt = COMPUTER_SCIENCE_ANALYSIS_PROMPT.format(
             query=query,

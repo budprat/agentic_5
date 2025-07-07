@@ -7,6 +7,9 @@ import asyncio
 import json
 from datetime import datetime
 from typing import Dict, List, Any
+from google import genai
+from google.genai import types
+import aiohttp
 
 # Set up environment
 sys.path.insert(0, './src')
@@ -68,8 +71,13 @@ class FirstPrinciplesOracle:
         print("─" * 50)
         
         # Use AI to analyze the question along first principles dimensions
-        from google import genai
-        client = genai.Client()
+        # Configure client with proper timeout settings
+        http_options = types.HttpOptions(
+            async_client_args={
+                'timeout': aiohttp.ClientTimeout(total=120, connect=30)  # 2 minute timeout for analysis
+            }
+        )
+        client = genai.Client(http_options=http_options)
         
         deconstruction_prompt = f"""
         You are a master research strategist. Analyze this research question using first principles thinking:
@@ -234,8 +242,13 @@ class FirstPrinciplesOracle:
         """Generate targeted clarifying questions based on critical ambiguities."""
         critical_ambiguities = analysis.get('critical_ambiguities', [])
         
-        from google import genai
-        client = genai.Client()
+        # Configure client with proper timeout settings
+        http_options = types.HttpOptions(
+            async_client_args={
+                'timeout': aiohttp.ClientTimeout(total=90, connect=30)  # 90 second timeout for questions
+            }
+        )
+        client = genai.Client(http_options=http_options)
         
         question_prompt = f"""
         Based on this first principles analysis of the research question: "{original_question}"
@@ -285,8 +298,13 @@ class FirstPrinciplesOracle:
     
     async def synthesize_refined_question(self, original: str, clarifications: List[str]) -> str:
         """Synthesize user responses into a refined, precise question."""
-        from google import genai
-        client = genai.Client()
+        # Configure client with proper timeout settings
+        http_options = types.HttpOptions(
+            async_client_args={
+                'timeout': aiohttp.ClientTimeout(total=60, connect=30)  # 60 second timeout for synthesis
+            }
+        )
+        client = genai.Client(http_options=http_options)
         
         synthesis_prompt = f"""
         Original Question: "{original}"

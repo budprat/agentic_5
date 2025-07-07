@@ -17,6 +17,7 @@ from a2a_mcp.common.parallel_workflow import (
 from a2a_mcp.common.reference_intelligence import ReferenceIntelligenceService
 from a2a_mcp.common.citation_tracker import CitationTracker
 from google import genai
+from google.genai import types
 import os
 import aiohttp
 
@@ -421,7 +422,13 @@ class NexusOracleAgent(BaseAgent):
 
     async def generate_research_synthesis(self, query: str) -> str:
         """Generate comprehensive research synthesis with retry logic."""
-        client = genai.Client()
+        # Configure client with proper timeout settings
+        http_options = types.HttpOptions(
+            async_client_args={
+                'timeout': aiohttp.ClientTimeout(total=180, connect=30)  # 3 minute total timeout
+            }
+        )
+        client = genai.Client(http_options=http_options)
         
         # Format external references for inclusion
         external_refs_formatted = self._format_external_references()

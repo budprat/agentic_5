@@ -10,6 +10,8 @@ from datetime import datetime
 from a2a_mcp.common.base_agent import BaseAgent
 from a2a_mcp.common.utils import init_api_key
 from google import genai
+from google.genai import types
+import aiohttp
 
 logger = logging.getLogger(__name__)
 
@@ -202,7 +204,13 @@ class CrossDomainOracle(BaseAgent):
 
     async def generate_cross_domain_synthesis(self, query: str, domain_findings: Dict, context: Dict) -> str:
         """Generate comprehensive cross-domain analysis and synthesis."""
-        client = genai.Client()
+        # Configure client with proper timeout settings
+        http_options = types.HttpOptions(
+            async_client_args={
+                'timeout': aiohttp.ClientTimeout(total=120, connect=30)  # 2 minute timeout for cross-domain analysis
+            }
+        )
+        client = genai.Client(http_options=http_options)
         
         prompt = CROSS_DOMAIN_INTEGRATION_PROMPT.format(
             domain_findings=json.dumps(domain_findings, indent=2),
