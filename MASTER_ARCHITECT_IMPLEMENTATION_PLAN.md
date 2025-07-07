@@ -1,8 +1,19 @@
-# Master Architect V2.0 Implementation Plan for A2A-MCP Framework
+# Master Architect Oracle - Advanced Architecture Intelligence System
+## Oracle Pattern Implementation for Sophisticated Architecture Design
 
-## Executive Summary
+### Framework Evolution: From Universal Agents to Multi-Intelligence Architecture
 
-This document provides a comprehensive implementation plan for integrating the Master Architect V2.0 Enhanced system into the existing A2A-MCP framework. The plan maintains 100% compatibility with current patterns while adding universal agent building capabilities, hybrid routing, research pipelines, and visual workflow design.
+**Previous Architecture**: TravelAgent pattern with 24 universal agents and external orchestration
+**New Architecture**: **Oracle Pattern** with multi-intelligence coordination and internal workflow management
+
+**Why Oracle Pattern for Master Architecture:**
+- **Complex System Design**: Architecture requires technical depth, business intelligence, and user experience synthesis
+- **Quality Assurance Needs**: Architecture decisions require risk assessment, compliance validation, and implementation confidence scoring
+- **Multi-Domain Analysis**: Technical architecture, business strategy, user experience, security, and implementation synthesis
+- **Critical Decision Making**: Architecture decisions affecting system scalability, maintainability, and business success
+- **Risk Assessment**: Implementation complexity, technical debt, and solution viability risks
+
+This document provides a comprehensive implementation plan for integrating the Master Architect Oracle system into the existing A2A-MCP framework. The plan transforms from external universal agent orchestration to sophisticated internal intelligence coordination with quality assurance.
 
 **Version**: 2.0-A2A-MCP-ADAPTED  
 **Framework**: A2A-MCP Compatible  
@@ -52,42 +63,53 @@ The Master Architect V2.0 will be implemented as **extensions** to your existing
 ## 🏗️ Adapted Architecture
 
 ```
-A2A-MCP Master Architect Integration Architecture
-════════════════════════════════════════════════
+A2A-MCP Master Architect Oracle Pattern Architecture
+═══════════════════════════════════════════════════
 
 ┌─────────────────────────────────────────────────────────┐
-│                MASTER ARCHITECT LAYER                    │
+│              MASTER ARCHITECT ORACLE MASTER              │
+│                        (Port 10601)                     │
 ├─────────────────────────────────────────────────────────┤
-│ • MasterArchitectAgent (extends BaseAgent)              │
-│ • HybridRouterAgent (extends BaseAgent)                 │
-│ • AgentBuilderAgent (extends BaseAgent)                 │
-└────────────────┬────────────────────────────────────────┘
-                 │
+│  • Multi-Intelligence Architecture Orchestration        │
+│  • Internal Workflow Management with Quality Gates      │
+│  • Cross-Domain Synthesis (Technical + Business + UX)   │
+│  • Architecture Risk Assessment and Validation          │
+│  • Implementation Quality Prediction with Confidence    │
+│  • Solution Complexity Analysis with Success Probability│
+└─────────────────────────────────────────────────────────┘
+                              ↓
 ┌─────────────────────────────────────────────────────────┐
-│              24 UNIVERSAL AGENTS LAYER                   │
+│              DOMAIN ORACLE SPECIALISTS                   │
 ├─────────────────────────────────────────────────────────┤
-│ • GoalPlannerAgent (BaseAgent + ADK pattern)            │
-│ • ReasoningEngineAgent (BaseAgent + ADK pattern)        │
-│ • MemoryRecallAgent (BaseAgent + ADK pattern)           │
-│ • ... (21 more universal agents)                        │
-└────────────────┬────────────────────────────────────────┘
-                 │
+│  • Technical Architecture Oracle (Port 10602)           │
+│    - System design, scalability, performance patterns   │
+│    - Technology stack optimization, architecture review │
+│                                                         │
+│  • Business Intelligence Oracle (Port 10603)            │
+│    - Market analysis, competitive strategy, ROI modeling│
+│    - Business model validation, financial forecasting   │
+│                                                         │
+│  • User Experience Oracle (Port 10604)                  │
+│    - UX/UI design patterns, user journey optimization   │
+│    - Accessibility compliance, design system validation │
+│                                                         │
+│  • Security Compliance Oracle (Port 10605)              │
+│    - Security architecture, compliance frameworks       │
+│    - Risk assessment, vulnerability analysis, auditing  │
+│                                                         │
+│  • Implementation Intelligence Oracle (Port 10606)      │
+│    - Development strategy, deployment planning          │
+│    - Resource allocation, timeline optimization         │
+└─────────────────────────────────────────────────────────┘
+                              ↓
 ┌─────────────────────────────────────────────────────────┐
-│            ENHANCED ORCHESTRATION LAYER                  │
+│               ORACLE PATTERN FRAMEWORK                   │
 ├─────────────────────────────────────────────────────────┤
-│ • MasterArchitectWorkflowGraph (extends your existing)  │
-│ • HybridRouter (quick vs deep path routing)             │
-│ • ResearchPipelineAgent (uses your MCP servers)         │
-└────────────────┬────────────────────────────────────────┘
-                 │
-┌─────────────────────────────────────────────────────────┐
-│               YOUR EXISTING FRAMEWORK                    │
-├─────────────────────────────────────────────────────────┤
-│ • ParallelWorkflowGraph (your NetworkX orchestration)   │
-│ • MCP Servers (brightdata, brave, supabase, etc.)       │
-│ • Agent Cards System (skills-based JSON configs)        │
-│ • Google ADK Integration (adk_travel_agent pattern)     │
-│ • Market Oracle Agents (your existing specialists)      │
+│ • Oracle Workflow Management (quality-gated execution)  │
+│ • Cross-Domain Intelligence Synthesis                   │
+│ • Architecture Quality Assurance & Risk Assessment      │
+│ • Implementation Confidence Scoring & Validation        │
+│ • A2A-MCP Framework Integration (existing infrastructure)│
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -160,47 +182,128 @@ agent_cards/                            # EXISTING + NEW cards
 
 ## 🔧 Core Implementation Components
 
-### 1. Master Architect Agent (Extends Your BaseAgent)
+### 1. Master Architect Oracle Master Agent
 
 ```python
-# src/a2a_mcp/agents/master_architect/master_architect_agent.py
-"""Master Architect Agent - Universal agent builder with hybrid routing."""
+# src/a2a_mcp/agents/master_architect_oracle/master_architect_oracle_agent.py
+"""Master Architect Oracle - Advanced Architecture Intelligence System"""
 
 import logging
 import json
 from collections.abc import AsyncIterable
 from typing import Dict, Any, List
+from datetime import datetime
 
 from a2a_mcp.common.base_agent import BaseAgent
-from a2a_mcp.common.utils import init_api_key, get_mcp_server_config
-from a2a_mcp.common.parallel_workflow import ParallelWorkflowGraph, ParallelWorkflowNode
-from a2a_mcp.agents.master_architect.hybrid_router_agent import HybridRouterAgent
-from a2a_mcp.agents.master_architect.agent_builder_agent import AgentBuilderAgent
+from a2a_mcp.common.utils import init_api_key
+from a2a_mcp.common.oracle_workflow import OracleWorkflowGraph
+from a2a_mcp.common.intelligence_synthesis import ArchitectureIntelligenceSynthesizer
+from a2a_mcp.common.quality_assurance import ArchitectureQualityValidator
+from a2a_mcp.common.risk_assessment import ImplementationRiskAssessor
 from google import genai
 
 logger = logging.getLogger(__name__)
 
-class MasterArchitectAgent(BaseAgent):
-    """Universal agent builder with hybrid routing capabilities."""
+# Master Architect Oracle Synthesis Prompt
+MASTER_ARCHITECT_ORACLE_SYNTHESIS_PROMPT = \"""
+You are Master Architect Oracle, a sophisticated architecture intelligence system with deep expertise 
+across technical architecture, business strategy, user experience, security compliance, and implementation 
+planning. Analyze the following architecture intelligence data and provide comprehensive architecture 
+recommendations with quality assurance and implementation confidence scoring.
+
+Intelligence Data:
+{intelligence_data}
+
+Architecture Context:
+{architecture_context}
+
+Design Requirements:
+- Implementation confidence threshold: {confidence_threshold}
+- Architecture quality minimum: {quality_threshold}
+- Risk tolerance level: {risk_tolerance}
+- Compliance requirements: {compliance_requirements}
+
+Provide comprehensive architecture synthesis in this JSON format:
+{{
+    "executive_summary": "Architecture recommendation with key insights",
+    "architecture_confidence": 0.0-1.0,
+    "domain_coverage": "Number of intelligence domains analyzed",
+    "architecture_assessment": {{
+        "technical_feasibility": 0-100,
+        "business_viability": 0-100,
+        "user_experience_score": 0-100,
+        "security_compliance": 0-100,
+        "implementation_complexity": 0-100
+    }},
+    "architecture_insights": [
+        {{"source": "domain", "insight": "architecture finding", "confidence": 0.0-1.0}},
+        ...
+    ],
+    "design_strategy": {{
+        "primary_approach": "main architecture strategy",
+        "technology_stack": "recommended technologies",
+        "deployment_pattern": "deployment strategy",
+        "scaling_strategy": "scalability approach",
+        "integration_approach": "system integration strategy"
+    }},
+    "risk_assessment": {{
+        "identified_risks": ["risk1", "risk2"],
+        "technical_risks": "low|medium|high",
+        "business_risks": "low|medium|high",
+        "implementation_risks": 0.0-1.0
+    }},
+    "implementation_plan": {{
+        "recommended_phases": ["phase1", "phase2"],
+        "resource_requirements": "resource estimates",
+        "timeline_estimate": "implementation timeline",
+        "success_metrics": ["metric1", "metric2"]
+    }},
+    "quality_validation": {{
+        "validation_passed": ["check1", "check2"],
+        "areas_for_improvement": ["area1", "area2"],
+        "confidence_factors": ["factor1", "factor2"]
+    }}
+}}
+\"""
+
+class MasterArchitectOracleAgent(BaseAgent):
+    """Master Architecture Oracle with sophisticated multi-domain intelligence coordination."""
 
     def __init__(self):
-        init_api_key()  # Your existing utility
+        init_api_key()
         super().__init__(
-            agent_name="Master Architect",
-            description="Universal agent builder with hybrid routing and research capabilities",
+            agent_name="Master Architect Oracle",
+            description="Advanced architecture intelligence with multi-domain expertise and implementation assurance",
             content_types=["text", "text/plain"],
         )
+        self.domain_oracles = [
+            "technical_architecture_oracle",
+            "business_intelligence_oracle", 
+            "user_experience_oracle",
+            "security_compliance_oracle",
+            "implementation_intelligence_oracle"
+        ]
+        self.intelligence_data = {}
+        self.synthesis_engine = ArchitectureIntelligenceSynthesizer()
+        self.quality_validator = ArchitectureQualityValidator()
+        self.risk_assessor = ImplementationRiskAssessor()
         
-        # Core components
-        self.hybrid_router = HybridRouterAgent()
-        self.agent_builder = AgentBuilderAgent()
-        self.graph = ParallelWorkflowGraph()  # Your existing class
+        # Architecture specific quality thresholds
+        self.quality_thresholds = {
+            "min_architecture_confidence": 0.85,
+            "implementation_confidence_threshold": 0.8,
+            "architecture_quality_minimum": 0.9,
+            "risk_tolerance_level": 0.3,
+            "compliance_requirement_standard": 0.95
+        }
         
-        # State management
-        self.universal_agents = self._load_universal_agents()
-        self.results = []
-        self.context_data = {}
-        self.query_history = []
+        # Master Architect persona characteristics
+        self.persona_traits = {
+            "personality": ["analytical", "strategic", "detail_oriented", "visionary", "pragmatic"],
+            "expertise_areas": ["system_architecture", "business_strategy", "technology_leadership", "risk_management"],
+            "communication_style": "technical_strategic_comprehensive",
+            "decision_making": "architecture_quality_optimized"
+        }
         
     async def stream(self, query: str, context_id: str, task_id: str) -> AsyncIterable[Dict[str, Any]]:
         """Main entry point following your BaseAgent pattern."""
@@ -954,29 +1057,40 @@ class ResearchPipelineAgent(BaseAgent):
 
 ## 🚀 Deployment Integration
 
-### Google Cloud Deployment (Following Your Tutorial)
+### Oracle Pattern Deployment (Google Cloud ADK)
 
-The Master Architect system will deploy using your existing Google Cloud ADK patterns:
+The Master Architect Oracle will deploy using advanced Oracle pattern architecture with Google Cloud ADK:
 
 ```bash
-# Deploy Master Architect Agent
-cd src/a2a_mcp/agents/master_architect
+# Deploy Master Architect Oracle Agent
+cd src/a2a_mcp/agents/master_architect_oracle
 adk deploy cloud_run \
 --project="Agents Cloud" \
 --region="asia-south2-c" \
---service_name="master-architect-agent" \
+--service_name="master-architect-oracle-agent" \
 --with_ui \
+--oracle_pattern_enabled \
 ./
 
-# Deploy Universal Agents
-cd ../universal_agents
-for agent in goal_planner reasoning_engine memory_recall; do
+# Deploy Domain Oracle Specialists (Internal Architecture)
+cd ../domain_oracles
+for oracle in technical_architecture business_intelligence user_experience security_compliance implementation_intelligence; do
     adk deploy cloud_run \
     --project="Agents Cloud" \
     --region="asia-south2-c" \
-    --service_name="${agent}-agent" \
-    ./${agent}_agent
+    --service_name="master-${oracle}-oracle" \
+    --oracle_specialist_mode \
+    ./${oracle}_oracle
 done
+
+# Deploy Oracle Pattern Quality Assurance Framework
+cd ../oracle_qa
+adk deploy cloud_run \
+--project="Agents Cloud" \
+--region="asia-south2-c" \
+--service_name="master-architect-qa-validator" \
+--quality_assurance_mode \
+./master_architect_qa_framework
 ```
 
 ### Agent Card Updates
