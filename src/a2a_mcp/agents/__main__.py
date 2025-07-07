@@ -26,6 +26,7 @@ from a2a_mcp.agents.adk_nexus_agent import UnifiedNexusAgent
 from a2a_mcp.agents.nexus_orchestrator_agent import NexusOrchestrator
 from a2a_mcp.agents.nexus_parallel_orchestrator_agent import ParallelNexusOrchestrator
 from a2a_mcp.agents.langgraph_nexus_planner_agent import LangGraphNexusPlanner
+from a2a_mcp.agents.nexus_oracle_agent import NexusOracleAgent
 
 
 logger = logging.getLogger(__name__)
@@ -63,7 +64,10 @@ def get_agent(agent_card: AgentCard):
             )
             # return LangraphCarRentalAgent()
         
-        # NEXUS RESEARCH DOMAIN (11001-11099 range) - Framework Compliant
+        # NEXUS RESEARCH DOMAIN (11001-11099 range) - Oracle Pattern Implementation
+        elif agent_card.name == 'Nexus Oracle Agent':
+            return NexusOracleAgent()  # Port 11001 (master oracle)
+            
         elif agent_card.name == 'Nexus Orchestrator Agent':
             # Follow framework pattern: use parallel if enabled
             if os.getenv('ENABLE_PARALLEL_EXECUTION', 'true').lower() == 'true':
