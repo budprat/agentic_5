@@ -16,7 +16,6 @@ __pycache__/
 *.pyd
 
 # Development environments  
-.claude/
 .idx/
 .vscode/
 
