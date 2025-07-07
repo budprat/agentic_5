@@ -41,7 +41,7 @@ class NexusOrchestrator(BaseAgent):
         """Generate research synthesis summary following framework pattern."""
         client = genai.Client()
         response = client.models.generate_content(
-            model="gemini-2.0-flash",
+            model=os.getenv('GEMINI_MODEL', 'gemini-2.0-flash-001'),
             contents=prompts.NEXUS_SUMMARY_COT_INSTRUCTIONS.replace(
                 "{research_data}", str(self.results)
             ),
@@ -53,7 +53,7 @@ class NexusOrchestrator(BaseAgent):
         try:
             client = genai.Client()
             response = client.models.generate_content(
-                model="gemini-2.0-flash",
+                model=os.getenv('GEMINI_MODEL', 'gemini-2.0-flash-001'),
                 contents=prompts.NEXUS_QA_COT_PROMPT.replace(
                     "{RESEARCH_CONTEXT}", str(self.research_context)
                 )

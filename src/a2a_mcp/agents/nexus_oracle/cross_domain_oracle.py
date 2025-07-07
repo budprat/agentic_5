@@ -1,5 +1,6 @@
 """Cross-Domain Analysis Oracle - Transdisciplinary Integration and Pattern Recognition Agent."""
 
+import os
 import logging
 import json
 from collections.abc import AsyncIterable
@@ -210,7 +211,7 @@ class CrossDomainOracle(BaseAgent):
         )
         
         response = client.models.generate_content(
-            model="gemini-2.0-flash",
+            model=os.getenv('GEMINI_MODEL', 'gemini-2.0-flash-001'),
             contents=prompt,
             config={
                 "temperature": 0.2,  # Slightly higher for creative synthesis

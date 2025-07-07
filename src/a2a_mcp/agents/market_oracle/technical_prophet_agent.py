@@ -146,7 +146,7 @@ class TechnicalProphetAgent(BaseAgent):
         """
         
         response = client.models.generate_content(
-            model="gemini-2.0-flash",
+            model=os.getenv('GEMINI_MODEL', 'gemini-2.0-flash-001'),
             contents=prompt,
             config={"temperature": 0.0, "response_mime_type": "application/json"}
         )
@@ -231,7 +231,7 @@ class TechnicalProphetAgent(BaseAgent):
             )
             
             response = self.model.models.generate_content(
-                model="gemini-2.0-flash",
+                model=os.getenv('GEMINI_MODEL', 'gemini-2.0-flash-001'),
                 contents=prompt,
                 config={"temperature": 0.0, "response_mime_type": "application/json"}
             )

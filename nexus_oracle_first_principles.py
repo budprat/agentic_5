@@ -118,7 +118,7 @@ class FirstPrinciplesOracle:
         
         try:
             response = client.models.generate_content(
-                model="gemini-2.0-flash",
+                model=os.getenv('GEMINI_MODEL', 'gemini-2.0-flash-001'),
                 contents=deconstruction_prompt,
                 config={
                     "temperature": 0.1,
@@ -260,7 +260,7 @@ class FirstPrinciplesOracle:
         
         try:
             response = client.models.generate_content(
-                model="gemini-2.0-flash",
+                model=os.getenv('GEMINI_MODEL', 'gemini-2.0-flash-001'),
                 contents=question_prompt,
                 config={
                     "temperature": 0.2,
@@ -305,7 +305,7 @@ class FirstPrinciplesOracle:
         
         try:
             response = client.models.generate_content(
-                model="gemini-2.0-flash",
+                model=os.getenv('GEMINI_MODEL', 'gemini-2.0-flash-001'),
                 contents=synthesis_prompt,
                 config={"temperature": 0.1}
             )

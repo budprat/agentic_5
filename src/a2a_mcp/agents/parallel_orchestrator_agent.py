@@ -44,7 +44,7 @@ class ParallelOrchestratorAgent(BaseAgent):
     async def generate_summary(self) -> str:
         client = genai.Client()
         response = client.models.generate_content(
-            model="gemini-2.0-flash",
+            model=os.getenv('GEMINI_MODEL', 'gemini-2.0-flash-001'),
             contents=prompts.SUMMARY_COT_INSTRUCTIONS.replace(
                 "{travel_data}", str(self.results)
             ),
@@ -56,7 +56,7 @@ class ParallelOrchestratorAgent(BaseAgent):
         try:
             client = genai.Client()
             response = client.models.generate_content(
-                model="gemini-2.0-flash",
+                model=os.getenv('GEMINI_MODEL', 'gemini-2.0-flash-001'),
                 contents=prompts.QA_COT_PROMPT.replace(
                     "{TRIP_CONTEXT}", str(self.travel_context)
                 )

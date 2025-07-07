@@ -130,7 +130,7 @@ async def debug_oracle_citation_flow():
         # Generate the AI response
         print("\n📋 STEP 5: Calling AI model...")
         response = client.models.generate_content(
-            model="gemini-2.0-flash",
+            model=os.getenv('GEMINI_MODEL', 'gemini-2.0-flash-001'),
             contents=full_prompt,
             config={
                 "temperature": 0.1,
@@ -198,7 +198,7 @@ Provide a brief analysis that SPECIFICALLY CITES the external academic papers us
 """
         
         explicit_response = client.models.generate_content(
-            model="gemini-2.0-flash",
+            model=os.getenv('GEMINI_MODEL', 'gemini-2.0-flash-001'),
             contents=explicit_prompt,
             config={"temperature": 0.1}
         )

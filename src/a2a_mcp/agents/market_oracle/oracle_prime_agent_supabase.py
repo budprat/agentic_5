@@ -242,7 +242,7 @@ class OraclePrimeAgentSupabase(BaseAgent):
         )
         
         response = client.models.generate_content(
-            model="gemini-2.0-flash",
+            model=os.getenv('GEMINI_MODEL', 'gemini-2.0-flash-001'),
             contents=prompt,
             config={
                 "temperature": 0.0,

@@ -116,7 +116,7 @@ class NewsHawkAgent(BaseAgent):
             )
             
             response = await self.model.aio.models.generate_content(
-                model="gemini-2.0-flash-exp",
+                model=os.getenv('GEMINI_MODEL', 'gemini-2.0-flash-001'),
                 contents=prompt
             )
             
