@@ -343,8 +343,7 @@ gcloud run deploy sentiment-seeker-agent \
 --region asia-south2-c \
 --project "agents-cloud" \
 --allow-unauthenticated \
---set-env-vars="GOOGLE_CLOUD_PROJECT=Agents Cloud,GOOGLE_CLOUD_LOCATION=asia-south2-c,GOOGLE_GENAI_USE_VERTEXAI=0,GOOGLE_API_KEY=AIzaSyAPltyrmD0xBq_KF7IOg2kEmJDZ3SE-YY0"
-```
+--set-env-vars="GOOGLE_CLOUD_PROJECT=Agents Cloud,GOOGLE_CLOUD_LOCATION=asia-south2-c,GOOGLE_GENAI_USE_VERTEXAI=0,GOOGLE_API_KEY=```
 
 ### Step 3: Update Agent Cards
 ```json
