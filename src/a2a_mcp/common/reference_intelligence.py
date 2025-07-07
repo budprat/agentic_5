@@ -98,8 +98,11 @@ class ReferenceIntelligenceService:
         }
     
     async def _search_arxiv(self, query: str, domain: str) -> Dict[str, Any]:
-        """Search ArXiv for relevant papers."""
+        """Search ArXiv for relevant papers with proper timeout and error handling."""
         try:
+            # Enable appropriate logging level for arxiv
+            logging.getLogger('arxiv').setLevel(logging.WARNING)
+            
             # Domain-specific query enhancement
             enhanced_query = self._enhance_query_for_arxiv_domain(query, domain)
             
@@ -109,68 +112,130 @@ class ReferenceIntelligenceService:
                 sort_by=arxiv.SortCriterion.SubmittedDate
             )
             
-            papers = []
-            for result in self.arxiv_client.results(search):
-                # Apply quality filters
-                if self._passes_quality_filters(result):
-                    papers.append({
-                        "title": result.title,
-                        "authors": [author.name for author in result.authors],
-                        "abstract": result.summary[:500] + "..." if len(result.summary) > 500 else result.summary,
-                        "doi": result.doi,
-                        "arxiv_id": result.entry_id.split('/')[-1],
-                        "pdf_url": result.pdf_url,
-                        "published": result.published.isoformat(),
-                        "categories": result.categories,
-                        "source": "arxiv",
-                        "quality_score": self._calculate_arxiv_quality_score(result)
-                    })
+            # Define synchronous function to fetch results
+            def fetch_arxiv_results():
+                papers = []
+                paper_count = 0
+                max_papers = self.config["limits"]["max_papers_per_source"]
+                
+                try:
+                    for result in self.arxiv_client.results(search):
+                        if paper_count >= max_papers:
+                            break
+                            
+                        # Apply quality filters
+                        if self._passes_quality_filters(result):
+                            papers.append({
+                                "title": result.title,
+                                "authors": [author.name for author in result.authors],
+                                "abstract": result.summary[:500] + "..." if len(result.summary) > 500 else result.summary,
+                                "doi": result.doi,
+                                "arxiv_id": result.entry_id.split('/')[-1],
+                                "pdf_url": result.pdf_url,
+                                "published": result.published.isoformat(),
+                                "categories": result.categories,
+                                "source": "arxiv",
+                                "quality_score": self._calculate_arxiv_quality_score(result)
+                            })
+                        
+                        paper_count += 1
+                
+                except Exception as e:
+                    logger.warning(f"ArXiv iteration error: {e}")
+                
+                return papers
             
-            return {
-                "papers": papers,
-                "total_found": len(papers),
-                "query_used": enhanced_query,
-                "source": "arxiv"
-            }
+            # Run synchronous function in thread pool with timeout
+            try:
+                papers = await asyncio.wait_for(
+                    asyncio.to_thread(fetch_arxiv_results),
+                    timeout=self.config["limits"]["request_timeout"]
+                )
+                
+                return {
+                    "papers": papers,
+                    "total_found": len(papers),
+                    "query_used": enhanced_query,
+                    "source": "arxiv",
+                    "timeout_occurred": False
+                }
+                
+            except asyncio.TimeoutError:
+                logger.warning(f"ArXiv search timed out after {self.config['limits']['request_timeout']}s")
+                return {
+                    "papers": [],
+                    "total_found": 0,
+                    "query_used": enhanced_query,
+                    "source": "arxiv",
+                    "timeout_occurred": True,
+                    "error": f"Request timed out after {self.config['limits']['request_timeout']}s"
+                }
             
         except Exception as e:
             logger.error(f"ArXiv search error: {e}")
             return {"error": str(e), "papers": [], "source": "arxiv"}
     
     async def _search_semantic_scholar(self, query: str) -> Dict[str, Any]:
-        """Search Semantic Scholar for relevant papers."""
+        """Search Semantic Scholar for relevant papers with proper timeout handling."""
         try:
-            # Search for papers
-            results = self.semantic_scholar.search_paper(
-                query, 
-                limit=self.config["limits"]["max_papers_per_source"],
-                fields=['title', 'abstract', 'authors', 'citationCount', 
-                       'influentialCitationCount', 'year', 'venue', 'externalIds', 'isOpenAccess']
-            )
+            # Define synchronous function to fetch results
+            def fetch_semantic_scholar_results():
+                papers = []
+                
+                try:
+                    # Search for papers using synchronous API
+                    results = self.semantic_scholar.search_paper(
+                        query, 
+                        limit=self.config["limits"]["max_papers_per_source"],
+                        fields=['title', 'abstract', 'authors', 'citationCount', 
+                               'influentialCitationCount', 'year', 'venue', 'externalIds', 'isOpenAccess']
+                    )
+                    
+                    for paper in results:
+                        if self._passes_semantic_scholar_filters(paper):
+                            papers.append({
+                                "title": paper.title,
+                                "authors": [author.name for author in paper.authors] if paper.authors else [],
+                                "abstract": (paper.abstract[:500] + "...") if paper.abstract and len(paper.abstract) > 500 else (paper.abstract or ""),
+                                "citation_count": paper.citationCount or 0,
+                                "influential_citations": paper.influentialCitationCount or 0,
+                                "year": paper.year,
+                                "venue": paper.venue,
+                                "doi": paper.externalIds.get('DOI') if paper.externalIds else None,
+                                "is_open_access": paper.isOpenAccess,
+                                "semantic_scholar_id": paper.paperId,
+                                "source": "semantic_scholar",
+                                "quality_score": self._calculate_semantic_scholar_quality_score(paper)
+                            })
+                            
+                except Exception as e:
+                    logger.warning(f"Semantic Scholar iteration error: {e}")
+                
+                return papers
             
-            papers = []
-            for paper in results:
-                if self._passes_semantic_scholar_filters(paper):
-                    papers.append({
-                        "title": paper.title,
-                        "authors": [author.name for author in paper.authors] if paper.authors else [],
-                        "abstract": (paper.abstract[:500] + "...") if paper.abstract and len(paper.abstract) > 500 else (paper.abstract or ""),
-                        "citation_count": paper.citationCount or 0,
-                        "influential_citations": paper.influentialCitationCount or 0,
-                        "year": paper.year,
-                        "venue": paper.venue,
-                        "doi": paper.externalIds.get('DOI') if paper.externalIds else None,
-                        "is_open_access": paper.isOpenAccess,
-                        "semantic_scholar_id": paper.paperId,
-                        "source": "semantic_scholar",
-                        "quality_score": self._calculate_semantic_scholar_quality_score(paper)
-                    })
-            
-            return {
-                "papers": papers,
-                "total_found": len(papers),
-                "source": "semantic_scholar"
-            }
+            # Run synchronous function in thread pool with timeout
+            try:
+                papers = await asyncio.wait_for(
+                    asyncio.to_thread(fetch_semantic_scholar_results),
+                    timeout=self.config["limits"]["request_timeout"]
+                )
+                
+                return {
+                    "papers": papers,
+                    "total_found": len(papers),
+                    "source": "semantic_scholar",
+                    "timeout_occurred": False
+                }
+                
+            except asyncio.TimeoutError:
+                logger.warning(f"Semantic Scholar search timed out after {self.config['limits']['request_timeout']}s")
+                return {
+                    "papers": [],
+                    "total_found": 0,
+                    "source": "semantic_scholar",
+                    "timeout_occurred": True,
+                    "error": f"Request timed out after {self.config['limits']['request_timeout']}s"
+                }
             
         except Exception as e:
             logger.error(f"Semantic Scholar search error: {e}")
