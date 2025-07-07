@@ -2,6 +2,7 @@
 
 import logging
 import json
+import asyncio
 from collections.abc import AsyncIterable
 from typing import Dict, Any, List
 from datetime import datetime
@@ -364,7 +365,7 @@ class NexusOracleAgent(BaseAgent):
             }
 
     async def generate_research_synthesis(self, query: str) -> str:
-        """Generate comprehensive research synthesis."""
+        """Generate comprehensive research synthesis with retry logic."""
         client = genai.Client()
         
         # Format external references for inclusion
@@ -380,15 +381,32 @@ class NexusOracleAgent(BaseAgent):
             evidence_threshold=self.quality_thresholds["evidence_quality_threshold"]
         )
         
-        response = client.models.generate_content(
-            model="gemini-2.0-flash",
-            contents=prompt,
-            config={
-                "temperature": 0.1,  # Slightly higher for research creativity
-                "response_mime_type": "application/json"
-            }
-        )
-        return response.text
+        # Retry logic for API overload
+        max_retries = 3
+        base_delay = 2.0
+        
+        for attempt in range(max_retries):
+            try:
+                response = client.models.generate_content(
+                    model="gemini-2.0-flash",
+                    contents=prompt,
+                    config={
+                        "temperature": 0.1,  # Slightly higher for research creativity
+                        "response_mime_type": "application/json"
+                    }
+                )
+                return response.text
+                
+            except Exception as e:
+                error_msg = str(e)
+                if ("503" in error_msg or "overloaded" in error_msg.lower()) and attempt < max_retries - 1:
+                    wait_time = base_delay * (2 ** attempt)
+                    logger.warning(f"API overloaded, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})")
+                    await asyncio.sleep(wait_time)
+                    continue
+                else:
+                    # Re-raise the exception if it's not an overload error or we've exhausted retries
+                    raise e
 
     def analyze_research_dependencies(self, query: str) -> Dict[str, Any]:
         """Determine which research domains to activate, their dependencies, and execution order."""
