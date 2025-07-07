@@ -21,6 +21,13 @@ dependencies = [
     "numpy>=2.2.5",
     "pandas>=2.2.3",
     "pydantic>=2.11.4",
+    # External Reference Integration Dependencies (Sprint 1)
+    "arxiv>=2.1.0",
+    "semanticscholar>=0.8.2",
+    "aiohttp>=3.9.0",
+    "python-dotenv>=1.0.0",
+    "feedparser>=6.0.10",
+    "requests>=2.32.0",
 ]
 
 [project.scripts]
