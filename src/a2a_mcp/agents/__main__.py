@@ -22,6 +22,10 @@ from a2a_mcp.agents.adk_travel_agent import TravelAgent
 from a2a_mcp.agents.langgraph_planner_agent import LangraphPlannerAgent
 from a2a_mcp.agents.orchestrator_agent import OrchestratorAgent
 from a2a_mcp.agents.parallel_orchestrator_agent import ParallelOrchestratorAgent
+from a2a_mcp.agents.adk_nexus_agent import UnifiedNexusAgent
+from a2a_mcp.agents.nexus_orchestrator_agent import NexusOrchestrator
+from a2a_mcp.agents.nexus_parallel_orchestrator_agent import ParallelNexusOrchestrator
+from a2a_mcp.agents.langgraph_nexus_planner_agent import LangGraphNexusPlanner
 
 
 logger = logging.getLogger(__name__)
@@ -58,6 +62,69 @@ def get_agent(agent_card: AgentCard):
                 instructions=prompts.CARS_COT_INSTRUCTIONS,
             )
             # return LangraphCarRentalAgent()
+        
+        # NEXUS RESEARCH DOMAIN (11001-11099 range) - Framework Compliant
+        elif agent_card.name == 'Nexus Orchestrator Agent':
+            # Follow framework pattern: use parallel if enabled
+            if os.getenv('ENABLE_PARALLEL_EXECUTION', 'true').lower() == 'true':
+                logger.info("Using Parallel Nexus Orchestrator Agent")
+                return ParallelNexusOrchestrator()  # Port 11001
+            else:
+                return NexusOrchestrator()  # Port 11001
+                
+        elif agent_card.name == 'Nexus Planner Agent':
+            return LangGraphNexusPlanner()  # Port 11002
+            
+        # Disciplinary Domain Supervisors (11003-11020)
+        elif agent_card.name == 'Life Sciences Supervisor':
+            return UnifiedNexusAgent(
+                agent_name='LifeSciencesSupervisor',
+                description='Analyzes life sciences and biotechnology research for transdisciplinary synthesis',
+                instructions=prompts.LIFE_SCIENCES_SUPERVISOR_COT_INSTRUCTIONS,
+            )
+        elif agent_card.name == 'Social Sciences Supervisor':
+            return UnifiedNexusAgent(
+                agent_name='SocialSciencesSupervisor',
+                description='Analyzes social sciences and humanities research for cross-domain insights',
+                instructions=prompts.SOCIAL_SCIENCES_SUPERVISOR_COT_INSTRUCTIONS,
+            )
+        elif agent_card.name == 'Economics & Policy Supervisor':
+            return UnifiedNexusAgent(
+                agent_name='EconomicsPolicySupervisor',
+                description='Analyzes economic and policy research for systemic understanding',
+                instructions=prompts.ECONOMICS_POLICY_SUPERVISOR_COT_INSTRUCTIONS,
+            )
+        elif agent_card.name == 'Physical Sciences Supervisor':
+            return UnifiedNexusAgent(
+                agent_name='PhysicalSciencesSupervisor',
+                description='Analyzes physics, chemistry, and material sciences research',
+                instructions=prompts.PHYSICAL_SCIENCES_SUPERVISOR_COT_INSTRUCTIONS,
+            )
+        elif agent_card.name == 'Computer Science Supervisor':
+            return UnifiedNexusAgent(
+                agent_name='ComputerScienceSupervisor',
+                description='Analyzes computer science and AI research for technical insights',
+                instructions=prompts.COMPUTER_SCIENCE_SUPERVISOR_COT_INSTRUCTIONS,
+            )
+        elif agent_card.name == 'Psychology Supervisor':
+            return UnifiedNexusAgent(
+                agent_name='PsychologySupervisor',
+                description='Analyzes psychological and cognitive science research for behavioral insights',
+                instructions=prompts.PSYCHOLOGY_SUPERVISOR_COT_INSTRUCTIONS,
+            )
+        elif agent_card.name == 'Cross-Domain Analysis Supervisor':
+            return UnifiedNexusAgent(
+                agent_name='CrossDomainAnalysisSupervisor',
+                description='Performs transdisciplinary synthesis and pattern recognition across all domains',
+                instructions=prompts.CROSS_DOMAIN_ANALYSIS_COT_INSTRUCTIONS,
+            )
+        elif agent_card.name == 'Visualization & Synthesis Supervisor':
+            return UnifiedNexusAgent(
+                agent_name='VisualizationSynthesisSupervisor',
+                description='Creates visual representations and synthesis dashboards for research insights',
+                instructions=prompts.VISUALIZATION_SYNTHESIS_COT_INSTRUCTIONS,
+            )
+            
     except Exception as e:
         raise e
 
