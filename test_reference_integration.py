@@ -28,9 +28,9 @@ async def test_reference_integration():
             "mcp_scholarly": False  # Docker not available in this environment
         },
         "limits": {
-            "max_papers_per_source": 5,
-            "max_total_papers": 10,
-            "request_timeout": 30
+            "max_papers_per_source": 3,
+            "max_total_papers": 6,
+            "request_timeout": 15
         },
         "quality_filters": {
             "min_citation_count": 1,

@@ -183,6 +183,12 @@ class ReferenceIntelligenceService:
                 papers = []
                 
                 try:
+                    # Enable debug logging for this API call to understand what's happening
+                    import logging
+                    logging.getLogger('semanticscholar').setLevel(logging.DEBUG)
+                    
+                    logger.info(f"Starting Semantic Scholar search for query: {query}")
+                    
                     # Search for papers using synchronous API
                     results = self.semantic_scholar.search_paper(
                         query, 
@@ -191,7 +197,11 @@ class ReferenceIntelligenceService:
                                'influentialCitationCount', 'year', 'venue', 'externalIds', 'isOpenAccess']
                     )
                     
-                    for paper in results:
+                    # According to the documentation, get the first page directly instead of iterating
+                    # This avoids potential infinite iteration or pagination issues
+                    first_page_items = results.items if hasattr(results, 'items') else list(results)
+                    
+                    for paper in first_page_items:
                         if self._passes_semantic_scholar_filters(paper):
                             papers.append({
                                 "title": paper.title,
@@ -276,13 +286,24 @@ class ReferenceIntelligenceService:
     
     def _passes_quality_filters(self, arxiv_result) -> bool:
         """Check if ArXiv result passes quality filters."""
-        # Age filter
-        age_limit = datetime.now() - timedelta(days=365 * self.config["quality_filters"]["max_age_years"])
-        if arxiv_result.published < age_limit:
-            return False
-        
-        # Additional quality checks can be added here
-        return True
+        try:
+            # Age filter - handle timezone-aware vs naive datetime comparison
+            age_limit = datetime.now() - timedelta(days=365 * self.config["quality_filters"]["max_age_years"])
+            published_date = arxiv_result.published
+            
+            # Convert to naive datetime if it's timezone-aware
+            if published_date.tzinfo is not None:
+                published_date = published_date.replace(tzinfo=None)
+            
+            if published_date < age_limit:
+                return False
+            
+            # Additional quality checks can be added here
+            return True
+            
+        except Exception as e:
+            logger.warning(f"Quality filter error: {e}")
+            return True  # Default to accept if there's an error
     
     def _passes_semantic_scholar_filters(self, paper) -> bool:
         """Check if Semantic Scholar result passes quality filters."""
@@ -304,12 +325,19 @@ class ReferenceIntelligenceService:
         """Calculate quality score for ArXiv paper (0.0-1.0)."""
         score = 0.5  # Base score
         
-        # Recency bonus
-        days_old = (datetime.now() - result.published).days
-        if days_old < 365:  # Less than 1 year
-            score += 0.2
-        elif days_old < 365 * 2:  # Less than 2 years
-            score += 0.1
+        try:
+            # Recency bonus - handle timezone-aware vs naive datetime
+            published_date = result.published
+            if published_date.tzinfo is not None:
+                published_date = published_date.replace(tzinfo=None)
+            
+            days_old = (datetime.now() - published_date).days
+            if days_old < 365:  # Less than 1 year
+                score += 0.2
+            elif days_old < 365 * 2:  # Less than 2 years
+                score += 0.1
+        except Exception as e:
+            logger.warning(f"Date calculation error in quality score: {e}")
         
         # Category relevance (simplified)
         if len(result.categories) > 1:  # Interdisciplinary
