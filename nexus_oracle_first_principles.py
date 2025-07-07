@@ -360,14 +360,9 @@ class FirstPrinciplesOracle:
                         
                         if response.get('response_type') == 'data':
                             analysis_result = response.get('content', {})
-                            synthesis = analysis_result.get('synthesis', {})
-                            summary = synthesis.get('executive_summary', 'Analysis completed')
-                            confidence = synthesis.get('research_confidence', 'N/A')
                             
-                            print(f"📊 RESULTS:")
-                            print(f"   Confidence: {confidence}")
-                            print(f"   Responses: {len(responses)}")
-                            print(f"📝 SUMMARY: {summary}")
+                            # Display comprehensive analysis like enhanced Oracle
+                            await self.display_comprehensive_analysis(analysis_result, refined_question, len(responses))
                             
                             print(f"\n💡 FIRST PRINCIPLES IMPACT:")
                             print(f"   ✅ Refined question led to targeted analysis")
@@ -380,6 +375,116 @@ class FirstPrinciplesOracle:
                 break
             except Exception as e:
                 print(f"\n❌ Error: {e}")
+    
+    async def display_comprehensive_analysis(self, analysis: dict, original_question: str, response_count: int):
+        """Display comprehensive analysis with detailed formatting like enhanced Oracle."""
+        if not isinstance(analysis, dict):
+            print(f"📝 Analysis: {analysis}")
+            return
+            
+        synthesis = analysis.get('synthesis', {})
+        quality_validation = analysis.get('quality_validation', {})
+        research_intelligence = analysis.get('research_intelligence', {})
+        
+        print(f"📊 COMPREHENSIVE RESEARCH SYNTHESIS")
+        print("─" * 50)
+        
+        # Executive Summary with more detail
+        summary = synthesis.get('executive_summary', 'No summary available')
+        print(f"🎯 EXECUTIVE SUMMARY:")
+        print(f"   {summary}")
+        
+        # Enhanced quality metrics
+        confidence = synthesis.get('research_confidence', 'N/A')
+        domain_coverage = synthesis.get('domain_coverage', 0)
+        quality_score = quality_validation.get('confidence_score', 'N/A')
+        quality_issues = quality_validation.get('quality_issues', [])
+        
+        print(f"\n📈 ANALYSIS QUALITY METRICS:")
+        print(f"   Research Confidence: {confidence} {'✅' if isinstance(confidence, (int, float)) and confidence >= 0.7 else '⚠️'}")
+        print(f"   Domain Coverage: {domain_coverage} disciplines {'✅' if domain_coverage >= 2 else '⚠️'}")
+        print(f"   Quality Score: {quality_score} {'✅' if isinstance(quality_score, (int, float)) and quality_score >= 0.7 else '⚠️'}")
+        print(f"   Responses Generated: {response_count}")
+        
+        if quality_issues:
+            print(f"   Quality Issues: {', '.join(quality_issues)}")
+        
+        # Domain-specific insights
+        if research_intelligence:
+            print(f"\n🧬 DOMAIN-SPECIFIC INTELLIGENCE:")
+            for domain, data in research_intelligence.items():
+                insights = data.get('insights', [])
+                evidence_quality = data.get('evidence_quality', 'N/A')
+                domain_display = domain.replace('_', ' ').title()
+                print(f"   📚 {domain_display}: {len(insights)} insights (Evidence: {evidence_quality})")
+                
+                # Show top insights from each domain
+                for i, insight in enumerate(insights[:2], 1):
+                    if isinstance(insight, dict):
+                        insight_text = insight.get('finding', 'N/A')
+                        insight_confidence = insight.get('confidence', 'N/A')
+                        print(f"      💡 {i}. {insight_text[:80]}... (Conf: {insight_confidence})")
+                    else:
+                        print(f"      💡 {i}. {str(insight)[:80]}...")
+        
+        # Enhanced cross-domain patterns
+        cross_patterns = synthesis.get('cross_domain_patterns', {})
+        if cross_patterns:
+            print(f"\n🔗 CROSS-DOMAIN INSIGHTS:")
+            convergent = cross_patterns.get('convergent_findings', [])
+            contradictory = cross_patterns.get('contradictory_evidence', [])
+            gaps = cross_patterns.get('knowledge_gaps', [])
+            
+            print(f"   ✅ Convergent Findings: {len(convergent)}")
+            print(f"   ⚠️  Contradictory Evidence: {len(contradictory)}")
+            print(f"   ❓ Knowledge Gaps: {len(gaps)}")
+            
+            # Show detailed findings
+            if convergent:
+                print(f"   🎯 Key Convergent Findings:")
+                for i, finding in enumerate(convergent[:2], 1):
+                    finding_text = finding if isinstance(finding, str) else str(finding)
+                    print(f"      {i}. {finding_text[:100]}...")
+        
+        # Novel hypotheses with more detail
+        hypotheses = synthesis.get('novel_hypotheses', [])
+        if hypotheses:
+            print(f"\n💡 NOVEL RESEARCH HYPOTHESES:")
+            for i, hypothesis in enumerate(hypotheses[:3], 1):
+                if isinstance(hypothesis, dict):
+                    hyp_text = hypothesis.get('hypothesis', 'N/A')
+                    supporting_domains = hypothesis.get('supporting_domains', [])
+                    testability = hypothesis.get('testability', 'N/A')
+                    significance = hypothesis.get('significance', 'N/A')
+                    
+                    print(f"   {i}. {hyp_text}")
+                    print(f"      Domains: {', '.join(supporting_domains[:3])}")
+                    print(f"      Testability: {testability} | Significance: {significance[:50]}...")
+                else:
+                    print(f"   {i}. {str(hypothesis)}")
+        
+        # Actionable research recommendations
+        recommendations = synthesis.get('research_recommendations', {})
+        if recommendations:
+            print(f"\n🎯 ACTIONABLE RESEARCH RECOMMENDATIONS:")
+            
+            priority_areas = recommendations.get('priority_directions', [])
+            if priority_areas:
+                print(f"   📋 Priority Research Areas:")
+                for area in priority_areas[:3]:
+                    print(f"      • {area}")
+                    
+            methodologies = recommendations.get('methodological_innovations', [])
+            if methodologies:
+                print(f"   🔬 Recommended Methodologies:")
+                for method in methodologies[:3]:
+                    print(f"      • {method}")
+                    
+            collaborations = recommendations.get('collaboration_opportunities', [])
+            if collaborations:
+                print(f"   🤝 Collaboration Opportunities:")
+                for collab in collaborations[:3]:
+                    print(f"      • {collab}")
     
     def show_help(self):
         """Show first principles help."""
