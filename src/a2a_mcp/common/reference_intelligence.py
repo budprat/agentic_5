@@ -18,7 +18,8 @@ class ReferenceIntelligenceService:
     def __init__(self, config: Dict = None):
         self.config = config or self._default_config()
         self.arxiv_client = self._init_arxiv_client()
-        self.semantic_scholar = SemanticScholar()
+        # Initialize SemanticScholar with timeout and proper configuration
+        self.semantic_scholar = self._init_semantic_scholar_client()
         self.session = None
         self.cache = {}
         
@@ -50,6 +51,20 @@ class ReferenceIntelligenceService:
             delay_seconds=3.0,  # Respectful rate limiting
             num_retries=3
         )
+    
+    def _init_semantic_scholar_client(self) -> SemanticScholar:
+        """Initialize Semantic Scholar client with proper timeout configuration."""
+        import os
+        # Check for API key in environment variables for better rate limits
+        api_key = os.getenv('SEMANTIC_SCHOLAR_API_KEY')
+        
+        if api_key:
+            logger.info("Using Semantic Scholar API key for enhanced rate limits")
+            return SemanticScholar(api_key=api_key, timeout=30)
+        else:
+            logger.info("Using Semantic Scholar without API key (5000 requests per 5 minutes)")
+            # Initialize with explicit timeout to handle slow responses
+            return SemanticScholar(timeout=30)
     
     async def gather_domain_references(self, query: str, domain: str) -> Dict[str, Any]:
         """Gather references from multiple sources for a domain query."""
@@ -185,21 +200,63 @@ class ReferenceIntelligenceService:
                 try:
                     # Enable debug logging for this API call to understand what's happening
                     import logging
+                    import time
+                    import requests
                     logging.getLogger('semanticscholar').setLevel(logging.DEBUG)
                     
                     logger.info(f"Starting Semantic Scholar search for query: {query}")
                     
-                    # Search for papers using synchronous API
-                    results = self.semantic_scholar.search_paper(
-                        query, 
-                        limit=self.config["limits"]["max_papers_per_source"],
-                        fields=['title', 'abstract', 'authors', 'citationCount', 
-                               'influentialCitationCount', 'year', 'venue', 'externalIds', 'isOpenAccess']
-                    )
+                    # Implement retry logic for 500 errors and rate limiting as per API docs
+                    max_retries = 3
+                    base_delay = 2.0
+                    
+                    for attempt in range(max_retries):
+                        try:
+                            logger.info(f"Semantic Scholar attempt {attempt + 1}/{max_retries}")
+                            
+                            # Use full field set but with proper error handling
+                            results = self.semantic_scholar.search_paper(
+                                query, 
+                                limit=self.config["limits"]["max_papers_per_source"],
+                                fields=['title', 'abstract', 'authors', 'citationCount', 
+                                       'influentialCitationCount', 'year', 'venue', 'externalIds', 'isOpenAccess']
+                            )
+                            
+                            # If we get here, the request succeeded
+                            logger.info(f"Semantic Scholar search succeeded on attempt {attempt + 1}")
+                            break
+                            
+                        except requests.exceptions.HTTPError as e:
+                            if e.response.status_code == 500 and attempt < max_retries - 1:
+                                # API overloaded, wait and retry as recommended
+                                wait_time = base_delay * (2 ** attempt)  # Exponential backoff
+                                logger.warning(f"Semantic Scholar API overloaded (500), retrying in {wait_time}s")
+                                time.sleep(wait_time)
+                                continue
+                            else:
+                                raise
+                        except requests.exceptions.Timeout as e:
+                            if attempt < max_retries - 1:
+                                wait_time = base_delay * (2 ** attempt)
+                                logger.warning(f"Semantic Scholar timeout, retrying in {wait_time}s")
+                                time.sleep(wait_time)
+                                continue
+                            else:
+                                raise
+                        except Exception as e:
+                            if attempt < max_retries - 1:
+                                wait_time = base_delay
+                                logger.warning(f"Semantic Scholar error: {e}, retrying in {wait_time}s")
+                                time.sleep(wait_time)
+                                continue
+                            else:
+                                raise
                     
                     # According to the documentation, get the first page directly instead of iterating
                     # This avoids potential infinite iteration or pagination issues
                     first_page_items = results.items if hasattr(results, 'items') else list(results)
+                    
+                    logger.info(f"Semantic Scholar returned {len(first_page_items)} results")
                     
                     for paper in first_page_items:
                         if self._passes_semantic_scholar_filters(paper):
@@ -217,17 +274,21 @@ class ReferenceIntelligenceService:
                                 "source": "semantic_scholar",
                                 "quality_score": self._calculate_semantic_scholar_quality_score(paper)
                             })
+                    
+                    logger.info(f"Processed {len(papers)} papers after quality filtering")
                             
                 except Exception as e:
                     logger.warning(f"Semantic Scholar iteration error: {e}")
                 
                 return papers
             
-            # Run synchronous function in thread pool with timeout
+            # Run synchronous function in thread pool with proper timeout
+            # Increased timeout to account for retry logic and API delays
+            semantic_scholar_timeout = max(self.config["limits"]["request_timeout"], 45)
             try:
                 papers = await asyncio.wait_for(
                     asyncio.to_thread(fetch_semantic_scholar_results),
-                    timeout=self.config["limits"]["request_timeout"]
+                    timeout=semantic_scholar_timeout
                 )
                 
                 return {
@@ -238,13 +299,13 @@ class ReferenceIntelligenceService:
                 }
                 
             except asyncio.TimeoutError:
-                logger.warning(f"Semantic Scholar search timed out after {self.config['limits']['request_timeout']}s")
+                logger.warning(f"Semantic Scholar search timed out after {semantic_scholar_timeout}s")
                 return {
                     "papers": [],
                     "total_found": 0,
                     "source": "semantic_scholar",
                     "timeout_occurred": True,
-                    "error": f"Request timed out after {self.config['limits']['request_timeout']}s"
+                    "error": f"Request timed out after {semantic_scholar_timeout}s (reduced timeout due to API limitations)"
                 }
             
         except Exception as e:
