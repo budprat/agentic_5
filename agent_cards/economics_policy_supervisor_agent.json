@@ -1,0 +1,51 @@
+{
+    "name": "Economics & Policy Supervisor",
+    "description": "Analyzes economic and policy research for systemic understanding and cross-domain implications",
+    "url": "http://localhost:11005/",
+    "provider": null,
+    "version": "1.0.0",
+    "capabilities": {
+        "streaming": "True",
+        "pushNotifications": "True",
+        "stateTransitionHistory": "False"
+    },
+    "auth_required": true,
+    "auth_schemes": [
+        {
+            "type": "bearer",
+            "scheme": "bearer",
+            "bearerFormat": "JWT"
+        },
+        {
+            "type": "apiKey",
+            "in": "header",
+            "name": "X-API-Key"
+        }
+    ],
+    "authentication": {
+        "credentials": null,
+        "schemes": ["bearer", "apiKey"]
+    },
+    "defaultInputModes": ["text", "text/plain"],
+    "defaultOutputModes": ["text", "text/plain"],
+    "skills": [
+        {
+            "id": "economics_policy_analysis",
+            "name": "Economics and Policy Research Analysis",
+            "description": "Analyzes economic theory, policy research, and governance studies for systemic insights",
+            "tags": ["economics", "policy", "governance", "public policy", "economic theory"],
+            "examples": [
+                "Analyze economic impacts of AI automation across different policy frameworks",
+                "Synthesize behavioral economics research with technology adoption patterns",
+                "Evaluate policy interventions for climate change across economic systems"
+            ]
+        }
+    ],
+    "specializations": [
+        "Macroeconomic and microeconomic theory",
+        "Behavioral economics and decision science",
+        "Public policy analysis and evaluation",
+        "International trade and development economics",
+        "Economic modeling and quantitative analysis"
+    ]
+}

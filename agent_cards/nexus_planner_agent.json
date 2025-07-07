@@ -1,0 +1,61 @@
+{
+    "name": "Nexus Planner Agent",
+    "description": "Breaks down complex transdisciplinary research queries into actionable tasks across academic domains",
+    "url": "http://localhost:11002/",
+    "provider": null,
+    "version": "1.0.0",
+    "documentationUrl": null,
+    "authentication": {
+        "credentials": null,
+        "schemes": [
+            "bearer",
+            "apiKey"
+        ]
+    },
+    "capabilities": {
+        "streaming": "True",
+        "pushNotifications": "True",
+        "stateTransitionHistory": "False"
+    },
+    "defaultInputModes": [
+        "text",
+        "text/plain"
+    ],
+    "defaultOutputModes": [
+        "text",
+        "text/plain"
+    ],
+    "skills": [
+        {
+            "id": "nexus_planner",
+            "name": "Research Task Planner",
+            "description": "Breaks down complex research questions into actionable tasks across multiple academic disciplines",
+            "tags": [
+                "planning",
+                "task decomposition",
+                "academic research",
+                "interdisciplinary analysis"
+            ],
+            "examples": [
+                "Plan a comprehensive analysis of AI ethics across philosophy, computer science, and policy domains",
+                "Design a research strategy for climate change impacts spanning environmental science, economics, and social studies",
+                "Create a systematic review approach for biomedical AI applications across multiple disciplines"
+            ],
+            "inputModes": null,
+            "outputModes": null
+        }
+    ],
+    "auth_required": true,
+    "auth_schemes": [
+        {
+            "type": "bearer",
+            "scheme": "bearer",
+            "bearerFormat": "JWT"
+        },
+        {
+            "type": "apiKey",
+            "in": "header",
+            "name": "X-API-Key"
+        }
+    ]
+}

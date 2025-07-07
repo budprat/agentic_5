@@ -1,0 +1,51 @@
+{
+    "name": "Life Sciences Supervisor",
+    "description": "Analyzes life sciences and biotechnology research for transdisciplinary synthesis",
+    "url": "http://localhost:11003/",
+    "provider": null,
+    "version": "1.0.0",
+    "capabilities": {
+        "streaming": "True",
+        "pushNotifications": "True",
+        "stateTransitionHistory": "False"
+    },
+    "auth_required": true,
+    "auth_schemes": [
+        {
+            "type": "bearer",
+            "scheme": "bearer",
+            "bearerFormat": "JWT"
+        },
+        {
+            "type": "apiKey",
+            "in": "header",
+            "name": "X-API-Key"
+        }
+    ],
+    "authentication": {
+        "credentials": null,
+        "schemes": ["bearer", "apiKey"]
+    },
+    "defaultInputModes": ["text", "text/plain"],
+    "defaultOutputModes": ["text", "text/plain"],
+    "skills": [
+        {
+            "id": "life_sciences_analysis",
+            "name": "Life Sciences Research Analysis",
+            "description": "Analyzes biological, medical, and biotechnology research for cross-disciplinary insights",
+            "tags": ["life sciences", "biotechnology", "medical research", "biology"],
+            "examples": [
+                "Analyze CRISPR research for ethical and policy implications",
+                "Synthesize neuroscience findings with AI consciousness research",
+                "Evaluate clinical trial methodologies across therapeutic areas"
+            ]
+        }
+    ],
+    "specializations": [
+        "Molecular biology and genetics research",
+        "Clinical and medical research analysis",
+        "Biotechnology and bioengineering studies",
+        "Neuroscience and cognitive biology",
+        "Ecological and evolutionary research"
+    ]
+}

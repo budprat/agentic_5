@@ -412,6 +412,212 @@ def serve(host, port, transport):  # noqa: PLR0915
             logger.error(f'Error registering remote server: {e}')
             return {'success': False, 'error': str(e)}
 
+    # Research-specific MCP tools for Nexus system
+    @mcp.tool()
+    def query_academic_databases(query: str, databases: list = None) -> dict:
+        """
+        Query multiple academic databases for research synthesis.
+        Supports DOAJ, PubMed, ArXiv, JSTOR, Web of Science, etc.
+        """
+        logger.info(f'Query academic databases: {query}')
+        
+        if not query or not query.strip():
+            raise ValueError(f'Query cannot be empty: {query}')
+        
+        try:
+            # Default databases if none specified
+            if not databases:
+                databases = ['pubmed', 'arxiv', 'doaj']
+            
+            # Simulated academic database query results
+            # In production, this would connect to real academic APIs
+            results = []
+            for db in databases:
+                db_results = simulate_academic_query(db, query)
+                results.extend(db_results)
+            
+            return {
+                'results': results, 
+                'status': 'success', 
+                'total_papers': len(results),
+                'databases_queried': databases
+            }
+        except Exception as e:
+            logger.error(f'Academic database query error: {e}')
+            return {'error': str(e)}
+
+    @mcp.tool()
+    def analyze_cross_domain_patterns(research_data: list, domains: list) -> dict:
+        """Identify patterns and connections across disciplinary boundaries."""
+        logger.info(f'Cross-domain pattern analysis for {len(domains)} domains')
+        
+        try:
+            patterns = []
+            causal_links = []
+            anomalies = []
+            
+            # Simulate cross-domain analysis
+            # In production, this would use advanced ML algorithms
+            for i, domain_a in enumerate(domains):
+                for domain_b in domains[i+1:]:
+                    connection = {
+                        'domains': [domain_a, domain_b],
+                        'connection_strength': 0.7,  # Simulated score
+                        'type': 'methodological_similarity',
+                        'description': f'Similar research methodologies between {domain_a} and {domain_b}'
+                    }
+                    patterns.append(connection)
+            
+            # Calculate synthesis quality score
+            synthesis_score = len(patterns) * 0.8  # Simulated calculation
+            
+            return {
+                'patterns': patterns,
+                'causal_links': causal_links, 
+                'anomalies': anomalies,
+                'synthesis_score': synthesis_score,
+                'domains_analyzed': domains
+            }
+        except Exception as e:
+            logger.error(f'Cross-domain analysis error: {e}')
+            return {'error': str(e)}
+
+    @mcp.tool()
+    def generate_knowledge_graph(entities: list, relationships: list) -> dict:
+        """Generate knowledge graph for research synthesis visualization."""
+        logger.info(f'Generating knowledge graph with {len(entities)} entities')
+        
+        try:
+            # Simulate knowledge graph generation
+            # In production, this would integrate with Neo4j or similar
+            graph_id = f"research_graph_{len(entities)}_{len(relationships)}"
+            
+            return {
+                'graph_id': graph_id,
+                'entities_created': len(entities),
+                'relationships_created': len(relationships),
+                'status': 'success',
+                'visualization_url': f'/graphs/{graph_id}'
+            }
+        except Exception as e:
+            logger.error(f'Knowledge graph generation error: {e}')
+            return {'error': str(e)}
+
+    @mcp.tool()
+    def detect_research_bias(papers: list, methodologies: list) -> dict:
+        """Detect methodological bias and conflicts across research papers."""
+        logger.info(f'Bias detection for {len(papers)} papers')
+        
+        try:
+            bias_indicators = []
+            methodology_conflicts = []
+            quality_scores = []
+            
+            # Simulate bias detection analysis
+            for i, paper in enumerate(papers):
+                bias_score = {
+                    'paper_id': i,
+                    'title': paper.get('title', f'Paper {i}'),
+                    'bias_score': 0.3,  # Simulated score (0-1, lower is better)
+                    'bias_types': ['selection_bias', 'publication_bias'],
+                    'methodology_quality': 0.8  # Simulated quality score
+                }
+                bias_indicators.append(bias_score)
+                quality_scores.append(0.8)
+            
+            overall_reliability = sum(quality_scores) / len(quality_scores) if quality_scores else 0
+            
+            return {
+                'bias_indicators': bias_indicators,
+                'methodology_conflicts': methodology_conflicts,
+                'quality_scores': quality_scores,
+                'overall_reliability': overall_reliability
+            }
+        except Exception as e:
+            logger.error(f'Bias detection error: {e}')
+            return {'error': str(e)}
+
+    @mcp.tool()
+    def query_research_data(query: str) -> dict:
+        """
+        Query research databases for academic papers and citations.
+        This tool should be used for academic research synthesis and analysis.
+        """
+        logger.info(f'Query research data: {query}')
+
+        if not query or not query.strip().upper().startswith('SELECT'):
+            raise ValueError(f'Incorrect query {query}. Must be a valid SQL SELECT statement.')
+
+        try:
+            # In production, this would connect to a research database
+            # For now, simulate research data response
+            result = {
+                'results': [
+                    {
+                        'title': 'Sample Research Paper',
+                        'authors': ['Dr. Smith', 'Dr. Jones'],
+                        'journal': 'Nature',
+                        'year': 2023,
+                        'citations': 45,
+                        'doi': '10.1038/sample.2023.001',
+                        'domain': 'life_sciences'
+                    }
+                ],
+                'total_results': 1,
+                'query_time': '0.2s'
+            }
+            return json.dumps(result)
+        except Exception as e:
+            logger.error(f'Exception running research query {e}')
+            logger.error(traceback.format_exc())
+            return {'error': str(e)}
+
+    @mcp.tool()
+    def synthesize_research_findings(findings: list, synthesis_type: str = 'comprehensive') -> dict:
+        """Synthesize research findings across multiple domains."""
+        logger.info(f'Synthesizing {len(findings)} research findings')
+        
+        try:
+            synthesis = {
+                'synthesis_type': synthesis_type,
+                'key_themes': [],
+                'contradictions': [],
+                'research_gaps': [],
+                'novel_insights': [],
+                'confidence_score': 0.85
+            }
+            
+            # Simulate synthesis analysis
+            for finding in findings:
+                theme = {
+                    'theme': f"Theme from {finding.get('domain', 'unknown')}",
+                    'evidence_strength': 'moderate',
+                    'supporting_papers': 3
+                }
+                synthesis['key_themes'].append(theme)
+            
+            return synthesis
+        except Exception as e:
+            logger.error(f'Research synthesis error: {e}')
+            return {'error': str(e)}
+
+def simulate_academic_query(database: str, query: str) -> list:
+    """Simulate academic database query results."""
+    # In production, this would make real API calls to academic databases
+    base_results = [
+        {
+            'title': f'Research Paper from {database.upper()}',
+            'authors': ['Dr. Example', 'Prof. Sample'],
+            'abstract': f'This paper discusses {query} from the perspective of {database}.',
+            'year': 2023,
+            'citations': 25,
+            'doi': f'10.{database}/sample.2023.001',
+            'database': database,
+            'url': f'https://{database}.org/paper/sample'
+        }
+    ]
+    return base_results
+
     logger.info(
         f'Agent cards MCP Server at {host}:{port} and transport {transport}'
     )
