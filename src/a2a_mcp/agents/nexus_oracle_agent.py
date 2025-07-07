@@ -13,6 +13,8 @@ from a2a_mcp.common.parallel_workflow import (
     ParallelWorkflowNode,
     Status
 )
+from a2a_mcp.common.reference_intelligence import ReferenceIntelligenceService
+from a2a_mcp.common.citation_tracker import CitationTracker
 from google import genai
 import os
 import aiohttp
@@ -23,7 +25,7 @@ logger = logging.getLogger(__name__)
 RESEARCH_SYNTHESIS_PROMPT = """
 You are Nexus Oracle, a master transdisciplinary research strategist. Analyze the research question: "{original_query}"
 
-Based on the following domain analyses, provide a comprehensive synthesis that directly addresses the research question:
+Based on the following domain analyses and external academic references, provide a comprehensive synthesis that directly addresses the research question:
 
 Research Intelligence Data:
 {research_data}
@@ -31,12 +33,19 @@ Research Intelligence Data:
 Research Context:
 {research_context}
 
+External Academic References:
+{external_references}
+
 Quality Thresholds:
 - Minimum confidence score: {min_confidence}
 - Required domain coverage: {required_domains}
 - Evidence quality threshold: {evidence_threshold}
 
-IMPORTANT: Focus your analysis specifically on answering "{original_query}". Be concrete and actionable.
+IMPORTANT: 
+1. Focus your analysis specifically on answering "{original_query}". Be concrete and actionable.
+2. Cite external academic sources using the format [Author et al., Year] when referencing specific papers.
+3. Include relevant citations in your analysis to support key claims and provide credibility.
+4. If external references are available, integrate them meaningfully into your synthesis.
 
 Provide your synthesis in the following JSON format:
 {{
@@ -97,6 +106,88 @@ class NexusOracleAgent(BaseAgent):
         self.query_history = []
         self.context_id = None
         self.enable_parallel = True
+        
+        # Initialize reference integration system
+        self.reference_service = self._init_reference_service()
+        self.citation_tracker = CitationTracker()
+        self.external_references = {}
+
+    def _init_reference_service(self) -> ReferenceIntelligenceService:
+        """Initialize reference intelligence service with Oracle configuration."""
+        try:
+            # Load Oracle configuration
+            config_path = "oracle_config.json"
+            if os.path.exists(config_path):
+                with open(config_path, 'r') as f:
+                    oracle_config = json.load(f)
+                    ref_config = oracle_config.get("reference_integration", {})
+                    
+                    # Map Oracle config structure to ReferenceIntelligenceService expected structure
+                    if "quality_thresholds" in ref_config:
+                        quality_thresholds = ref_config["quality_thresholds"]
+                        ref_config["quality_filters"] = {
+                            "min_citation_count": quality_thresholds.get("min_citations", 1),
+                            "max_age_years": quality_thresholds.get("max_age_years", 10),
+                            "require_peer_review": quality_thresholds.get("peer_review_required", False),
+                            "min_quality_score": quality_thresholds.get("min_quality_score", 0.3)
+                        }
+                    
+                    logger.info(f"Loaded Oracle reference config: {ref_config.get('enabled', False)}")
+                    return ReferenceIntelligenceService(ref_config)
+            else:
+                logger.info("No Oracle config found, using default reference settings")
+                return ReferenceIntelligenceService()
+        except Exception as e:
+            logger.error(f"Error initializing reference service: {e}")
+            return ReferenceIntelligenceService()
+
+    def _format_external_references(self) -> str:
+        """Format external references for inclusion in research synthesis."""
+        if not self.external_references.get("enabled", False):
+            return "No external academic references available."
+        
+        if not self.external_references.get("sources"):
+            return "External reference system enabled but no sources found for this query."
+        
+        formatted_refs = []
+        formatted_refs.append("EXTERNAL ACADEMIC REFERENCES:")
+        formatted_refs.append("=" * 50)
+        
+        total_papers = 0
+        for source_name, source_data in self.external_references["sources"].items():
+            papers = source_data.get("papers", [])
+            total_papers += len(papers)
+            
+            if papers:
+                formatted_refs.append(f"\n{source_name.upper()} ({len(papers)} papers):")
+                formatted_refs.append("-" * 30)
+                
+                for i, paper in enumerate(papers[:5], 1):  # Limit to top 5 per source
+                    title = paper.get("title", "No title")
+                    authors = paper.get("authors", [])
+                    year = paper.get("year", "Unknown")
+                    quality = paper.get("quality_score", 0)
+                    
+                    author_str = ", ".join(authors[:3])  # First 3 authors
+                    if len(authors) > 3:
+                        author_str += " et al."
+                    
+                    formatted_refs.append(f"{i}. {title}")
+                    formatted_refs.append(f"   Authors: {author_str}")
+                    formatted_refs.append(f"   Year: {year} | Quality Score: {quality:.2f}")
+                    
+                    if paper.get("abstract"):
+                        abstract = paper["abstract"][:200] + "..." if len(paper["abstract"]) > 200 else paper["abstract"]
+                        formatted_refs.append(f"   Abstract: {abstract}")
+                    formatted_refs.append("")
+        
+        if total_papers > 0:
+            formatted_refs.append(f"Total external references: {total_papers} papers")
+            formatted_refs.append("Use these references to support and validate your analysis.")
+        else:
+            formatted_refs.append("No relevant papers found in external sources.")
+        
+        return "\n".join(formatted_refs)
 
     async def load_research_context(self, query: str):
         """Load research context and determine domain scope."""
@@ -125,12 +216,33 @@ class NexusOracleAgent(BaseAgent):
             if not relevant_domains:
                 relevant_domains = ["cross_domain_analysis"]
             
+            # Gather external references for the query
+            primary_domain = relevant_domains[0] if relevant_domains else "cross_domain_analysis"
+            logger.info(f"Gathering external references for domain: {primary_domain}")
+            
+            try:
+                external_refs = await self.reference_service.gather_domain_references(query, primary_domain)
+                self.external_references = external_refs
+                logger.info(f"External references gathered: {external_refs.get('enabled', False)}")
+                
+                # Track citations from external references
+                if external_refs.get('enabled') and external_refs.get('sources'):
+                    for source_name, source_data in external_refs['sources'].items():
+                        for paper in source_data.get('papers', []):
+                            citation = self.citation_tracker.track_citation(paper, source_name)
+                            logger.info(f"Tracked citation: {citation['citation_id']}")
+                            
+            except Exception as e:
+                logger.error(f"Error gathering external references: {e}")
+                self.external_references = {"enabled": False, "error": str(e)}
+            
             self.research_context = {
                 "query": query,
                 "relevant_domains": relevant_domains,
                 "scope": "transdisciplinary" if len(relevant_domains) > 2 else "multidisciplinary",
                 "complexity": "high" if len(relevant_domains) > 3 else "medium",
-                "timestamp": datetime.now().isoformat()
+                "timestamp": datetime.now().isoformat(),
+                "external_references": self.external_references
             }
             
         except Exception as e:
@@ -239,10 +351,14 @@ class NexusOracleAgent(BaseAgent):
         """Generate comprehensive research synthesis."""
         client = genai.Client()
         
+        # Format external references for inclusion
+        external_refs_formatted = self._format_external_references()
+        
         prompt = RESEARCH_SYNTHESIS_PROMPT.format(
             original_query=query,
             research_data=json.dumps(self.research_intelligence, indent=2),
             research_context=json.dumps(self.research_context, indent=2),
+            external_references=external_refs_formatted,
             min_confidence=self.quality_thresholds["min_confidence_score"],
             required_domains=self.quality_thresholds["min_domain_coverage"],
             evidence_threshold=self.quality_thresholds["evidence_quality_threshold"]

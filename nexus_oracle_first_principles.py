@@ -11,7 +11,20 @@ from typing import Dict, List, Any
 # Set up environment
 sys.path.insert(0, './src')
 sys.path.insert(0, '.')
-os.environ['GOOGLE_API_KEY'] = os.environ.get('GOOGLE_API_KEY', 'your-api-key-here')
+
+# Load environment variables from .env file
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+    print("✅ Environment variables loaded from .env file")
+except ImportError:
+    print("⚠️  python-dotenv not available, using system environment variables")
+
+# Verify API key is loaded
+if not os.environ.get('GOOGLE_API_KEY'):
+    print("❌ GOOGLE_API_KEY not found in environment")
+    print("💡 Please check your .env file contains: GOOGLE_API_KEY=your_key_here")
+    sys.exit(1)
 
 class FirstPrinciplesOracle:
     """Oracle that deconstructs questions using first principles before analysis."""
@@ -278,7 +291,22 @@ class FirstPrinciplesOracle:
         clarifications = []
         for i, q in enumerate(clarifying_questions, 1):
             print(f"\n{i}. {q}")
-            response = input(f"   Your response: ").strip()
+            
+            if not sys.stdin.isatty():
+                # In non-interactive mode, provide reasonable default responses
+                default_responses = [
+                    "Focus on mitigation strategies like carbon capture and renewable energy optimization",
+                    "Consider both near-term feasible applications and long-term theoretical possibilities", 
+                    "Analyze computational acceleration for climate modeling and materials discovery"
+                ]
+                response = default_responses[min(i-1, len(default_responses)-1)]
+                print(f"   🤖 Auto-response: {response}")
+            else:
+                try:
+                    response = input(f"   Your response: ").strip()
+                except EOFError:
+                    response = ""
+                    
             if response:
                 clarifications.append(response)
         
@@ -292,15 +320,30 @@ class FirstPrinciplesOracle:
             print(f"   {refined_question}")
             
             # Confirm with user
-            confirmation = input(f"\n✅ Does this capture what you want to explore? (y/n/edit): ").strip().lower()
+            if not sys.stdin.isatty():
+                # In non-interactive mode, auto-confirm
+                confirmation = 'y'
+                print(f"\n✅ Does this capture what you want to explore? (y/n/edit): y")
+                print(f"🎉 Perfect! Starting enhanced analysis of refined question...")
+            else:
+                try:
+                    confirmation = input(f"\n✅ Does this capture what you want to explore? (y/n/edit): ").strip().lower()
+                except EOFError:
+                    confirmation = 'y'
             
             if confirmation == 'y' or confirmation == 'yes':
                 print(f"🎉 Perfect! Starting enhanced analysis of refined question...")
                 return refined_question
             elif confirmation.startswith('edit'):
-                edit = input(f"   Please provide your refinement: ").strip()
-                if edit:
-                    return edit
+                if not sys.stdin.isatty():
+                    # In non-interactive mode, skip editing
+                    return refined_question
+                try:
+                    edit = input(f"   Please provide your refinement: ").strip()
+                    if edit:
+                        return edit
+                except EOFError:
+                    return refined_question
             
         return question
     
@@ -314,9 +357,19 @@ class FirstPrinciplesOracle:
         
         while True:
             try:
-                user_input = input(f"\n🧠 Research Question> ").strip()
+                # Check if stdin is available for interactive input
+                if not sys.stdin.isatty():
+                    print(f"\n🤖 Non-interactive mode detected. Running with demo question...")
+                    user_input = "How can quantum computing solve climate change challenges?"
+                    print(f"🧠 Research Question> {user_input}")
+                else:
+                    user_input = input(f"\n🧠 Research Question> ").strip()
                 
                 if not user_input:
+                    if not sys.stdin.isatty():
+                        # In non-interactive mode, exit after demo
+                        print(f"\n👋 Demo completed.")
+                        break
                     continue
                     
                 if user_input.lower() in ['quit', 'exit', 'q']:
@@ -370,11 +423,26 @@ class FirstPrinciplesOracle:
                             print(f"   🤝 Collaborative approach improved precision")
                         break
                 
+                self.question_count += 1
+                
+                # In non-interactive mode, exit after processing one question
+                if not sys.stdin.isatty():
+                    print(f"\n👋 Non-interactive demo completed. Processed {self.question_count} question(s).")
+                    break
+                
             except KeyboardInterrupt:
                 print(f"\n\n👋 First principles session interrupted.")
                 break
+            except EOFError:
+                print(f"\n❌ Error: EOF when reading a line")
+                if not sys.stdin.isatty():
+                    print(f"🤖 Non-interactive mode detected, ending session.")
+                break
             except Exception as e:
                 print(f"\n❌ Error: {e}")
+                import traceback
+                traceback.print_exc()
+                break
     
     async def display_comprehensive_analysis(self, analysis: dict, original_question: str, response_count: int):
         """Display comprehensive analysis with detailed formatting like enhanced Oracle."""
