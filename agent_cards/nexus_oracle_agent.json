@@ -5,15 +5,47 @@
     "description": "Master transdisciplinary research orchestrator with advanced synthesis capabilities",
     "author": "A2A-MCP Team",
     "supportedLanguages": ["en"],
-    "capabilities": [
-        "transdisciplinary_research_synthesis",
-        "bias_detection_and_validation",
-        "cross_domain_pattern_recognition",
-        "research_quality_assessment",
-        "novel_hypothesis_generation",
-        "parallel_domain_coordination",
-        "knowledge_gap_identification",
-        "methodological_innovation_recommendations"
+    "url": "http://localhost:12000/",
+    "provider": null,
+    "documentationUrl": null,
+    "capabilities": {
+        "streaming": "True",
+        "pushNotifications": "True",
+        "stateTransitionHistory": "False"
+    },
+    "auth_required": false,
+    "authentication": {
+        "credentials": null,
+        "schemes": []
+    },
+    "defaultInputModes": [
+        "text",
+        "text/plain",
+        "application/json"
+    ],
+    "defaultOutputModes": [
+        "text",
+        "text/plain",
+        "application/json"
+    ],
+    "skills": [
+        {
+            "id": "research_synthesis",
+            "name": "Transdisciplinary Research Synthesis",
+            "description": "Master transdisciplinary research orchestrator with advanced synthesis capabilities",
+            "tags": [
+                "research",
+                "synthesis", 
+                "analysis",
+                "oracle"
+            ],
+            "examples": [
+                "Analyze the intersection of artificial intelligence and climate change research",
+                "What are the psychological factors in economic decision-making during crisis periods?"
+            ],
+            "inputModes": null,
+            "outputModes": null
+        }
     ],
     "acceptedContentTypes": [
         "text/plain",
