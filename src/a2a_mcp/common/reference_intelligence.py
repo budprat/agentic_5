@@ -340,20 +340,37 @@ class ReferenceIntelligenceService:
             return {"error": str(e), "papers": [], "source": "mcp_scholarly"}
     
     def _enhance_query_for_arxiv_domain(self, query: str, domain: str) -> str:
-        """Enhance query with domain-specific ArXiv categories."""
+        """Enhance query with domain-specific ArXiv categories and keywords."""
+        query_lower = query.lower()
+        
+        # Enhanced domain categorization with keyword detection
         domain_categories = {
             "computer_science": "cat:cs.*",
-            "technical_analysis": "cat:cs.*",
+            "technical_analysis": "cat:cs.*", 
             "physics": "cat:physics.*",
             "physical_analysis": "cat:physics.*",
             "mathematics": "cat:math.*",
             "life_sciences": "cat:q-bio.*",
-            "economics": "cat:econ.*"
+            "economics": "cat:econ.*",
+            "social_sciences": "cat:cs.CY OR cat:physics.soc-ph",  # Computers and Society, Social Physics
+            "environmental_studies": "cat:physics.ao-ph OR cat:q-bio.PE",  # Atmospheric Physics, Populations and Evolution
         }
         
-        category_filter = domain_categories.get(domain, "")
+        # Enhanced keyword-based category detection
+        if any(word in query_lower for word in ["neural", "machine learning", "deep learning", "ai", "artificial intelligence"]):
+            category_filter = "cat:cs.LG OR cat:cs.AI OR cat:cs.CV OR cat:cs.CL"  # ML, AI, Computer Vision, Computational Linguistics
+        elif any(word in query_lower for word in ["quantum", "qubit", "quantum computing"]):
+            category_filter = "cat:quant-ph OR cat:cs.ET"  # Quantum Physics, Emerging Technologies
+        elif any(word in query_lower for word in ["climate", "environment", "carbon", "energy"]):
+            category_filter = "cat:physics.ao-ph OR cat:physics.gen-ph OR cat:q-bio.PE"  # Atmospheric, General Physics, Populations
+        elif any(word in query_lower for word in ["education", "learning", "teaching"]):
+            category_filter = "cat:cs.CY OR cat:cs.HC"  # Computers and Society, Human-Computer Interaction
+        else:
+            # Fallback to domain-based categorization
+            category_filter = domain_categories.get(domain, "")
+        
         if category_filter:
-            return f"({query}) AND {category_filter}"
+            return f"({query}) AND ({category_filter})"
         return query
     
     def _passes_quality_filters(self, arxiv_result) -> bool:
