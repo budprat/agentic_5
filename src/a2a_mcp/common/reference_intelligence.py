@@ -357,13 +357,18 @@ class ReferenceIntelligenceService:
             papers = []
             for result in web_results[:self.config["limits"]["max_papers_per_source"]]:
                 if self._is_web_result_relevant(result, query):
+                    # Extract year from publication date
+                    pub_date = result.get("publication_date", "2024")
+                    year = pub_date if isinstance(pub_date, (int, str)) else "2024"
+                    
                     papers.append({
                         "title": result.get("title", "No title"),
                         "authors": [result.get("domain", "Web Source")],  # Use domain as "author"
                         "abstract": result.get("snippet", "No description available"),
                         "url": result.get("url", ""),
                         "domain": result.get("domain", "Unknown"),
-                        "year": result.get("publication_date", "2024"),
+                        "year": year,
+                        "published": str(year),  # Add published field for consistency
                         "source": "web_search",
                         "quality_score": self._calculate_web_quality_score(result)
                     })
@@ -779,7 +784,25 @@ class ReferenceIntelligenceService:
             return {"total": 0}
         
         total_citations = sum(paper.get("citation_count", 0) for paper in papers)
-        years = [paper.get("year") for paper in papers if paper.get("year")]
+        
+        # Extract and convert years to integers, filtering out invalid values
+        years = []
+        for paper in papers:
+            year = paper.get("year")
+            if year:
+                try:
+                    if isinstance(year, str) and year.isdigit():
+                        years.append(int(year))
+                    elif isinstance(year, int):
+                        years.append(year)
+                    elif isinstance(year, str) and year != "Unknown":
+                        # Try to extract year from string format like "2024-01-01"
+                        year_part = year.split('-')[0]
+                        if year_part.isdigit():
+                            years.append(int(year_part))
+                except (ValueError, TypeError):
+                    continue  # Skip invalid years
+        
         sources = [paper.get("source") for paper in papers]
         
         return {
