@@ -21,7 +21,9 @@ logger = logging.getLogger(__name__)
 
 # Research synthesis prompt
 RESEARCH_SYNTHESIS_PROMPT = """
-You are Nexus Oracle, a master transdisciplinary research strategist. Analyze the following research intelligence data and provide a comprehensive research synthesis.
+You are Nexus Oracle, a master transdisciplinary research strategist. Analyze the research question: "{original_query}"
+
+Based on the following domain analyses, provide a comprehensive synthesis that directly addresses the research question:
 
 Research Intelligence Data:
 {research_data}
@@ -33,6 +35,8 @@ Quality Thresholds:
 - Minimum confidence score: {min_confidence}
 - Required domain coverage: {required_domains}
 - Evidence quality threshold: {evidence_threshold}
+
+IMPORTANT: Focus your analysis specifically on answering "{original_query}". Be concrete and actionable.
 
 Provide your synthesis in the following JSON format:
 {{
@@ -231,11 +235,12 @@ class NexusOracleAgent(BaseAgent):
                 "insights": [{"finding": "Analysis unavailable", "confidence": 0}]
             }
 
-    async def generate_research_synthesis(self) -> str:
+    async def generate_research_synthesis(self, query: str) -> str:
         """Generate comprehensive research synthesis."""
         client = genai.Client()
         
         prompt = RESEARCH_SYNTHESIS_PROMPT.format(
+            original_query=query,
             research_data=json.dumps(self.research_intelligence, indent=2),
             research_context=json.dumps(self.research_context, indent=2),
             min_confidence=self.quality_thresholds["min_confidence_score"],
@@ -294,23 +299,23 @@ class NexusOracleAgent(BaseAgent):
         required_analyses = []
         query_lower = query.lower()
         
-        # Domain-specific detection
-        if any(word in query_lower for word in ["life", "biology", "medical", "health", "genetics"]):
+        # Enhanced domain-specific detection
+        if any(word in query_lower for word in ["life", "biology", "medical", "health", "genetics", "biotech", "pharmaceutical", "drug", "clinical"]):
             required_analyses.append("biological_analysis")
         
-        if any(word in query_lower for word in ["social", "society", "culture", "policy"]):
+        if any(word in query_lower for word in ["social", "society", "culture", "policy", "governance", "political", "community", "demographic", "human", "public"]):
             required_analyses.append("social_analysis")
             
-        if any(word in query_lower for word in ["economic", "economics", "policy", "governance"]):
+        if any(word in query_lower for word in ["economic", "economics", "policy", "governance", "financial", "market", "investment", "cost", "budget", "funding"]):
             required_analyses.append("economic_analysis")
         
-        if any(word in query_lower for word in ["computer", "ai", "algorithm", "technology"]):
+        if any(word in query_lower for word in ["computer", "ai", "algorithm", "technology", "computing", "software", "digital", "machine learning", "artificial intelligence", "data"]):
             required_analyses.append("technical_analysis")
             
-        if any(word in query_lower for word in ["physics", "chemistry", "material", "quantum"]):
+        if any(word in query_lower for word in ["physics", "chemistry", "material", "quantum", "energy", "renewable", "climate", "environmental", "sustainability", "carbon"]):
             required_analyses.append("physical_analysis")
             
-        if any(word in query_lower for word in ["psychology", "cognitive", "behavior", "mental"]):
+        if any(word in query_lower for word in ["psychology", "cognitive", "behavior", "mental", "emotional", "wellbeing", "stress", "anxiety", "depression"]):
             required_analyses.append("psychological_analysis")
         
         # Always include cross-domain synthesis for comprehensive research
@@ -400,11 +405,16 @@ class NexusOracleAgent(BaseAgent):
             )
         }
         
+        # More nuanced decision on additional analysis
+        critical_issues = not checks["confidence_adequate"] or not checks["bias_detection_performed"]
+        minor_issues = not checks["domain_coverage_sufficient"] or not checks["evidence_quality_acceptable"]
+        
         return {
             "quality_approved": all(checks.values()),
             "checks": checks,
-            "requires_additional_analysis": not checks["domain_coverage_sufficient"],
-            "confidence_score": synthesis.get("research_confidence", 0)
+            "requires_additional_analysis": critical_issues and minor_issues,  # Only if both critical and minor issues
+            "confidence_score": synthesis.get("research_confidence", 0),
+            "quality_issues": [k for k, v in checks.items() if not v]
         }
 
     def clear_state(self):
@@ -535,7 +545,7 @@ class NexusOracleAgent(BaseAgent):
             }
             
             try:
-                synthesis_raw = await self.generate_research_synthesis()
+                synthesis_raw = await self.generate_research_synthesis(query)
                 synthesis = json.loads(synthesis_raw)
             except json.JSONDecodeError as e:
                 logger.error(f"JSON decode error: {e}. Response: {synthesis_raw[:200]}")
