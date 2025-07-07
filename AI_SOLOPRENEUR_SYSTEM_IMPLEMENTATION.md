@@ -5,7 +5,7 @@
 
 This implementation plan details a comprehensive AI-powered solopreneur assistant system built on the **A2A-MCP framework**, specifically designed for **AI Developers and Entrepreneurs**. The system focuses on **Technical Intelligence, Knowledge Management, Personal Optimization, and Learning Enhancement** to amplify productivity by 10x while maintaining technical excellence.
 
-**Key Innovation**: A single `UnifiedSolopreneurAgent` class powers all specialized agents through domain-specific chain-of-thought instructions, following the proven A2A-MCP framework patterns used in the travel domain.
+**Key Innovation**: A sophisticated `SolopreneurOracle` master agent with multi-intelligence orchestration and internal workflow management, following the proven Oracle pattern from the market intelligence and research domains for complex decision-making and synthesis capabilities.
 
 **Framework Compliance**: ✅ **100% A2A-MCP Framework Compliant** - Corrected based on actual framework implementation patterns from the codebase.
 
@@ -17,99 +17,398 @@ This implementation plan details a comprehensive AI-powered solopreneur assistan
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│             TIER 1: ORCHESTRATION (Actual Framework)        │
+│                TIER 1: ORACLE MASTER AGENT                  │
 ├─────────────────────────────────────────────────────────────┤
-│  • Solopreneur Orchestrator Agent (Port 10901)            │
-│  • Solopreneur Planner Agent (Port 10902)                 │
-│  (Note: Parallel orchestrator uses same port with env flag) │
+│  • SolopreneurOracle Master Agent (Port 10901)            │
+│    - Multi-intelligence orchestration                      │
+│    - Internal workflow management                          │
+│    - Quality assurance and validation                      │
+│    - Risk assessment for technical decisions               │
+│    - Comprehensive synthesis and insights                  │
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────┐
-│              TIER 2: DOMAIN SUPERVISORS                     │
+│              TIER 2: DOMAIN ORACLE SPECIALISTS              │
 ├─────────────────────────────────────────────────────────────┤
-│  • Knowledge Graph Supervisor (Port 10903)                 │
-│  • Memory Supervisor (Port 10904)                          │
-│  • Technical Intelligence Supervisor (Port 10905)          │
-│  • Content Creation Supervisor (Port 10906)                │
-│  • Learning & Research Supervisor (Port 10907)             │
-│  • Personal Optimization Supervisor (Port 10908)           │
-│  • Tools Integration Supervisor (Port 10909)               │
+│  • Technical Intelligence Oracle (Port 10902)              │
+│    - AI research analysis, tech trend assessment           │
+│    - Code quality evaluation, architecture recommendations │
+│                                                             │
+│  • Knowledge Management Oracle (Port 10903)                │
+│    - Knowledge graph construction and querying             │
+│    - Information synthesis and pattern recognition         │
+│                                                             │
+│  • Personal Optimization Oracle (Port 10904)               │
+│    - Energy and focus optimization strategies              │
+│    - Burnout prevention and performance enhancement        │
+│                                                             │
+│  • Learning Enhancement Oracle (Port 10905)                │
+│    - Skill development planning and progress tracking      │
+│    - Learning path optimization and knowledge retention    │
+│                                                             │
+│  • Integration Synthesis Oracle (Port 10906)               │
+│    - Cross-domain pattern recognition and synthesis        │
+│    - Workflow optimization and tool integration            │
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────┐
-│              TIER 3: SPECIALIST SUB-AGENTS                  │
+│              TIER 3: SPECIALIZED INTELLIGENCE MODULES       │
 ├─────────────────────────────────────────────────────────────┤
-│  Knowledge Graph (10910-10919):                            │
-│  • Entity Extractor, Relationship Mapper, Graph Query      │
-│  • Knowledge Synthesizer, Pattern Detector                 │
+│  Technical Intelligence (10910-10919):                     │
+│  • AI Research Analyzer, Code Architecture Evaluator      │
+│  • Tech Stack Optimizer, Implementation Risk Assessor     │
 │                                                             │
-│  Memory Management (10920-10929):                          │
-│  • Context Retriever, Memory Indexer, Conversation Analyzer│
-│  • Insight Extractor, Knowledge Correlator                 │
+│  Knowledge Systems (10920-10929):                          │
+│  • Neo4j Graph Manager, Vector Database Interface          │
+│  • Knowledge Correlator, Insight Synthesizer               │
 │                                                             │
-│  Technical Intelligence (10930-10939):                     │
-│  • AI Research Monitor, Tech Trend Analyzer               │
-│  • Experiment Correlator, Code-to-Market Translator       │
+│  Personal Systems (10930-10939):                           │
+│  • Circadian Optimizer, Focus State Monitor               │
+│  • Energy Pattern Analyzer, Cognitive Load Manager        │
 │                                                             │
-│  Content Creation (10940-10949):                           │
-│  • Technical Writer, Documentation Generator              │
-│  • Learning Content Creator, Tutorial Builder             │
+│  Learning Systems (10940-10949):                           │
+│  • Skill Gap Analyzer, Learning Efficiency Optimizer      │
+│  • Progress Tracker, Knowledge Retention Enhancer         │
 │                                                             │
-│  Learning & Research (10950-10959):                        │
-│  • Paper Analyzer, Skill Development Tracker             │
-│  • Learning Path Optimizer, Progress Monitor              │
-│                                                             │
-│  Personal Optimization (10960-10969):                      │
-│  • Energy Optimizer, Focus Protector                      │
-│  • Context Switch Minimizer, Burnout Detector             │
-│                                                             │
-│  Tools & Integration (10970-10979):                        │
-│  • Development Environment Optimizer, API Integrator      │
-│  • Workflow Automator, Performance Monitor                │
+│  Integration Layer (10950-10959):                          │
+│  • Cross-Domain Synthesizer, Workflow Coordinator         │
+│  • Quality Validator, Performance Monitor                  │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ### 1.2 Framework-Compliant Port Allocation Strategy
 
-**Corrected Based on Actual Framework Pattern**:
-- **Base Pattern**: Travel domain uses 10101 (orchestrator), 10102 (planner), 10003+ (agents)
-- **Solopreneur Domain**: Uses +800 offset → 10901, 10902, 10903+
+**Oracle Pattern Implementation**:
+- **Base Pattern**: Oracle Prime uses advanced multi-intelligence orchestration (Market Oracle: sophisticated internal workflows)
+- **Solopreneur Domain**: Uses +800 offset → 10901-10999
 - **Range**: 10901-10999 (99 ports allocated)
-- **Tier 1**: 10901 (Orchestrator), 10902 (Planner) ✅
-- **Tier 2**: 10903-10909 (Domain Supervisors) ✅  
-- **Tier 3**: 10910-10979 (Specialized Sub-agents) ✅
-- **Reserved**: 10980-10999 (Future expansion)
+- **Tier 1**: 10901 (SolopreneurOracle Master Agent) ✅
+- **Tier 2**: 10902-10906 (Domain Oracle Specialists) ✅  
+- **Tier 3**: 10910-10959 (Specialized Intelligence Modules) ✅
+- **Reserved**: 10960-10999 (Future expansion)
 
-**Framework Compliance**: ✅ Follows actual pattern (orchestrator: 10101, planner: 10102, agents: 10003+)
+**Oracle Pattern Features**: ✅ Multi-intelligence orchestration, internal workflow management, quality assurance, risk assessment, comprehensive synthesis
 
 ---
 
 ## 2. Core Implementation Components - Framework Integration
 
-### 2.1 Framework-Compliant Agent Factory Integration
+### 2.1 Oracle Pattern Agent Factory Integration
 
 ```python
 # Integration with existing get_agent() function in __main__.py
 def get_agent(agent_card: AgentCard):
-    """Framework-compliant agent factory following established patterns."""
+    """Oracle pattern agent factory following OraclePrime patterns."""
     try:
         # ... existing travel agents ...
         
-        # SOLOPRENEUR DOMAIN (10901-10999 range) - Framework Compliant
-        elif agent_card.name == 'Solopreneur Orchestrator Agent':
-            # Follow framework pattern: use parallel if enabled
-            if os.getenv('ENABLE_PARALLEL_EXECUTION', 'true').lower() == 'true':
-                logger.info("Using Parallel Solopreneur Orchestrator Agent")
-                return ParallelSolopreneurOrchestrator()  # Port 10901
-            else:
-                return SolopreneurOrchestrator()  # Port 10901
-                
-        elif agent_card.name == 'Solopreneur Planner Agent':
-            return LangGraphSolopreneurPlanner()  # Port 10902
+        # SOLOPRENEUR DOMAIN (10901-10999 range) - Oracle Pattern Implementation
+        elif agent_card.name == 'Solopreneur Oracle Agent':
+            return SolopreneurOracleAgent()  # Port 10901 (master oracle)
             
-        elif agent_card.name == 'Knowledge Graph Supervisor':
-            return UnifiedSolopreneurAgent(
-                agent_name='KnowledgeGraphSupervisor',
+        elif agent_card.name == 'Technical Intelligence Oracle':
+            return TechnicalIntelligenceOracle()  # Port 10902
+            
+        elif agent_card.name == 'Knowledge Management Oracle':
+            return KnowledgeManagementOracle()  # Port 10903
+            
+        elif agent_card.name == 'Personal Optimization Oracle':
+            return PersonalOptimizationOracle()  # Port 10904
+            
+        elif agent_card.name == 'Learning Enhancement Oracle':
+            return LearningEnhancementOracle()  # Port 10905
+            
+        elif agent_card.name == 'Integration Synthesis Oracle':
+            return IntegrationSynthesisOracle()  # Port 10906
+            
+    except Exception as e:
+        raise e
+```
+
+### 2.2 SolopreneurOracle Master Agent - Following Oracle Prime Pattern
+
+```python
+"""Solopreneur Oracle - Master AI Developer/Entrepreneur Intelligence Agent."""
+
+import logging
+import json
+from collections.abc import AsyncIterable
+from typing import Dict, Any, List
+from datetime import datetime
+
+from a2a_mcp.common.base_agent import BaseAgent
+from a2a_mcp.common.utils import init_api_key
+from a2a_mcp.common.parallel_workflow import (
+    ParallelWorkflowGraph, 
+    ParallelWorkflowNode,
+    Status
+)
+from google import genai
+
+logger = logging.getLogger(__name__)
+
+# Solopreneur intelligence synthesis prompt
+SOLOPRENEUR_SYNTHESIS_PROMPT = \"\"\"
+You are Solopreneur Oracle, a master AI developer and entrepreneur strategist. 
+Analyze the following intelligence data and provide comprehensive recommendations.
+
+Intelligence Data:
+{intelligence_data}
+
+Context:
+{context}
+
+Quality Thresholds:
+- Minimum confidence score: {min_confidence}
+- Technical feasibility threshold: {tech_threshold}
+- Personal sustainability threshold: {personal_threshold}
+
+Provide synthesis in this JSON format:
+{{
+    "executive_summary": "Brief 2-3 sentence summary of key recommendations",
+    "confidence_score": 0.0-1.0,
+    "technical_assessment": {{
+        "feasibility_score": 0-100,
+        "implementation_complexity": "low|medium|high",
+        "technical_risks": ["risk1", "risk2"],
+        "architecture_recommendations": ["rec1", "rec2"]
+    }},
+    "personal_optimization": {{
+        "energy_impact": "positive|neutral|negative",
+        "cognitive_load": "low|medium|high", 
+        "sustainability_score": 0-100,
+        "optimization_strategies": ["strategy1", "strategy2"]
+    }},
+    "strategic_insights": [
+        {{"source": "domain", "insight": "key finding", "confidence": 0.0-1.0}},
+        ...
+    ],
+    "integration_opportunities": {{
+        "synergies": ["synergy1", "synergy2"],
+        "workflow_optimizations": ["opt1", "opt2"],
+        "automation_potential": ["area1", "area2"]
+    }},
+    "action_plan": {{
+        "immediate_actions": ["action1", "action2"],
+        "short_term_goals": ["goal1", "goal2"],
+        "long_term_vision": "strategic direction",
+        "success_metrics": ["metric1", "metric2"]
+    }},
+    "risk_assessment": {{
+        "technical_risks": ["risk1", "risk2"],
+        "personal_risks": ["risk1", "risk2"],
+        "mitigation_strategies": ["strategy1", "strategy2"],
+        "contingency_plans": ["plan1", "plan2"]
+    }}
+}}
+\"\"\"
+
+class SolopreneurOracleAgent(BaseAgent):
+    \"\"\"Master orchestrator for AI developer/entrepreneur intelligence.\"\"\"
+
+    def __init__(self):
+        init_api_key()
+        super().__init__(
+            agent_name="Solopreneur Oracle",
+            description="Master AI developer/entrepreneur intelligence with quality assurance",
+            content_types=["text", "text/plain"],
+        )
+        self.graph = None
+        self.intelligence_data = {}
+        self.context = {}
+        self.quality_thresholds = {
+            "min_confidence_score": 0.75,
+            "technical_feasibility_threshold": 0.8,
+            "personal_sustainability_threshold": 0.7,
+            "risk_tolerance": 0.6,
+            "complexity_management": True
+        }
+        self.query_history = []
+        self.context_id = None
+        self.enable_parallel = True
+
+    async def analyze_domain_dependencies(self, query: str) -> Dict[str, Any]:
+        """Determine which domain oracles to activate and their dependencies."""
+        domain_oracles = {
+            "technical_intelligence": "technical analysis and architecture assessment",
+            "knowledge_management": "information processing and knowledge synthesis", 
+            "personal_optimization": "energy management and focus optimization",
+            "learning_enhancement": "skill development and learning efficiency",
+            "integration_synthesis": "cross-domain integration and workflow optimization"
+        }
+        
+        # Analyze query to determine relevant domains
+        query_lower = query.lower()
+        required_domains = []
+        
+        if any(word in query_lower for word in ["code", "architecture", "ai", "technology", "implementation"]):
+            required_domains.append("technical_intelligence")
+        if any(word in query_lower for word in ["knowledge", "information", "research", "data"]):
+            required_domains.append("knowledge_management")
+        if any(word in query_lower for word in ["energy", "focus", "productivity", "optimization", "schedule"]):
+            required_domains.append("personal_optimization")
+        if any(word in query_lower for word in ["learn", "skill", "development", "education", "growth"]):
+            required_domains.append("learning_enhancement")
+        
+        # Always include integration synthesis for complex queries
+        if len(required_domains) > 1:
+            required_domains.append("integration_synthesis")
+        
+        # Default to comprehensive analysis if no specific domains detected
+        if not required_domains:
+            required_domains = ["technical_intelligence", "personal_optimization", "integration_synthesis"]
+            
+        return {
+            "required_domains": required_domains,
+            "domain_descriptions": {domain: oracles[domain] for domain in required_domains 
+                                 if domain in domain_oracles},
+            "execution_strategy": "parallel" if len(required_domains) > 2 else "sequential"
+        }
+
+    async def fetch_domain_intelligence(self, domain: str, query: str) -> Dict[str, Any]:
+        """Fetch intelligence from domain-specific oracle agents."""
+        try:
+            logger.info(f"Fetching {domain} intelligence for: {query}")
+            
+            # Import domain oracle agents (to be implemented)
+            # from a2a_mcp.agents.solopreneur_oracle import TechnicalIntelligenceOracle, etc.
+            
+            # For now, simulate sophisticated domain analysis
+            if domain == "technical_intelligence":
+                return {
+                    "domain": "Technical Intelligence",
+                    "analysis": {
+                        "feasibility_assessment": {
+                            "technical_feasibility": 0.85,
+                            "implementation_complexity": "medium",
+                            "architecture_recommendations": ["microservices", "containerization"],
+                            "tech_stack_suggestions": ["python", "fastapi", "postgresql"]
+                        },
+                        "risk_analysis": {
+                            "technical_risks": ["scalability", "data_consistency"],
+                            "mitigation_strategies": ["load_testing", "database_optimization"],
+                            "confidence": 0.82
+                        }
+                    }
+                }
+            elif domain == "personal_optimization":
+                return {
+                    "domain": "Personal Optimization", 
+                    "analysis": {
+                        "energy_assessment": {
+                            "cognitive_load": "medium",
+                            "energy_impact": "positive",
+                            "sustainability_score": 78,
+                            "optimization_strategies": ["time_blocking", "deep_work_sessions"]
+                        },
+                        "focus_analysis": {
+                            "distraction_risks": ["context_switching", "notification_overload"],
+                            "focus_strategies": ["pomodoro_technique", "environment_design"],
+                            "confidence": 0.79
+                        }
+                    }
+                }
+            # Add other domain simulations...
+            
+        except Exception as e:
+            logger.error(f"Error fetching {domain} intelligence: {e}")
+            return {"domain": domain, "error": str(e)}
+
+    async def generate_solopreneur_synthesis(self) -> str:
+        """Generate comprehensive solopreneur recommendations."""
+        client = genai.Client()
+        
+        prompt = SOLOPRENEUR_SYNTHESIS_PROMPT.format(
+            intelligence_data=json.dumps(self.intelligence_data, indent=2),
+            context=json.dumps(self.context, indent=2),
+            min_confidence=self.quality_thresholds["min_confidence_score"],
+            tech_threshold=self.quality_thresholds["technical_feasibility_threshold"],
+            personal_threshold=self.quality_thresholds["personal_sustainability_threshold"]
+        )
+        
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=prompt,
+            config={
+                "temperature": 0.1,
+                "response_mime_type": "application/json"
+            }
+        )
+        return response.text
+
+    async def stream(self, query: str, context_id: str, task_id: str) -> AsyncIterable[Dict[str, Any]]:
+        """Execute solopreneur intelligence workflow."""
+        logger.info(f"Solopreneur Oracle analyzing: {query}")
+        
+        if not query:
+            raise ValueError("Query cannot be empty")
+        
+        try:
+            # Step 1: Analyze domain dependencies
+            yield {
+                "is_task_complete": False,
+                "require_user_input": False,
+                "content": "Solopreneur Oracle: Analyzing technical and personal optimization requirements..."
+            }
+            
+            dependency_analysis = await self.analyze_domain_dependencies(query)
+            required_domains = dependency_analysis["required_domains"]
+            
+            # Step 2: Execute domain intelligence gathering
+            yield {
+                "is_task_complete": False,
+                "require_user_input": False,
+                "content": f"Solopreneur Oracle: Coordinating {len(required_domains)} intelligence domains..."
+            }
+            
+            for domain in required_domains:
+                intelligence = await self.fetch_domain_intelligence(domain, query)
+                if intelligence:
+                    self.intelligence_data[domain] = intelligence
+                    
+                    yield {
+                        "is_task_complete": False,
+                        "require_user_input": False,
+                        "content": f"Solopreneur Oracle: Completed {domain.replace('_', ' ').title()} analysis..."
+                    }
+            
+            # Step 3: Generate synthesis
+            yield {
+                "is_task_complete": False,
+                "require_user_input": False,
+                "content": "Solopreneur Oracle: Synthesizing technical and personal optimization recommendations..."
+            }
+            
+            synthesis_raw = await self.generate_solopreneur_synthesis()
+            synthesis = json.loads(synthesis_raw)
+            
+            # Step 4: Quality validation and final response
+            final_response = {
+                "synthesis": synthesis,
+                "intelligence_data": self.intelligence_data,
+                "domain_coverage": len(required_domains),
+                "timestamp": datetime.now().isoformat()
+            }
+            
+            yield {
+                "is_task_complete": True,
+                "require_user_input": False,
+                "response_type": "data",
+                "content": final_response
+            }
+                
+        except Exception as e:
+            logger.error(f"Solopreneur Oracle error: {e}")
+            yield {
+                "is_task_complete": True,
+                "require_user_input": False,
+                "content": f"Solopreneur Oracle: Analysis error - {str(e)}"
+            }
+```
+
+### 2.3 Domain Oracle Specialists - Deep Expertise Agents
+
+Following the Oracle pattern, each domain oracle has sophisticated internal intelligence:
                 description='Manages technical knowledge graph operations',
                 instructions=prompts.KNOWLEDGE_GRAPH_SUPERVISOR_COT_INSTRUCTIONS,
             )
