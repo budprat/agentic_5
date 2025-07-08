@@ -76,9 +76,10 @@ def generate_mcp_config():
             "firecrawl": {
                 "type": "stdio",
                 "command": "npx",
-                "args": ["-y", "firecrawl-mcp"],
+                "args": ["-y", "firecrawl-mcp@latest"],
                 "env": {
                     "FIRECRAWL_API_KEY": os.getenv('FIRECRAWL_API_KEY', 'YOUR_FIRECRAWL_API_KEY'),
+                    "FIRECRAWL_API_URL": "https://api.firecrawl.dev",
                     "FIRECRAWL_RETRY_MAX_ATTEMPTS": "5",
                     "FIRECRAWL_RETRY_INITIAL_DELAY": "2000",
                     "FIRECRAWL_RETRY_MAX_DELAY": "30000",
