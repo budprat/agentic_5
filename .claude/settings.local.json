@@ -51,7 +51,9 @@
       "Bash(npx firecrawl-mcp:*)",
       "Bash(npm view:*)",
       "Bash(npm cache clean:*)",
-      "Bash(npx:*)"
+      "Bash(npx:*)",
+      "Bash(git config:*)",
+      "Bash(git check-ignore:*)"
     ],
     "deny": []
   },
