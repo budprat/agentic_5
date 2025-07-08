@@ -28,7 +28,7 @@ You should use the following configuration to guide your behavior.
 - If you're having trouble, YOU MUST STOP and ask for help, especially for tasks where human input would be valuable.
 
 ## Legend
-@include commands/shared/universal-constants.yml#Universal_Legend
+@include .claude/commands/shared/universal-constants.yml#Universal_Legend
 
 ## Core Configuration
 @include shared/superclaude-core.yml#Core_Philosophy
