@@ -53,7 +53,8 @@
       "Bash(npm cache clean:*)",
       "Bash(npx:*)",
       "Bash(git config:*)",
-      "Bash(git check-ignore:*)"
+      "Bash(git check-ignore:*)",
+      "Bash(git ls-tree:*)"
     ],
     "deny": []
   },
