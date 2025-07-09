@@ -1,0 +1,56 @@
+{
+    "name": "Code Architecture Evaluator",
+    "description": "Evaluates code architecture and design patterns",
+    "url": "http://localhost:10911/",
+    "provider": null,
+    "version": "1.0.0",
+    "documentationUrl": null,
+    "capabilities": {
+        "streaming": "True",
+        "pushNotifications": "True",
+        "stateTransitionHistory": "False"
+    },
+    "auth_required": true,
+    "auth_schemes": [
+        {
+            "type": "bearer",
+            "scheme": "bearer",
+            "bearerFormat": "JWT"
+        },
+        {
+            "type": "apiKey",
+            "in": "header",
+            "name": "X-API-Key"
+        }
+    ],
+    "authentication": {
+        "credentials": null,
+        "schemes": [
+            "bearer",
+            "apiKey"
+        ]
+    },
+    "defaultInputModes": [
+        "text",
+        "text/plain"
+    ],
+    "defaultOutputModes": [
+        "text",
+        "text/plain",
+        "application/json"
+    ],
+    "skills": [
+        {
+            "id": "code_architecture_evaluator",
+            "name": "Code Architecture Evaluator",
+            "description": "Evaluates code architecture and design patterns",
+            "tags": [
+                "tier3",
+                "solopreneur",
+                "oracle"
+            ],
+            "inputModes": null,
+            "outputModes": null
+        }
+    ]
+}

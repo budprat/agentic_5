@@ -1,0 +1,56 @@
+{
+    "name": "AI Research Analyzer",
+    "description": "Analyzes AI research papers and trends",
+    "url": "http://localhost:10910/",
+    "provider": null,
+    "version": "1.0.0",
+    "documentationUrl": null,
+    "capabilities": {
+        "streaming": "True",
+        "pushNotifications": "True",
+        "stateTransitionHistory": "False"
+    },
+    "auth_required": true,
+    "auth_schemes": [
+        {
+            "type": "bearer",
+            "scheme": "bearer",
+            "bearerFormat": "JWT"
+        },
+        {
+            "type": "apiKey",
+            "in": "header",
+            "name": "X-API-Key"
+        }
+    ],
+    "authentication": {
+        "credentials": null,
+        "schemes": [
+            "bearer",
+            "apiKey"
+        ]
+    },
+    "defaultInputModes": [
+        "text",
+        "text/plain"
+    ],
+    "defaultOutputModes": [
+        "text",
+        "text/plain",
+        "application/json"
+    ],
+    "skills": [
+        {
+            "id": "ai_research_analyzer",
+            "name": "AI Research Analyzer",
+            "description": "Analyzes AI research papers and trends",
+            "tags": [
+                "tier3",
+                "solopreneur",
+                "oracle"
+            ],
+            "inputModes": null,
+            "outputModes": null
+        }
+    ]
+}

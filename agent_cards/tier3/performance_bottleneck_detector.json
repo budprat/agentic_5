@@ -1,0 +1,56 @@
+{
+    "name": "Performance Bottleneck Detector",
+    "description": "Detects performance bottlenecks and optimization opportunities",
+    "url": "http://localhost:10915/",
+    "provider": null,
+    "version": "1.0.0",
+    "documentationUrl": null,
+    "capabilities": {
+        "streaming": "True",
+        "pushNotifications": "True",
+        "stateTransitionHistory": "False"
+    },
+    "auth_required": true,
+    "auth_schemes": [
+        {
+            "type": "bearer",
+            "scheme": "bearer",
+            "bearerFormat": "JWT"
+        },
+        {
+            "type": "apiKey",
+            "in": "header",
+            "name": "X-API-Key"
+        }
+    ],
+    "authentication": {
+        "credentials": null,
+        "schemes": [
+            "bearer",
+            "apiKey"
+        ]
+    },
+    "defaultInputModes": [
+        "text",
+        "text/plain"
+    ],
+    "defaultOutputModes": [
+        "text",
+        "text/plain",
+        "application/json"
+    ],
+    "skills": [
+        {
+            "id": "performance_bottleneck_detector",
+            "name": "Performance Bottleneck Detector",
+            "description": "Detects performance bottlenecks and optimization opportunities",
+            "tags": [
+                "tier3",
+                "solopreneur",
+                "oracle"
+            ],
+            "inputModes": null,
+            "outputModes": null
+        }
+    ]
+}

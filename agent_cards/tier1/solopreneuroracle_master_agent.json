@@ -1,0 +1,56 @@
+{
+    "name": "SolopreneurOracle Master Agent",
+    "description": "Master AI orchestrator for developer/entrepreneur intelligence",
+    "url": "http://localhost:10901/",
+    "provider": null,
+    "version": "1.0.0",
+    "documentationUrl": null,
+    "capabilities": {
+        "streaming": "True",
+        "pushNotifications": "True",
+        "stateTransitionHistory": "True"
+    },
+    "auth_required": true,
+    "auth_schemes": [
+        {
+            "type": "bearer",
+            "scheme": "bearer",
+            "bearerFormat": "JWT"
+        },
+        {
+            "type": "apiKey",
+            "in": "header",
+            "name": "X-API-Key"
+        }
+    ],
+    "authentication": {
+        "credentials": null,
+        "schemes": [
+            "bearer",
+            "apiKey"
+        ]
+    },
+    "defaultInputModes": [
+        "text",
+        "text/plain"
+    ],
+    "defaultOutputModes": [
+        "text",
+        "text/plain",
+        "application/json"
+    ],
+    "skills": [
+        {
+            "id": "solopreneuroracle_master_agent",
+            "name": "SolopreneurOracle Master Agent",
+            "description": "Master AI orchestrator for developer/entrepreneur intelligence",
+            "tags": [
+                "tier1",
+                "solopreneur",
+                "oracle"
+            ],
+            "inputModes": null,
+            "outputModes": null
+        }
+    ]
+}

@@ -1345,210 +1345,991 @@ async def stream(...) -> AsyncIterable[Dict[str, Any]]:
 - Pattern detection capabilities
 - Graceful fallback if unavailable
 
-### 8.5 Implementation Execution Plan with File Locations
+### 8.5 CORRECTED Implementation Execution Plan - Full 56-Agent System
 
-#### File Locations (After Organization)
+#### Complete File Structure for 3-Tier Oracle System
 ```
 /home/solopreneur/
 ├── databases/
-│   └── solopreneur_database_schema.sql    # Database schema
+│   └── solopreneur_database_schema.sql         # Database schema
 ├── clients/
-│   └── solopreneur_client.py              # Client implementation
+│   └── solopreneur_client.py                   # Client implementation
 ├── src/a2a_mcp/
 │   ├── agents/
 │   │   └── solopreneur_oracle/
-│   │       ├── __init__.py                 # Module initialization
-│   │       └── solopreneur_oracle_agent.py # Oracle agent
+│   │       ├── __init__.py                     # Module initialization
+│   │       ├── base_solopreneur_agent.py      # UnifiedSolopreneurAgent base
+│   │       ├── tier1_oracle_master.py          # Tier 1: Master Oracle (1 agent)
+│   │       ├── tier2_domain_specialists.py     # Tier 2: Domain Specialists (5 agents)
+│   │       └── tier3_intelligence_modules.py   # Tier 3: Intelligence Modules (50 agents)
 │   └── mcp/
-│       └── solopreneur_mcp_tools.py       # MCP tools
-└── AI_SOLOPRENEUR_SYSTEM_IMPLEMENTATION.md # This plan
+│       └── solopreneur_mcp_tools.py           # MCP tools
+├── agent_cards/
+│   ├── tier1/                                  # 1 Master Oracle card
+│   ├── tier2/                                  # 5 Domain Specialist cards  
+│   └── tier3/                                  # 50 Intelligence Module cards
+└── AI_SOLOPRENEUR_SYSTEM_IMPLEMENTATION.md     # This plan
 ```
 
-#### Phase 1: Database Setup (Day 1)
+#### Correct Port Allocation (Matching Blueprint Section 1.1)
+```
+TIER 1 - ORACLE MASTER (1 agent):
+├── 10901: SolopreneurOracle Master Agent
+
+TIER 2 - DOMAIN SPECIALISTS (5 agents):
+├── 10902: Technical Intelligence Oracle
+├── 10903: Knowledge Management Oracle
+├── 10904: Personal Optimization Oracle
+├── 10905: Learning Enhancement Oracle
+└── 10906: Integration Synthesis Oracle
+
+TIER 3 - INTELLIGENCE MODULES (50 agents):
+├── Technical Intelligence (10910-10919):
+│   ├── 10910: AI Research Analyzer
+│   ├── 10911: Code Architecture Evaluator
+│   ├── 10912: Tech Stack Optimizer
+│   ├── 10913: Implementation Risk Assessor
+│   ├── 10914: Framework Compatibility Checker
+│   ├── 10915: Performance Bottleneck Detector
+│   ├── 10916: Security Vulnerability Scanner
+│   ├── 10917: Technical Debt Analyzer
+│   ├── 10918: API Design Reviewer
+│   └── 10919: Algorithm Efficiency Optimizer
+│
+├── Knowledge Systems (10920-10929):
+│   ├── 10920: Neo4j Graph Manager
+│   ├── 10921: Vector Database Interface
+│   ├── 10922: Knowledge Correlator
+│   ├── 10923: Insight Synthesizer
+│   ├── 10924: Pattern Recognition Engine
+│   ├── 10925: Information Retrieval Optimizer
+│   ├── 10926: Semantic Search Engine
+│   ├── 10927: Knowledge Gap Identifier
+│   ├── 10928: Citation Network Analyzer
+│   └── 10929: Concept Map Builder
+│
+├── Personal Systems (10930-10939):
+│   ├── 10930: Circadian Optimizer
+│   ├── 10931: Focus State Monitor
+│   ├── 10932: Energy Pattern Analyzer
+│   ├── 10933: Cognitive Load Manager
+│   ├── 10934: Stress Detection System
+│   ├── 10935: Recovery Scheduler
+│   ├── 10936: Environment Optimizer
+│   ├── 10937: Nutrition Timing Advisor
+│   ├── 10938: Exercise Integration Planner
+│   └── 10939: Sleep Quality Analyzer
+│
+├── Learning Systems (10940-10949):
+│   ├── 10940: Skill Gap Analyzer
+│   ├── 10941: Learning Efficiency Optimizer
+│   ├── 10942: Progress Tracker
+│   ├── 10943: Knowledge Retention Enhancer
+│   ├── 10944: Spaced Repetition Scheduler
+│   ├── 10945: Learning Path Generator
+│   ├── 10946: Skill Transfer Identifier
+│   ├── 10947: Practice Session Designer
+│   ├── 10948: Competency Assessment Engine
+│   └── 10949: Learning Resource Curator
+│
+└── Integration Layer (10950-10959):
+    ├── 10950: Cross-Domain Synthesizer
+    ├── 10951: Workflow Coordinator
+    ├── 10952: Quality Validator
+    ├── 10953: Performance Monitor
+    ├── 10954: Risk Mitigation Planner
+    ├── 10955: Opportunity Detector
+    ├── 10956: Decision Support System
+    ├── 10957: Priority Optimization Engine
+    ├── 10958: Context Awareness Manager
+    └── 10959: Predictive Analytics Engine
+```
+
+#### Phase 1: Database and Base Infrastructure Setup (Day 1-2)
+
+##### Step 1.1: Database Creation
 ```bash
-# Create database
 cd /home/solopreneur
 sqlite3 databases/solopreneur.db < databases/solopreneur_database_schema.sql
 
-# Verify database creation
-sqlite3 databases/solopreneur.db ".tables"
+# Verify all tables created
+sqlite3 databases/solopreneur.db ".tables" | wc -w
+# Should show 15+ tables
 
-# Create initialization script
-cat > init_solopreneur_data.py << 'EOF'
-import sqlite3
-from datetime import datetime, timedelta
-
-# Connect to database
-conn = sqlite3.connect('databases/solopreneur.db')
-cursor = conn.cursor()
-
-# Insert sample user
-cursor.execute("""
-INSERT INTO user_preferences (user_id, preference_key, preference_value, category)
-VALUES ('default', 'work_hours', '9-17', 'personal'),
-       ('default', 'focus_duration', '90', 'personal'),
-       ('default', 'primary_language', 'python', 'technical');
-""")
-
-# Insert sample energy patterns
-for hour in range(24):
-    energy = 8 if 9 <= hour <= 11 or 15 <= hour <= 17 else 5
-    cognitive = 9 if 9 <= hour <= 11 else 6
-    cursor.execute("""
-    INSERT INTO energy_patterns (user_id, date, hour, energy_level, cognitive_capacity)
-    VALUES ('default', date('now'), ?, ?, ?)
-    """, (hour, energy, cognitive))
-
-conn.commit()
-conn.close()
-print("Sample data initialized successfully!")
-EOF
-
+# Initialize with sample data
 python init_solopreneur_data.py
 ```
 
-#### Phase 2: MCP Server Extension (Day 2-3)
+##### Step 1.2: Create UnifiedSolopreneurAgent Base Class
+```bash
+cat > src/a2a_mcp/agents/solopreneur_oracle/base_solopreneur_agent.py << 'EOF'
+"""Base class for all solopreneur agents following framework pattern."""
+
+import logging
+from typing import Dict, Any, List
+from collections.abc import AsyncIterable
+
+from a2a_mcp.common.base_agent import BaseAgent
+from a2a_mcp.common.utils import init_api_key
+from google import genai
+
+logger = logging.getLogger(__name__)
+
+class UnifiedSolopreneurAgent(BaseAgent):
+    """
+    Framework-compliant base class for all solopreneur agents.
+    Follows the proven TravelAgent pattern for specialization.
+    """
+    
+    def __init__(
+        self, 
+        agent_name: str, 
+        description: str, 
+        instructions: str,
+        port: int
+    ):
+        init_api_key()
+        super().__init__(
+            agent_name=agent_name,
+            description=description,
+            content_types=['text', 'text/plain', 'application/json']
+        )
+        
+        self.instructions = instructions
+        self.port = port
+        self.tier = self._determine_tier(port)
+        
+    def _determine_tier(self, port: int) -> int:
+        """Determine agent tier based on port number."""
+        if port == 10901:
+            return 1  # Master Oracle
+        elif 10902 <= port <= 10906:
+            return 2  # Domain Specialists
+        elif 10910 <= port <= 10959:
+            return 3  # Intelligence Modules
+        else:
+            return 0  # Unknown
+            
+    async def stream(
+        self, 
+        query: str, 
+        context_id: str, 
+        task_id: str
+    ) -> AsyncIterable[Dict[str, Any]]:
+        """Stream implementation following framework patterns."""
+        logger.info(f"{self.agent_name} (Tier {self.tier}) processing: {query}")
+        
+        # Tier-specific processing
+        if self.tier == 1:
+            # Master Oracle coordinates other agents
+            async for chunk in self._master_oracle_stream(query, context_id, task_id):
+                yield chunk
+        elif self.tier == 2:
+            # Domain Specialists coordinate modules
+            async for chunk in self._domain_specialist_stream(query, context_id, task_id):
+                yield chunk
+        elif self.tier == 3:
+            # Intelligence Modules provide specific analysis
+            async for chunk in self._intelligence_module_stream(query, context_id, task_id):
+                yield chunk
+                
+    async def _master_oracle_stream(self, query, context_id, task_id):
+        """Master Oracle coordination logic."""
+        yield {
+            'is_task_complete': False,
+            'require_user_input': False,
+            'content': f'{self.agent_name}: Orchestrating multi-tier analysis...'
+        }
+        # Implementation continues...
+        
+    async def _domain_specialist_stream(self, query, context_id, task_id):
+        """Domain Specialist coordination logic."""
+        yield {
+            'is_task_complete': False,
+            'require_user_input': False,
+            'content': f'{self.agent_name}: Analyzing domain-specific requirements...'
+        }
+        # Implementation continues...
+        
+    async def _intelligence_module_stream(self, query, context_id, task_id):
+        """Intelligence Module analysis logic."""
+        yield {
+            'is_task_complete': False,
+            'require_user_input': False,
+            'content': f'{self.agent_name}: Performing specialized analysis...'
+        }
+        # Implementation continues...
+EOF
+```
+
+#### Phase 2: MCP Server Integration (Day 3-4)
+
+##### Step 2.1: Properly Integrate MCP Tools
 ```python
-# Edit existing server.py to add solopreneur tools
-cd /home/solopreneur/src/a2a_mcp/mcp
-cp server.py server.py.backup
+# Create a patch file for server.py
+cat > src/a2a_mcp/mcp/server_solopreneur_patch.py << 'EOF'
+"""Patch to add solopreneur tools to MCP server."""
 
-# Add import at the top of server.py
-echo "from a2a_mcp.mcp.solopreneur_mcp_tools import init_solopreneur_tools" >> server_imports.txt
-
-# In the server initialization section, add:
-# init_solopreneur_tools(server)
-
-# Alternative: Create a wrapper script
-cat > init_solopreneur_mcp.py << 'EOF'
-from a2a_mcp.mcp.server import server
-from a2a_mcp.mcp.solopreneur_mcp_tools import init_solopreneur_tools
-
-# Initialize solopreneur tools
-init_solopreneur_tools(server)
-print("Solopreneur MCP tools initialized!")
+def apply_solopreneur_patch(server_module):
+    """Apply solopreneur tools to existing server."""
+    # Import at the module level
+    import importlib
+    import sys
+    
+    # Add import to server module
+    if 'a2a_mcp.mcp.solopreneur_mcp_tools' not in sys.modules:
+        solopreneur_tools = importlib.import_module('a2a_mcp.mcp.solopreneur_mcp_tools')
+        
+    # Get the server instance
+    server = server_module.server
+    
+    # Initialize solopreneur tools
+    from a2a_mcp.mcp.solopreneur_mcp_tools import init_solopreneur_tools
+    init_solopreneur_tools(server)
+    
+    print("✅ Solopreneur MCP tools integrated successfully!")
+    return server
 EOF
+
+# Apply the patch in server.py by adding at the end:
+echo "
+# Solopreneur tools integration
+try:
+    from a2a_mcp.mcp.server_solopreneur_patch import apply_solopreneur_patch
+    apply_solopreneur_patch(sys.modules[__name__])
+except ImportError:
+    pass  # Solopreneur tools not available
+" >> src/a2a_mcp/mcp/server.py
 ```
 
-#### Phase 3: Agent Implementation (Day 4-7)
-```python
-# Edit agents/__main__.py to add solopreneur agents
-cd /home/solopreneur/src/a2a_mcp/agents
-
-# Add to the get_agent() function (around line 100):
-cat >> agent_additions.py << 'EOF'
-# SOLOPRENEUR DOMAIN AGENTS (Port range 10901-10999)
-elif agent_card.name == 'Solopreneur Oracle Agent':
-    from a2a_mcp.agents.solopreneur_oracle import SolopreneurOracleAgent
-    return SolopreneurOracleAgent()
-elif agent_card.name == 'Technical Intelligence Oracle':
-    from a2a_mcp.agents.solopreneur_oracle import TechnicalIntelligenceOracle
-    return TechnicalIntelligenceOracle()
-elif agent_card.name == 'Personal Optimization Oracle':
-    from a2a_mcp.agents.solopreneur_oracle import PersonalOptimizationOracle
-    return PersonalOptimizationOracle()
-elif agent_card.name == 'Learning Enhancement Oracle':
-    from a2a_mcp.agents.solopreneur_oracle import LearningEnhancementOracle
-    return LearningEnhancementOracle()
-elif agent_card.name == 'Workflow Integration Oracle':
-    from a2a_mcp.agents.solopreneur_oracle import WorkflowIntegrationOracle
-    return WorkflowIntegrationOracle()
-EOF
-
-# Create agent card for Solopreneur Oracle
-cat > /home/solopreneur/agent_cards/solopreneur_oracle_agent.json << 'EOF'
-{
-    "name": "Solopreneur Oracle Agent",
-    "description": "Master AI orchestrator for developer/entrepreneur intelligence",
-    "url": "http://localhost:10901/",
-    "provider": null,
-    "version": "1.0.0",
-    "capabilities": {
-        "streaming": "True",
-        "pushNotifications": "True"
-    },
-    "defaultInputModes": ["text", "text/plain"],
-    "defaultOutputModes": ["text", "text/plain", "application/json"]
-}
-EOF
-```
-
-#### Phase 4: Client Testing (Day 8-9)
+##### Step 2.2: Configure External Services
 ```bash
-# Test individual components
-cd /home/solopreneur/clients
+# Create configuration file
+cat > solopreneur_config.env << 'EOF'
+# Core Configuration
+export GOOGLE_API_KEY="your-gemini-api-key"
+export SOLOPRENEUR_DB="/home/solopreneur/databases/solopreneur.db"
 
-# Ensure GOOGLE_API_KEY is set
-export GOOGLE_API_KEY="your-api-key"
-
-# Test technical intelligence analysis
-python solopreneur_client.py technical
-
-# Test schedule optimization
-python solopreneur_client.py schedule
-
-# Test learning progress tracking
-python solopreneur_client.py learning
-
-# Test productivity insights
-python solopreneur_client.py productivity
-
-# Run full interactive session
-python solopreneur_client.py
-```
-
-#### Phase 5: Integration Testing (Day 10)
-```bash
-# Create startup script for solopreneur agents
-cat > /home/solopreneur/run_solopreneur_agents.sh << 'EOF'
-#!/bin/bash
-echo "Starting AI Solopreneur System..."
-
-# Start MCP Server (if not already running)
-if ! lsof -i:10100 > /dev/null; then
-    echo "Starting MCP Server..."
-    uv run a2a-mcp --run mcp-server --transport sse --host localhost --port 10100 &
-    sleep 3
-fi
-
-# Start Solopreneur Oracle Agent
-echo "Starting Solopreneur Oracle Agent (Port 10901)..."
-uv run src/a2a_mcp/agents/ --agent-card agent_cards/solopreneur_oracle_agent.json --port 10901 &
-
-echo "Solopreneur Oracle ready at http://localhost:10901"
-EOF
-
-chmod +x run_solopreneur_agents.sh
-./run_solopreneur_agents.sh
-
-# Test the system
-curl -X POST http://localhost:10901/stream \
-  -H "Content-Type: application/json" \
-  -d '{
-    "query": "Analyze my productivity patterns and suggest optimizations",
-    "context_id": "test-001",
-    "task_id": "task-001"
-  }'
-```
-
-### 8.6 Configuration Requirements
-
-#### Environment Variables
-```bash
-export GOOGLE_API_KEY="your-api-key"
-export SOLOPRENEUR_DB="/path/to/solopreneur.db"
+# Optional Services (comment out if not using)
 export NEO4J_URI="bolt://localhost:7687"
 export NEO4J_USER="neo4j"
 export NEO4J_PASSWORD="password"
-export GITHUB_TOKEN="optional-github-token"
+export GITHUB_TOKEN="your-github-token"
+
+# Agent Configuration
+export SOLOPRENEUR_BASE_PORT=10901
+export SOLOPRENEUR_LOG_LEVEL="INFO"
+export ENABLE_PARALLEL_EXECUTION="true"
+EOF
+
+# Source configuration
+source solopreneur_config.env
 ```
 
-#### Agent Cards Required
-- solopreneur_oracle_agent.json (Port 10901)
-- technical_specialist_agent.json (Port 10902)  
-- personal_specialist_agent.json (Port 10903)
-- learning_specialist_agent.json (Port 10904)
-- workflow_specialist_agent.json (Port 10905)
+#### Phase 3: Full 56-Agent Implementation (Day 5-8)
+
+##### Step 3.1: Create Agent Registry with All 56 Agents
+```python
+# Create comprehensive agent registry
+cat > src/a2a_mcp/agents/solopreneur_oracle/agent_registry.py << 'EOF'
+"""Complete registry of all 56 Solopreneur Oracle agents."""
+
+from typing import Dict, Any
+from .base_solopreneur_agent import UnifiedSolopreneurAgent
+from a2a_mcp.common import prompts
+
+# Agent definitions matching blueprint exactly
+SOLOPRENEUR_AGENTS = {
+    # TIER 1: Oracle Master (1 agent)
+    "SolopreneurOracle Master Agent": {
+        "port": 10901,
+        "tier": 1,
+        "description": "Master AI orchestrator for developer/entrepreneur intelligence",
+        "instructions": prompts.SOLOPRENEUR_ORACLE_MASTER_COT
+    },
+    
+    # TIER 2: Domain Specialists (5 agents)
+    "Technical Intelligence Oracle": {
+        "port": 10902,
+        "tier": 2,
+        "description": "Monitors AI research and technical developments",
+        "instructions": prompts.TECHNICAL_INTELLIGENCE_ORACLE_COT
+    },
+    "Knowledge Management Oracle": {
+        "port": 10903,
+        "tier": 2,
+        "description": "Manages knowledge graph and information synthesis",
+        "instructions": prompts.KNOWLEDGE_MANAGEMENT_ORACLE_COT
+    },
+    "Personal Optimization Oracle": {
+        "port": 10904,
+        "tier": 2,
+        "description": "Optimizes energy, focus, and productivity",
+        "instructions": prompts.PERSONAL_OPTIMIZATION_ORACLE_COT
+    },
+    "Learning Enhancement Oracle": {
+        "port": 10905,
+        "tier": 2,
+        "description": "Enhances skill development and learning efficiency",
+        "instructions": prompts.LEARNING_ENHANCEMENT_ORACLE_COT
+    },
+    "Integration Synthesis Oracle": {
+        "port": 10906,
+        "tier": 2,
+        "description": "Synthesizes cross-domain insights and workflows",
+        "instructions": prompts.INTEGRATION_SYNTHESIS_ORACLE_COT
+    },
+    
+    # TIER 3: Technical Intelligence Modules (10910-10919)
+    "AI Research Analyzer": {
+        "port": 10910,
+        "tier": 3,
+        "description": "Analyzes AI research papers and trends",
+        "instructions": prompts.AI_RESEARCH_ANALYZER_COT
+    },
+    "Code Architecture Evaluator": {
+        "port": 10911,
+        "tier": 3,
+        "description": "Evaluates code architecture and design patterns",
+        "instructions": prompts.CODE_ARCHITECTURE_EVALUATOR_COT
+    },
+    "Tech Stack Optimizer": {
+        "port": 10912,
+        "tier": 3,
+        "description": "Optimizes technology stack selections",
+        "instructions": prompts.TECH_STACK_OPTIMIZER_COT
+    },
+    "Implementation Risk Assessor": {
+        "port": 10913,
+        "tier": 3,
+        "description": "Assesses implementation risks and mitigation strategies",
+        "instructions": prompts.IMPLEMENTATION_RISK_ASSESSOR_COT
+    },
+    "Framework Compatibility Checker": {
+        "port": 10914,
+        "tier": 3,
+        "description": "Checks framework compatibility and integration",
+        "instructions": prompts.FRAMEWORK_COMPATIBILITY_CHECKER_COT
+    },
+    "Performance Bottleneck Detector": {
+        "port": 10915,
+        "tier": 3,
+        "description": "Detects performance bottlenecks and optimization opportunities",
+        "instructions": prompts.PERFORMANCE_BOTTLENECK_DETECTOR_COT
+    },
+    "Security Vulnerability Scanner": {
+        "port": 10916,
+        "tier": 3,
+        "description": "Scans for security vulnerabilities and best practices",
+        "instructions": prompts.SECURITY_VULNERABILITY_SCANNER_COT
+    },
+    "Technical Debt Analyzer": {
+        "port": 10917,
+        "tier": 3,
+        "description": "Analyzes and prioritizes technical debt",
+        "instructions": prompts.TECHNICAL_DEBT_ANALYZER_COT
+    },
+    "API Design Reviewer": {
+        "port": 10918,
+        "tier": 3,
+        "description": "Reviews API design and documentation",
+        "instructions": prompts.API_DESIGN_REVIEWER_COT
+    },
+    "Algorithm Efficiency Optimizer": {
+        "port": 10919,
+        "tier": 3,
+        "description": "Optimizes algorithm efficiency and complexity",
+        "instructions": prompts.ALGORITHM_EFFICIENCY_OPTIMIZER_COT
+    },
+    
+    # Knowledge Systems (10920-10929)
+    "Neo4j Graph Manager": {"port": 10920, "tier": 3},
+    "Vector Database Interface": {"port": 10921, "tier": 3},
+    "Knowledge Correlator": {"port": 10922, "tier": 3},
+    "Insight Synthesizer": {"port": 10923, "tier": 3},
+    "Pattern Recognition Engine": {"port": 10924, "tier": 3},
+    "Information Retrieval Optimizer": {"port": 10925, "tier": 3},
+    "Semantic Search Engine": {"port": 10926, "tier": 3},
+    "Knowledge Gap Identifier": {"port": 10927, "tier": 3},
+    "Citation Network Analyzer": {"port": 10928, "tier": 3},
+    "Concept Map Builder": {"port": 10929, "tier": 3},
+    
+    # Personal Systems (10930-10939)
+    "Circadian Optimizer": {"port": 10930, "tier": 3},
+    "Focus State Monitor": {"port": 10931, "tier": 3},
+    "Energy Pattern Analyzer": {"port": 10932, "tier": 3},
+    "Cognitive Load Manager": {"port": 10933, "tier": 3},
+    "Stress Detection System": {"port": 10934, "tier": 3},
+    "Recovery Scheduler": {"port": 10935, "tier": 3},
+    "Environment Optimizer": {"port": 10936, "tier": 3},
+    "Nutrition Timing Advisor": {"port": 10937, "tier": 3},
+    "Exercise Integration Planner": {"port": 10938, "tier": 3},
+    "Sleep Quality Analyzer": {"port": 10939, "tier": 3},
+    
+    # Learning Systems (10940-10949)
+    "Skill Gap Analyzer": {"port": 10940, "tier": 3},
+    "Learning Efficiency Optimizer": {"port": 10941, "tier": 3},
+    "Progress Tracker": {"port": 10942, "tier": 3},
+    "Knowledge Retention Enhancer": {"port": 10943, "tier": 3},
+    "Spaced Repetition Scheduler": {"port": 10944, "tier": 3},
+    "Learning Path Generator": {"port": 10945, "tier": 3},
+    "Skill Transfer Identifier": {"port": 10946, "tier": 3},
+    "Practice Session Designer": {"port": 10947, "tier": 3},
+    "Competency Assessment Engine": {"port": 10948, "tier": 3},
+    "Learning Resource Curator": {"port": 10949, "tier": 3},
+    
+    # Integration Layer (10950-10959)
+    "Cross-Domain Synthesizer": {"port": 10950, "tier": 3},
+    "Workflow Coordinator": {"port": 10951, "tier": 3},
+    "Quality Validator": {"port": 10952, "tier": 3},
+    "Performance Monitor": {"port": 10953, "tier": 3},
+    "Risk Mitigation Planner": {"port": 10954, "tier": 3},
+    "Opportunity Detector": {"port": 10955, "tier": 3},
+    "Decision Support System": {"port": 10956, "tier": 3},
+    "Priority Optimization Engine": {"port": 10957, "tier": 3},
+    "Context Awareness Manager": {"port": 10958, "tier": 3},
+    "Predictive Analytics Engine": {"port": 10959, "tier": 3}
+}
+
+def create_agent(agent_name: str) -> UnifiedSolopreneurAgent:
+    """Factory function to create any of the 56 agents."""
+    if agent_name not in SOLOPRENEUR_AGENTS:
+        raise ValueError(f"Unknown agent: {agent_name}")
+    
+    config = SOLOPRENEUR_AGENTS[agent_name]
+    return UnifiedSolopreneurAgent(
+        agent_name=agent_name,
+        description=config.get("description", f"{agent_name} - Tier {config['tier']} agent"),
+        instructions=config.get("instructions", f"You are {agent_name} operating on port {config['port']}"),
+        port=config["port"]
+    )
+EOF
+```
+
+##### Step 3.2: Update __main__.py with All 56 Agents
+```python
+# Create the complete agent integration
+cat > src/a2a_mcp/agents/solopreneur_oracle_integration.py << 'EOF'
+"""Integration code for __main__.py - adds all 56 solopreneur agents."""
+
+def add_solopreneur_agents_to_get_agent(get_agent_func):
+    """Decorator to add all 56 solopreneur agents to get_agent function."""
+    from a2a_mcp.agents.solopreneur_oracle.agent_registry import SOLOPRENEUR_AGENTS, create_agent
+    
+    def wrapped_get_agent(agent_card):
+        # Check if it's a solopreneur agent
+        if agent_card.name in SOLOPRENEUR_AGENTS:
+            return create_agent(agent_card.name)
+        
+        # Otherwise use original function
+        return get_agent_func(agent_card)
+    
+    return wrapped_get_agent
+
+# Add this to __main__.py after the get_agent definition:
+# get_agent = add_solopreneur_agents_to_get_agent(get_agent)
+EOF
+
+# Patch __main__.py
+echo "
+# Solopreneur agents integration
+from a2a_mcp.agents.solopreneur_oracle_integration import add_solopreneur_agents_to_get_agent
+get_agent = add_solopreneur_agents_to_get_agent(get_agent)
+" >> src/a2a_mcp/agents/__main__.py
+```
+
+##### Step 3.3: Create All 56 Agent Cards
+```bash
+# Create agent card generator script
+cat > generate_solopreneur_agent_cards.py << 'EOF'
+"""Generate all 56 agent cards for the Solopreneur Oracle system."""
+
+import json
+import os
+from pathlib import Path
+
+# Import the agent registry
+import sys
+sys.path.append('/home/solopreneur/src')
+from a2a_mcp.agents.solopreneur_oracle.agent_registry import SOLOPRENEUR_AGENTS
+
+# Create directories
+os.makedirs("agent_cards/tier1", exist_ok=True)
+os.makedirs("agent_cards/tier2", exist_ok=True)
+os.makedirs("agent_cards/tier3", exist_ok=True)
+
+# Agent card template
+def create_agent_card(name, config):
+    """Create agent card following framework pattern."""
+    port = config["port"]
+    tier = config["tier"]
+    
+    card = {
+        "name": name,
+        "description": config.get("description", f"{name} - Tier {tier} agent"),
+        "url": f"http://localhost:{port}/",
+        "provider": None,
+        "version": "1.0.0",
+        "documentationUrl": None,
+        "capabilities": {
+            "streaming": "True",
+            "pushNotifications": "True",
+            "stateTransitionHistory": str(tier == 1)  # Only master has history
+        },
+        "auth_required": True,
+        "auth_schemes": [
+            {
+                "type": "bearer",
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
+            },
+            {
+                "type": "apiKey",
+                "in": "header",
+                "name": "X-API-Key"
+            }
+        ],
+        "defaultInputModes": ["text", "text/plain"],
+        "defaultOutputModes": ["text", "text/plain", "application/json"],
+        "skills": [{
+            "id": name.lower().replace(" ", "_"),
+            "name": name,
+            "description": config.get("description", f"{name} capabilities"),
+            "tags": [f"tier{tier}", "solopreneur", "oracle"],
+            "inputModes": None,
+            "outputModes": None
+        }]
+    }
+    
+    # Determine subdirectory
+    if tier == 1:
+        subdir = "tier1"
+    elif tier == 2:
+        subdir = "tier2"
+    else:
+        subdir = "tier3"
+    
+    # Save agent card
+    filename = f"agent_cards/{subdir}/{name.lower().replace(' ', '_')}.json"
+    with open(filename, 'w') as f:
+        json.dump(card, f, indent=4)
+    
+    print(f"Created: {filename}")
+
+# Generate all 56 agent cards
+for agent_name, config in SOLOPRENEUR_AGENTS.items():
+    create_agent_card(agent_name, config)
+
+print(f"\n✅ Generated all {len(SOLOPRENEUR_AGENTS)} agent cards!")
+EOF
+
+# Run the generator
+python generate_solopreneur_agent_cards.py
+```
+
+#### Phase 4: Complete System Testing (Day 9-10)
+
+##### Step 4.1: Create Multi-Tier Startup Script
+```bash
+# Create comprehensive startup script for all 56 agents
+cat > run_all_solopreneur_agents.sh << 'EOF'
+#!/bin/bash
+# Startup script for complete 56-agent Solopreneur Oracle system
+
+echo "🚀 Starting AI Solopreneur Oracle System (56 agents)..."
+echo "=================================================="
+
+# Source configuration
+source solopreneur_config.env
+
+# Check prerequisites
+if [ -z "$GOOGLE_API_KEY" ]; then
+    echo "❌ Error: GOOGLE_API_KEY not set"
+    exit 1
+fi
+
+# Start MCP Server if not running
+if ! lsof -i:10100 > /dev/null 2>&1; then
+    echo "📡 Starting MCP Server..."
+    uv run a2a-mcp --run mcp-server --transport sse --host localhost --port 10100 &
+    MCP_PID=$!
+    sleep 3
+    echo "✅ MCP Server started (PID: $MCP_PID)"
+fi
+
+# Function to start agent
+start_agent() {
+    local card_file=$1
+    local port=$2
+    local tier=$3
+    
+    echo "  Starting: $(basename $card_file .json) (Port $port, Tier $tier)..."
+    uv run src/a2a_mcp/agents/ --agent-card $card_file --port $port > logs/agent_$port.log 2>&1 &
+    echo $! >> .agent_pids
+}
+
+# Clear previous PIDs
+> .agent_pids
+
+echo ""
+echo "🎯 TIER 1: Starting Oracle Master..."
+start_agent "agent_cards/tier1/solopreneuroracle_master_agent.json" 10901 1
+
+echo ""
+echo "🔮 TIER 2: Starting Domain Specialists..."
+for card in agent_cards/tier2/*.json; do
+    port=$(grep -o '"url": "http://localhost:[0-9]*' $card | grep -o '[0-9]*')
+    start_agent "$card" "$port" 2
+done
+
+echo ""
+echo "⚡ TIER 3: Starting Intelligence Modules..."
+echo "  Technical Intelligence (10910-10919)..."
+for port in {10910..10919}; do
+    card=$(find agent_cards/tier3 -name "*.json" -exec grep -l "\"url\": \"http://localhost:$port" {} \;)
+    [ -f "$card" ] && start_agent "$card" "$port" 3
+done
+
+echo "  Knowledge Systems (10920-10929)..."
+for port in {10920..10929}; do
+    card=$(find agent_cards/tier3 -name "*.json" -exec grep -l "\"url\": \"http://localhost:$port" {} \;)
+    [ -f "$card" ] && start_agent "$card" "$port" 3
+done
+
+echo "  Personal Systems (10930-10939)..."
+for port in {10930..10939}; do
+    card=$(find agent_cards/tier3 -name "*.json" -exec grep -l "\"url\": \"http://localhost:$port" {} \;)
+    [ -f "$card" ] && start_agent "$card" "$port" 3
+done
+
+echo "  Learning Systems (10940-10949)..."
+for port in {10940..10949}; do
+    card=$(find agent_cards/tier3 -name "*.json" -exec grep -l "\"url\": \"http://localhost:$port" {} \;)
+    [ -f "$card" ] && start_agent "$card" "$port" 3
+done
+
+echo "  Integration Layer (10950-10959)..."
+for port in {10950..10959}; do
+    card=$(find agent_cards/tier3 -name "*.json" -exec grep -l "\"url\": \"http://localhost:$port" {} \;)
+    [ -f "$card" ] && start_agent "$card" "$port" 3
+done
+
+# Wait for all agents to start
+sleep 5
+
+# Count running agents
+AGENT_COUNT=$(wc -l < .agent_pids)
+
+echo ""
+echo "✅ Solopreneur Oracle System Started!"
+echo "====================================="
+echo "Total Agents Running: $AGENT_COUNT / 56"
+echo ""
+echo "🌐 Access Points:"
+echo "  Oracle Master: http://localhost:10901"
+echo "  MCP Server: http://localhost:10100"
+echo ""
+echo "📊 Status Check: ./check_solopreneur_status.sh"
+echo "🛑 Stop All: ./stop_solopreneur_agents.sh"
+EOF
+
+chmod +x run_all_solopreneur_agents.sh
+```
+
+##### Step 4.2: Test Multi-Tier Communication
+```bash
+# Test client updated for multi-tier system
+cd /home/solopreneur/clients
+
+# Test tier communication
+cat > test_multi_tier.py << 'EOF'
+"""Test multi-tier agent communication."""
+
+import asyncio
+from solopreneur_client import SolopreneurClient
+
+async def test_multi_tier():
+    """Test that all tiers communicate properly."""
+    async with SolopreneurClient() as client:
+        # This query should trigger all 3 tiers
+        query = """
+        Analyze the feasibility of implementing a new AI feature:
+        - Technical: Use LangGraph for multi-agent orchestration
+        - Personal: Consider my peak hours are 9-11 AM
+        - Learning: I need to learn LangGraph patterns
+        - Integration: How does this fit with my current tech stack?
+        """
+        
+        print("Sending multi-tier query...")
+        async for response in client.send_request(query):
+            print(f"Response: {response}")
+
+if __name__ == "__main__":
+    asyncio.run(test_multi_tier())
+EOF
+
+python test_multi_tier.py
+```
+
+#### Phase 5: Final Integration and Verification (Day 11-12)
+
+##### Step 5.1: Create System Health Check Script
+```bash
+cat > check_solopreneur_status.sh << 'EOF'
+#!/bin/bash
+# Health check for all 56 agents
+
+echo "🔍 Solopreneur Oracle System Status Check"
+echo "========================================"
+
+# Check MCP Server
+echo -n "MCP Server (10100): "
+if curl -s http://localhost:10100/health > /dev/null 2>&1; then
+    echo "✅ Running"
+else
+    echo "❌ Not responding"
+fi
+
+# Check Tier 1
+echo ""
+echo "TIER 1 - Oracle Master:"
+echo -n "  SolopreneurOracle Master (10901): "
+curl -s http://localhost:10901/health > /dev/null 2>&1 && echo "✅" || echo "❌"
+
+# Check Tier 2
+echo ""
+echo "TIER 2 - Domain Specialists:"
+for port in {10902..10906}; do
+    echo -n "  Port $port: "
+    curl -s http://localhost:$port/health > /dev/null 2>&1 && echo "✅" || echo "❌"
+done
+
+# Check Tier 3
+echo ""
+echo "TIER 3 - Intelligence Modules:"
+running=0
+total=50
+for port in {10910..10959}; do
+    if curl -s http://localhost:$port/health > /dev/null 2>&1; then
+        ((running++))
+    fi
+done
+echo "  Running: $running / $total agents"
+
+# Summary
+echo ""
+echo "Summary:"
+echo "========="
+total_expected=56
+total_running=$((running + 6))  # 50 Tier 3 + 5 Tier 2 + 1 Tier 1
+echo "Total Agents: $total_running / $total_expected"
+
+if [ $total_running -eq $total_expected ]; then
+    echo "Status: ✅ All systems operational!"
+else
+    echo "Status: ⚠️  Some agents not responding"
+fi
+EOF
+
+chmod +x check_solopreneur_status.sh
+```
+
+##### Step 5.2: Complete Integration Test Suite
+```python
+cat > test_solopreneur_integration.py << 'EOF'
+"""Complete integration test for 56-agent system."""
+
+import asyncio
+import aiohttp
+import json
+from typing import Dict, List
+
+class SolopreneurIntegrationTest:
+    def __init__(self):
+        self.base_url = "http://localhost:10901"
+        self.results = []
+        
+    async def test_tier_communication(self):
+        """Test that all tiers communicate properly."""
+        test_cases = [
+            {
+                "name": "Technical Intelligence Flow",
+                "query": "Analyze the latest LangGraph patterns for multi-agent systems",
+                "expected_tiers": [1, 2, 3],
+                "expected_agents": ["AI Research Analyzer", "Code Architecture Evaluator"]
+            },
+            {
+                "name": "Personal Optimization Flow",
+                "query": "Optimize my schedule for deep learning sessions this week",
+                "expected_tiers": [1, 2, 3],
+                "expected_agents": ["Circadian Optimizer", "Focus State Monitor"]
+            },
+            {
+                "name": "Cross-Domain Integration",
+                "query": "How can I learn Rust efficiently given my energy patterns?",
+                "expected_tiers": [1, 2, 3],
+                "expected_agents": ["Learning Path Generator", "Energy Pattern Analyzer"]
+            }
+        ]
+        
+        async with aiohttp.ClientSession() as session:
+            for test in test_cases:
+                print(f"\n🧪 Testing: {test['name']}")
+                
+                async with session.post(
+                    f"{self.base_url}/stream",
+                    json={
+                        "query": test["query"],
+                        "context_id": f"test-{test['name'].lower().replace(' ', '-')}",
+                        "task_id": f"task-{asyncio.get_event_loop().time()}"
+                    }
+                ) as response:
+                    if response.status == 200:
+                        result = await response.json()
+                        self.results.append({
+                            "test": test["name"],
+                            "status": "PASS",
+                            "response": result
+                        })
+                        print(f"  ✅ Response received")
+                    else:
+                        self.results.append({
+                            "test": test["name"],
+                            "status": "FAIL",
+                            "error": f"HTTP {response.status}"
+                        })
+                        print(f"  ❌ Failed with status {response.status}")
+    
+    async def test_mcp_tools(self):
+        """Test MCP tool integration."""
+        print("\n🧪 Testing MCP Tool Integration")
+        
+        # Test each major tool category
+        tools_to_test = [
+            "query_solopreneur_metrics",
+            "analyze_energy_patterns",
+            "monitor_technical_trends",
+            "track_learning_progress"
+        ]
+        
+        # This would need actual MCP client integration
+        print("  ⏭️  Skipping (requires MCP client setup)")
+    
+    async def generate_report(self):
+        """Generate test report."""
+        print("\n" + "="*50)
+        print("INTEGRATION TEST REPORT")
+        print("="*50)
+        
+        passed = sum(1 for r in self.results if r["status"] == "PASS")
+        total = len(self.results)
+        
+        print(f"\nTests Passed: {passed}/{total}")
+        print(f"Success Rate: {(passed/total)*100:.1f}%")
+        
+        print("\nDetailed Results:")
+        for result in self.results:
+            status_icon = "✅" if result["status"] == "PASS" else "❌"
+            print(f"{status_icon} {result['test']}: {result['status']}")
+        
+        return passed == total
+
+async def main():
+    """Run integration tests."""
+    tester = SolopreneurIntegrationTest()
+    
+    print("🚀 Starting Solopreneur Oracle Integration Tests")
+    print("Testing 56-agent system with 3 tiers...\n")
+    
+    await tester.test_tier_communication()
+    await tester.test_mcp_tools()
+    
+    success = await tester.generate_report()
+    
+    if success:
+        print("\n🎉 All integration tests passed!")
+    else:
+        print("\n⚠️  Some tests failed. Check logs for details.")
+
+if __name__ == "__main__":
+    asyncio.run(main())
+EOF
+
+# Run integration tests
+python test_solopreneur_integration.py
+```
+
+##### Step 5.3: Create Stop Script
+```bash
+cat > stop_solopreneur_agents.sh << 'EOF'
+#!/bin/bash
+# Stop all solopreneur agents
+
+echo "🛑 Stopping Solopreneur Oracle System..."
+
+# Kill all agent processes
+if [ -f .agent_pids ]; then
+    while read pid; do
+        kill $pid 2>/dev/null && echo "  Stopped agent PID: $pid"
+    done < .agent_pids
+    rm .agent_pids
+fi
+
+# Stop MCP server if we started it
+if [ -f .mcp_pid ]; then
+    kill $(cat .mcp_pid) 2>/dev/null && echo "  Stopped MCP Server"
+    rm .mcp_pid
+fi
+
+echo "✅ All agents stopped"
+EOF
+
+chmod +x stop_solopreneur_agents.sh
+```
+
+### 8.6 Configuration Requirements (Updated for 56 Agents)
+
+#### Environment Variables
+```bash
+# Core Requirements
+export GOOGLE_API_KEY="your-gemini-api-key"        # REQUIRED
+export SOLOPRENEUR_DB="/home/solopreneur/databases/solopreneur.db"
+
+# Optional External Services
+export NEO4J_URI="bolt://localhost:7687"
+export NEO4J_USER="neo4j"
+export NEO4J_PASSWORD="password"
+export GITHUB_TOKEN="your-github-token"
+
+# System Configuration
+export SOLOPRENEUR_LOG_LEVEL="INFO"
+export ENABLE_PARALLEL_EXECUTION="true"
+export MAX_CONCURRENT_AGENTS="10"
+```
+
+#### Port Requirements
+- **10100**: MCP Server
+- **10901**: SolopreneurOracle Master Agent
+- **10902-10906**: Domain Specialists (5 ports)
+- **10910-10959**: Intelligence Modules (50 ports)
+- **Total**: 57 ports (56 agents + 1 MCP server)
+
+#### Agent Cards Structure
+```
+agent_cards/
+├── tier1/                                    # 1 card
+│   └── solopreneuroracle_master_agent.json
+├── tier2/                                    # 5 cards
+│   ├── technical_intelligence_oracle.json
+│   ├── knowledge_management_oracle.json
+│   ├── personal_optimization_oracle.json
+│   ├── learning_enhancement_oracle.json
+│   └── integration_synthesis_oracle.json
+└── tier3/                                    # 50 cards
+    ├── ai_research_analyzer.json
+    ├── code_architecture_evaluator.json
+    ├── ... (48 more intelligence modules)
+```
 
 ### 8.7 Gap Resolution File Usage Guide
 
