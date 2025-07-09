@@ -54,7 +54,11 @@
       "Bash(npx:*)",
       "Bash(git config:*)",
       "Bash(git check-ignore:*)",
-      "Bash(git ls-tree:*)"
+      "Bash(git ls-tree:*)",
+      "mcp__firecrawl__firecrawl_search",
+      "mcp__firecrawl__firecrawl_scrape",
+      "Bash(mkdir:*)",
+      "Bash(mv:*)"
     ],
     "deny": []
   },
