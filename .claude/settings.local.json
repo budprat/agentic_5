@@ -62,19 +62,28 @@
       "Bash(git checkout:*)",
       "Bash(cp:*)",
       "Bash(cat:*)",
-      "Bash(pip install:*)"
+      "Bash(pip install:*)",
+      "Bash(pkill:*)",
+      "Bash(journalctl:*)",
+      "mcp__brave__brave_local_search",
+      "mcp__ide__getDiagnostics",
+      "mcp__ide__executeCode",
+      "Bash(env)",
+      "Bash(./run_solopreneur_agents.sh:*)"
     ],
     "deny": []
   },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "supabase",
+    "snowflake",
+    "sequential-thinking",
+    "brightdata",
     "brave",
     "puppeteer",
     "context7",
     "upstash",
     "firecrawl",
-    "notionApi",
-    "Bright Data"
+    "notionAI"
   ]
 }

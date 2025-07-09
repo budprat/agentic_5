@@ -41,7 +41,7 @@ run_in_terminal() {
 
 # Start MCP Server (required for all agents)
 echo "📡 Starting MCP Server..."
-run_in_terminal "MCP Server" "cd /home/solopreneur && python -m a2a_mcp.mcp.server --transport sse --host localhost --port 10100"
+run_in_terminal "MCP Server" "cd /home/user/solopreneur && uv run python -m a2a_mcp.mcp.server --transport sse --host localhost --port 10100"
 
 # Wait for MCP server to start
 sleep 3
@@ -50,19 +50,19 @@ sleep 3
 echo "🧠 Starting Domain Specialists (Tier 2)..."
 
 echo "  🔧 Starting Technical Intelligence Agent (Port 10902)..."
-run_in_terminal "Technical Intelligence Agent" "cd /home/solopreneur && python src/a2a_mcp/agents/__main__.py --agent-card agent_cards/technical_intelligence_agent.json --port 10902"
+run_in_terminal "Technical Intelligence Agent" "cd /home/user/solopreneur && uv run python src/a2a_mcp/agents/__main__.py --agent-card agent_cards/technical_intelligence_agent.json --port 10902"
 
 echo "  📚 Starting Knowledge Management Agent (Port 10903)..."
-run_in_terminal "Knowledge Management Agent" "cd /home/solopreneur && python src/a2a_mcp/agents/__main__.py --agent-card agent_cards/knowledge_management_agent.json --port 10903"
+run_in_terminal "Knowledge Management Agent" "cd /home/user/solopreneur && uv run python src/a2a_mcp/agents/__main__.py --agent-card agent_cards/knowledge_management_agent.json --port 10903"
 
 echo "  ⚡ Starting Personal Optimization Agent (Port 10904)..."
-run_in_terminal "Personal Optimization Agent" "cd /home/solopreneur && python src/a2a_mcp/agents/__main__.py --agent-card agent_cards/personal_optimization_agent.json --port 10904"
+run_in_terminal "Personal Optimization Agent" "cd /home/user/solopreneur && uv run python src/a2a_mcp/agents/__main__.py --agent-card agent_cards/personal_optimization_agent.json --port 10904"
 
 echo "  🎯 Starting Learning Enhancement Agent (Port 10905)..."
-run_in_terminal "Learning Enhancement Agent" "cd /home/solopreneur && python src/a2a_mcp/agents/__main__.py --agent-card agent_cards/learning_enhancement_agent.json --port 10905"
+run_in_terminal "Learning Enhancement Agent" "cd /home/user/solopreneur && uv run python src/a2a_mcp/agents/__main__.py --agent-card agent_cards/learning_enhancement_agent.json --port 10905"
 
 echo "  🔗 Starting Integration Synthesis Agent (Port 10906)..."
-run_in_terminal "Integration Synthesis Agent" "cd /home/solopreneur && python src/a2a_mcp/agents/__main__.py --agent-card agent_cards/integration_synthesis_agent.json --port 10906"
+run_in_terminal "Integration Synthesis Agent" "cd /home/user/solopreneur && uv run python src/a2a_mcp/agents/__main__.py --agent-card agent_cards/integration_synthesis_agent.json --port 10906"
 
 # Wait for domain specialists to start
 sleep 5
@@ -70,7 +70,7 @@ sleep 5
 # Start Master Oracle (Tier 1) - Must start after domain specialists
 echo "🔮 Starting Master Oracle (Tier 1)..."
 echo "  👑 Starting Solopreneur Oracle Agent (Port 10901)..."
-run_in_terminal "Solopreneur Oracle Agent" "cd /home/solopreneur && python src/a2a_mcp/agents/__main__.py --agent-card agent_cards/solopreneur_oracle_agent.json --port 10901"
+run_in_terminal "Solopreneur Oracle Agent" "cd /home/user/solopreneur && uv run python src/a2a_mcp/agents/__main__.py --agent-card agent_cards/solopreneur_oracle_agent.json --port 10901"
 
 echo ""
 echo "✅ All Solopreneur Oracle System services started!"

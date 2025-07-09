@@ -13,16 +13,16 @@ import uvicorn
 
 from a2a.server.apps import A2AStarletteApplication
 from a2a.server.request_handlers import DefaultRequestHandler
-from a2a.server.tasks import InMemoryPushNotifier, InMemoryTaskStore
+from a2a.server.tasks import InMemoryTaskStore, PushNotificationSender
 from a2a.types import AgentCard
 from a2a_mcp.common import prompts
 from a2a_mcp.common.agent_executor import GenericAgentExecutor
 from a2a_mcp.common.auth import AuthScheme, create_auth_middleware
-from a2a_mcp.agents.adk_travel_agent import TravelAgent
+# from a2a_mcp.agents.adk_travel_agent import TravelAgent
 from a2a_mcp.agents.langgraph_planner_agent import LangraphPlannerAgent
 from a2a_mcp.agents.orchestrator_agent import OrchestratorAgent
 from a2a_mcp.agents.parallel_orchestrator_agent import ParallelOrchestratorAgent
-from a2a_mcp.agents.adk_nexus_agent import UnifiedNexusAgent
+# from a2a_mcp.agents.adk_nexus_agent import UnifiedNexusAgent
 from a2a_mcp.agents.nexus_orchestrator_agent import NexusOrchestrator
 from a2a_mcp.agents.nexus_parallel_orchestrator_agent import ParallelNexusOrchestrator
 from a2a_mcp.agents.langgraph_nexus_planner_agent import LangGraphNexusPlanner
@@ -50,24 +50,24 @@ def get_agent(agent_card: AgentCard):
                 return OrchestratorAgent()
         elif agent_card.name == 'Langraph Planner Agent':
             return LangraphPlannerAgent()
-        elif agent_card.name == 'Air Ticketing Agent':
-            return TravelAgent(
-                agent_name='AirTicketingAgent',
-                description='Book air tickets given a criteria',
-                instructions=prompts.AIRFARE_COT_INSTRUCTIONS,
-            )
-        elif agent_card.name == 'Hotel Booking Agent':
-            return TravelAgent(
-                agent_name='HotelBookingAgent',
-                description='Book hotels given a criteria',
-                instructions=prompts.HOTELS_COT_INSTRUCTIONS,
-            )
-        elif agent_card.name == 'Car Rental Agent':
-            return TravelAgent(
-                agent_name='CarRentalBookingAgent',
-                description='Book rental cars given a criteria',
-                instructions=prompts.CARS_COT_INSTRUCTIONS,
-            )
+        # elif agent_card.name == 'Air Ticketing Agent':
+        #     return TravelAgent(
+        #         agent_name='AirTicketingAgent',
+        #         description='Book air tickets given a criteria',
+        #         instructions=prompts.AIRFARE_COT_INSTRUCTIONS,
+        #     )
+        # elif agent_card.name == 'Hotel Booking Agent':
+        #     return TravelAgent(
+        #         agent_name='HotelBookingAgent',
+        #         description='Book hotels given a criteria',
+        #         instructions=prompts.HOTELS_COT_INSTRUCTIONS,
+        #     )
+        # elif agent_card.name == 'Car Rental Agent':
+        #     return TravelAgent(
+        #         agent_name='CarRentalBookingAgent',
+        #         description='Book rental cars given a criteria',
+        #         instructions=prompts.CARS_COT_INSTRUCTIONS,
+        #     )
             # return LangraphCarRentalAgent()
         
         # NEXUS RESEARCH DOMAIN (11001-11099 range) - Oracle Pattern Implementation
@@ -176,7 +176,7 @@ def main(host, port, agent_card):
         request_handler = DefaultRequestHandler(
             agent_executor=GenericAgentExecutor(agent=get_agent(agent_card)),
             task_store=InMemoryTaskStore(),
-            push_notifier=InMemoryPushNotifier(client),
+            push_notifier=PushNotificationSender(client),
         )
 
         server = A2AStarletteApplication(
