@@ -58,7 +58,11 @@
       "mcp__firecrawl__firecrawl_search",
       "mcp__firecrawl__firecrawl_scrape",
       "Bash(mkdir:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(git checkout:*)",
+      "Bash(cp:*)",
+      "Bash(cat:*)",
+      "Bash(pip install:*)"
     ],
     "deny": []
   },

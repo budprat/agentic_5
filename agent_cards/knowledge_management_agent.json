@@ -1,0 +1,114 @@
+{
+    "version": "1.0.0",
+    "id": "knowledge_management_agent",
+    "name": "Knowledge Management Agent",
+    "description": "Information organization, learning systems, and knowledge synthesis specialist",
+    "author": "A2A-MCP Team",
+    "supportedLanguages": ["en"],
+    "url": "http://localhost:10903/",
+    "provider": null,
+    "documentationUrl": null,
+    "capabilities": {
+        "streaming": "True",
+        "pushNotifications": "True",
+        "stateTransitionHistory": "False"
+    },
+    "auth_required": false,
+    "authentication": {
+        "credentials": null,
+        "schemes": []
+    },
+    "defaultInputModes": [
+        "text",
+        "text/plain",
+        "application/json"
+    ],
+    "defaultOutputModes": [
+        "text",
+        "text/plain",
+        "application/json"
+    ],
+    "skills": [
+        {
+            "id": "knowledge_optimization",
+            "name": "Knowledge Organization & Synthesis",
+            "description": "Optimizes information architecture, learning systems, and knowledge synthesis",
+            "tags": [
+                "knowledge-management",
+                "information-architecture",
+                "learning-systems",
+                "synthesis",
+                "documentation"
+            ],
+            "examples": [
+                "Design an optimal knowledge management system for AI research",
+                "How can I better organize my technical documentation and learning notes?",
+                "Create a system for synthesizing information from multiple AI papers"
+            ],
+            "inputModes": null,
+            "outputModes": null
+        }
+    ],
+    "acceptedContentTypes": [
+        "text/plain",
+        "application/json"
+    ],
+    "schemas": {
+        "knowledge_optimization_response": {
+            "type": "object",
+            "properties": {
+                "knowledge_gaps": {"type": "array", "items": {"type": "string"}},
+                "learning_priorities": {
+                    "type": "object",
+                    "properties": {
+                        "immediate": {"type": "array", "items": {"type": "string"}},
+                        "short_term": {"type": "array", "items": {"type": "string"}},
+                        "long_term": {"type": "array", "items": {"type": "string"}}
+                    }
+                },
+                "information_synthesis": {
+                    "type": "object",
+                    "properties": {
+                        "key_patterns": {"type": "array", "items": {"type": "string"}},
+                        "connection_strength": {"type": "number", "minimum": 0, "maximum": 1}
+                    }
+                },
+                "optimization_strategies": {"type": "array", "items": {"type": "string"}}
+            }
+        }
+    },
+    "examples": [
+        {
+            "request": "Design an optimal knowledge management system for AI research",
+            "response": "Comprehensive knowledge architecture design with information organization, synthesis methods, and learning optimization strategies"
+        },
+        {
+            "request": "How can I better organize my technical documentation and learning notes?",
+            "response": "Structured approach to documentation organization with knowledge synthesis and retrieval optimization"
+        }
+    ],
+    "domain_expertise": [
+        "Knowledge Systems & PKM",
+        "Information Processing & Filtering",
+        "Learning Techniques & Optimization",
+        "Documentation & Technical Writing",
+        "Research Tools & Methodologies",
+        "Synthesis & Pattern Recognition"
+    ],
+    "optimization_capabilities": [
+        "Information architecture design",
+        "Learning efficiency optimization",
+        "Knowledge synthesis and connection",
+        "Documentation strategy development",
+        "Research methodology optimization",
+        "Knowledge gap identification"
+    ],
+    "specializations": [
+        "Note-taking system optimization",
+        "Knowledge graph construction",
+        "Research workflow design",
+        "Information filtering and processing",
+        "Cross-domain knowledge synthesis",
+        "Learning velocity enhancement"
+    ]
+}

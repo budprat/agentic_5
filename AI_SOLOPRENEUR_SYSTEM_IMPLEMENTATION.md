@@ -1219,7 +1219,7 @@ Output format: {"energy_forecast": {}, "task_scheduling": [], "recovery_recommen
 ### Phase 2: Core Agent Development (Weeks 3-5)
 - [ ] **UnifiedSolopreneurAgent Class**: Following exact TravelAgent implementation pattern
 - [ ] **Orchestrator Implementation**: Both sequential and parallel versions
-- [ ] **LangGraph Planner**: Framework-compliant planner with solopreneur task decomposition
+- [ ] **Traditional Orchestration**: Framework-compliant orchestration with solopreneur task coordination
 - [ ] **Domain Supervisors**: Technical Intelligence and Personal Optimization focus areas
 - [ ] **MCP Tool Integration**: Complete tool set for all domains
 
@@ -1278,9 +1278,9 @@ Through comprehensive analysis of the implementation plan against the A2A-MCP fr
 - **Resolution**: Created `solopreneur_mcp_tools.py` with 10+ domain-specific tools
 
 #### 3. **Oracle Agent Implementation Gap**
-- **Issue**: SolopreneurOracleAgent referenced but not fully implemented with LangGraph
+- **Issue**: SolopreneurOracleAgent referenced but not fully implemented with traditional orchestration
 - **Impact**: No sophisticated multi-agent orchestration capability
-- **Resolution**: Created `solopreneur_oracle_agent.py` using LangGraph patterns
+- **Resolution**: Created `solopreneur_oracle_agent.py` using ParallelWorkflowGraph patterns following nexus_oracle_agent.py
 
 #### 4. **Client Interface Gap**
 - **Issue**: No client implementation for testing and interaction
@@ -1327,13 +1327,13 @@ MCP tool implementations following server.py patterns:
 - `analyze_workflow_patterns`: Identify optimization opportunities
 - Helper functions for all domains
 
-#### 3. **solopreneur_oracle_agent.py** (492 lines)
-Sophisticated Oracle agent using LangGraph:
-- **LangGraph Integration**: StateGraph with multi-agent orchestration
-- **Handoff Patterns**: create_handoff_tool for domain specialists
-- **Domain Specialists**: Technical, Personal, Learning, Workflow nodes
+#### 3. **solopreneur_oracle_agent.py** (600 lines)
+Sophisticated Oracle agent using traditional A2A-MCP patterns:
+- **ParallelWorkflowGraph Integration**: Traditional orchestration following nexus_oracle_agent.py
+- **Dependency Management**: Execution plan with dependency resolution
+- **Domain Specialists**: Technical, Personal, Learning, Integration oracles
 - **Quality Validation**: Confidence thresholds and synthesis validation
-- **Parallel Execution**: Concurrent domain analysis capabilities
+- **Parallel Execution**: Concurrent domain analysis capabilities via asyncio.gather
 - **Streaming Support**: Real-time progress updates
 
 #### 4. **solopreneur_client.py** (428 lines)
@@ -1350,11 +1350,11 @@ WebSocket-enabled client with rich terminal UI:
 
 ### 8.3 Integration Patterns Implemented
 
-#### 1. **LangGraph Handoff Pattern**
+#### 1. **Traditional Orchestration Pattern**
 ```python
-def create_handoff_tool(*, agent_name: str, description: str = None):
-    # Creates tool that enables smooth agent transitions
-    # Returns Command object for graph navigation
+self.graph = ParallelWorkflowGraph()
+execution_plan = self._build_execution_plan(required_analyses, dependencies, priorities)
+# Executes domain analyses with dependency resolution
 ```
 
 #### 2. **MCP Tool Registration Pattern**
@@ -2108,9 +2108,9 @@ async def test_multi_tier():
         # This query should trigger all 3 tiers
         query = """
         Analyze the feasibility of implementing a new AI feature:
-        - Technical: Use LangGraph for multi-agent orchestration
+        - Technical: Use ParallelWorkflowGraph for multi-agent orchestration
         - Personal: Consider my peak hours are 9-11 AM
-        - Learning: I need to learn LangGraph patterns
+        - Learning: I need to learn traditional orchestration patterns
         - Integration: How does this fit with my current tech stack?
         """
         
@@ -2208,7 +2208,7 @@ class SolopreneurIntegrationTest:
         test_cases = [
             {
                 "name": "Technical Intelligence Flow",
-                "query": "Analyze the latest LangGraph patterns for multi-agent systems",
+                "query": "Analyze the latest orchestration patterns for multi-agent systems",
                 "expected_tiers": [1, 2, 3],
                 "expected_agents": ["AI Research Analyzer", "Code Architecture Evaluator"]
             },
@@ -2419,7 +2419,7 @@ from a2a_mcp.agents.solopreneur_oracle import SolopreneurOracleAgent
 elif agent_card.name == 'Solopreneur Oracle Agent':
     return SolopreneurOracleAgent()
 ```
-**Purpose**: Orchestrates multi-domain analysis with LangGraph handoffs
+**Purpose**: Orchestrates multi-domain analysis with traditional ParallelWorkflowGraph orchestration
 
 #### Gap 4: Client Interface → `clients/solopreneur_client.py`
 **Usage**:

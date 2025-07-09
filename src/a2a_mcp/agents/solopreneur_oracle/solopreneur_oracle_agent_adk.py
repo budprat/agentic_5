@@ -8,13 +8,14 @@ from typing import Dict, Any, List
 from datetime import datetime
 
 from a2a_mcp.common.base_agent import BaseAgent
+from a2a_mcp.common.utils import init_api_key
 from a2a_mcp.common.parallel_workflow import (
     ParallelWorkflowGraph, 
     ParallelWorkflowNode,
     Status
 )
-import google.generativeai as genai
-from google.generativeai import types
+from google import genai
+from google.genai import types
 import os
 import aiohttp
 
@@ -80,6 +81,7 @@ class SolopreneurOracleAgent(BaseAgent):
     """Master orchestrator for AI developer/entrepreneur intelligence following nexus pattern."""
 
     def __init__(self):
+        init_api_key()
         super().__init__(
             agent_name="Solopreneur Oracle",
             description="Master AI developer/entrepreneur intelligence orchestrator",
@@ -366,12 +368,13 @@ class SolopreneurOracleAgent(BaseAgent):
 
     async def generate_synthesis(self, query: str) -> str:
         """Generate comprehensive synthesis using Gemini."""
-        # Configure API key
-        api_key = os.getenv('GOOGLE_API_KEY')
-        if not api_key:
-            raise ValueError("GOOGLE_API_KEY environment variable not set")
-        
-        genai.configure(api_key=api_key)
+        # Configure client with proper timeout settings
+        http_options = types.HttpOptions(
+            async_client_args={
+                'timeout': aiohttp.ClientTimeout(total=180, connect=30)
+            }
+        )
+        client = genai.Client(http_options=http_options)
         
         prompt = SOLOPRENEUR_SYNTHESIS_PROMPT.format(
             original_query=query,
@@ -388,13 +391,15 @@ class SolopreneurOracleAgent(BaseAgent):
         
         for attempt in range(max_retries):
             try:
-                response = genai.generate_text(
-                    model=os.getenv('GEMINI_MODEL', 'gemini-pro'),
-                    prompt=prompt,
-                    temperature=0.1,
-                    max_output_tokens=2048
+                response = client.models.generate_content(
+                    model=os.getenv('GEMINI_MODEL', 'gemini-2.0-flash-exp'),
+                    contents=prompt,
+                    config={
+                        "temperature": 0.1,
+                        "response_mime_type": "application/json"
+                    }
                 )
-                return response.result
+                return response.text
                 
             except Exception as e:
                 error_msg = str(e)

@@ -1,0 +1,122 @@
+{
+    "version": "1.0.0",
+    "id": "personal_optimization_agent",
+    "name": "Personal Optimization Agent",
+    "description": "Productivity enhancement, energy management, and sustainable performance specialist",
+    "author": "A2A-MCP Team",
+    "supportedLanguages": ["en"],
+    "url": "http://localhost:10904/",
+    "provider": null,
+    "documentationUrl": null,
+    "capabilities": {
+        "streaming": "True",
+        "pushNotifications": "True",
+        "stateTransitionHistory": "False"
+    },
+    "auth_required": false,
+    "authentication": {
+        "credentials": null,
+        "schemes": []
+    },
+    "defaultInputModes": [
+        "text",
+        "text/plain",
+        "application/json"
+    ],
+    "defaultOutputModes": [
+        "text",
+        "text/plain",
+        "application/json"
+    ],
+    "skills": [
+        {
+            "id": "personal_optimization",
+            "name": "Productivity & Energy Optimization",
+            "description": "Enhances productivity, energy management, and sustainable performance",
+            "tags": [
+                "productivity",
+                "energy-management",
+                "performance",
+                "optimization",
+                "sustainability",
+                "focus"
+            ],
+            "examples": [
+                "Optimize my daily schedule for maximum deep work productivity",
+                "How can I manage cognitive load during intense AI development periods?",
+                "Create a sustainable work routine that prevents burnout while maintaining high performance"
+            ],
+            "inputModes": null,
+            "outputModes": null
+        }
+    ],
+    "acceptedContentTypes": [
+        "text/plain",
+        "application/json"
+    ],
+    "schemas": {
+        "personal_optimization_response": {
+            "type": "object",
+            "properties": {
+                "energy_management": {
+                    "type": "object",
+                    "properties": {
+                        "optimal_work_windows": {"type": "array", "items": {"type": "string"}},
+                        "focus_duration": {"type": "string"},
+                        "break_recommendations": {"type": "array", "items": {"type": "string"}}
+                    }
+                },
+                "cognitive_load_assessment": {
+                    "type": "object",
+                    "properties": {
+                        "current_load": {"type": "string", "enum": ["low", "moderate", "high"]},
+                        "optimization_potential": {"type": "number", "minimum": 0, "maximum": 1},
+                        "burnout_risk": {"type": "string", "enum": ["low", "medium", "high"]}
+                    }
+                },
+                "productivity_insights": {
+                    "type": "object",
+                    "properties": {
+                        "task_batching": {"type": "array", "items": {"type": "string"}},
+                        "context_switching_cost": {"type": "string"},
+                        "deep_work_recommendations": {"type": "array", "items": {"type": "string"}}
+                    }
+                }
+            }
+        }
+    },
+    "examples": [
+        {
+            "request": "Optimize my daily schedule for maximum deep work productivity",
+            "response": "Comprehensive productivity analysis with energy management, focus optimization, and sustainable scheduling strategies"
+        },
+        {
+            "request": "How can I manage cognitive load during intense AI development periods?",
+            "response": "Cognitive load assessment with optimization strategies, burnout prevention, and performance enhancement techniques"
+        }
+    ],
+    "domain_expertise": [
+        "Energy Management & Circadian Optimization",
+        "Focus & Attention Enhancement",
+        "Time Management & Productivity",
+        "Cognitive Load & Performance",
+        "Health & Sustainable Performance",
+        "Habit Formation & Behavioral Change"
+    ],
+    "optimization_capabilities": [
+        "Energy pattern analysis",
+        "Cognitive load management",
+        "Productivity system design",
+        "Health impact assessment",
+        "Work-life balance optimization",
+        "Habit formation strategies"
+    ],
+    "specializations": [
+        "Circadian rhythm optimization",
+        "Deep work scheduling",
+        "Focus state enhancement",
+        "Burnout prevention",
+        "Performance sustainability",
+        "Cognitive enhancement techniques"
+    ]
+}

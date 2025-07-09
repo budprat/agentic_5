@@ -27,6 +27,12 @@ from a2a_mcp.agents.nexus_orchestrator_agent import NexusOrchestrator
 from a2a_mcp.agents.nexus_parallel_orchestrator_agent import ParallelNexusOrchestrator
 from a2a_mcp.agents.langgraph_nexus_planner_agent import LangGraphNexusPlanner
 from a2a_mcp.agents.nexus_oracle_agent import NexusOracleAgent
+from a2a_mcp.agents.solopreneur_oracle.solopreneur_oracle_agent import SolopreneurOracleAgent
+from a2a_mcp.agents.solopreneur_oracle.technical_intelligence_agent import TechnicalIntelligenceAgent
+from a2a_mcp.agents.solopreneur_oracle.knowledge_management_agent import KnowledgeManagementAgent
+from a2a_mcp.agents.solopreneur_oracle.personal_optimization_agent import PersonalOptimizationAgent
+from a2a_mcp.agents.solopreneur_oracle.learning_enhancement_agent import LearningEnhancementAgent
+from a2a_mcp.agents.solopreneur_oracle.integration_synthesis_agent import IntegrationSynthesisAgent
 
 
 logger = logging.getLogger(__name__)
@@ -128,6 +134,26 @@ def get_agent(agent_card: AgentCard):
                 description='Creates visual representations and synthesis dashboards for research insights',
                 instructions=prompts.VISUALIZATION_SYNTHESIS_COT_INSTRUCTIONS,
             )
+            
+        # SOLOPRENEUR DOMAIN (10901-10999 range) - Oracle Pattern Implementation
+        elif agent_card.name == 'Solopreneur Oracle Agent':
+            return SolopreneurOracleAgent()  # Port 10901 (master oracle)
+            
+        # Domain Specialists (10902-10906)
+        elif agent_card.name == 'Technical Intelligence Agent':
+            return TechnicalIntelligenceAgent()  # Port 10902
+            
+        elif agent_card.name == 'Knowledge Management Agent':
+            return KnowledgeManagementAgent()  # Port 10903
+            
+        elif agent_card.name == 'Personal Optimization Agent':
+            return PersonalOptimizationAgent()  # Port 10904
+            
+        elif agent_card.name == 'Learning Enhancement Agent':
+            return LearningEnhancementAgent()  # Port 10905
+            
+        elif agent_card.name == 'Integration Synthesis Agent':
+            return IntegrationSynthesisAgent()  # Port 10906
             
     except Exception as e:
         raise e
