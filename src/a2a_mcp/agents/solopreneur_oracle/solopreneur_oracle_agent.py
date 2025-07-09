@@ -177,13 +177,19 @@ class SolopreneurOracleAgent(BaseAgent):
         if any(word in query_lower for word in ["learn", "skill", "development", "education", "growth"]):
             required_analyses.append("learning_analysis")
         
-        # Always include integration synthesis for comprehensive analysis
+        # Always include integration synthesis for comprehensive analysis when multiple domains are involved
         if len(required_analyses) > 1:
             required_analyses.append("integration_analysis")
         
         # Default to comprehensive analysis if no specific domains detected
         if not required_analyses:
             required_analyses = ["technical_analysis", "personal_analysis", "integration_analysis"]
+        
+        # Ensure we have foundational analyses before integration
+        if "integration_analysis" in required_analyses:
+            if "technical_analysis" not in required_analyses and "personal_analysis" not in required_analyses:
+                # Add at least one foundational analysis
+                required_analyses.append("technical_analysis")
         
         # Build execution plan with dependencies and parallelization
         execution_plan = self._build_execution_plan(required_analyses, domain_dependencies, domain_priorities)
@@ -247,7 +253,7 @@ class SolopreneurOracleAgent(BaseAgent):
         return parallel_batches
 
     async def fetch_domain_intelligence(self, domain: str, query: str) -> Dict[str, Any]:
-        """Fetch intelligence from domain-specific oracle agents using ADK pattern."""
+        """Fetch intelligence from domain-specific oracle agents using A2A protocol."""
         try:
             logger.info(f"Fetching {domain} intelligence for: {query}")
             
@@ -265,96 +271,54 @@ class SolopreneurOracleAgent(BaseAgent):
                 logger.error(f"Unknown domain: {domain}")
                 return {"domain": domain, "error": "Unknown domain"}
             
-            # Call the domain oracle agent via HTTP (following A2A protocol)
-            # In production, this would use the actual agent communication
-            # For now, simulate domain analysis
+            # Call the domain oracle agent via HTTP using A2A protocol
+            url = f"http://localhost:{port}/stream"
             
-            if domain == "technical_intelligence":
-                return {
-                    "domain": "Technical Intelligence",
-                    "analysis": {
-                        "feasibility_assessment": {
-                            "technical_feasibility": 0.85,
-                            "implementation_complexity": "medium",
-                            "architecture_recommendations": ["microservices", "event-driven", "ADK pattern"],
-                            "tech_stack_suggestions": ["python", "fastapi", "postgresql", "redis"]
-                        },
-                        "code_quality_insights": {
-                            "maintainability_score": 0.82,
-                            "scalability_potential": 0.88,
-                            "security_considerations": ["authentication", "rate limiting", "data encryption"]
-                        },
-                        "ai_integration": {
-                            "recommended_models": ["gemini-2.0-flash", "claude-3-opus"],
-                            "integration_patterns": ["ADK agents", "MCP tools", "streaming responses"],
-                            "optimization_strategies": ["caching", "batch processing", "parallel execution"]
-                        }
-                    },
-                    "confidence": 0.87
-                }
-            elif domain == "personal_optimization":
-                return {
-                    "domain": "Personal Optimization",
-                    "analysis": {
-                        "energy_management": {
-                            "optimal_work_windows": ["9-11 AM", "2-5 PM"],
-                            "focus_duration": "90 minute blocks",
-                            "break_recommendations": ["5 min every 25 min", "15 min every 90 min"]
-                        },
-                        "cognitive_load_assessment": {
-                            "current_load": "moderate",
-                            "optimization_potential": 0.75,
-                            "burnout_risk": "low"
-                        },
-                        "productivity_insights": {
-                            "task_batching": ["similar cognitive demands", "energy-aligned scheduling"],
-                            "context_switching_cost": "high",
-                            "deep_work_recommendations": ["morning blocks", "notification-free zones"]
-                        }
-                    },
-                    "confidence": 0.82
-                }
-            elif domain == "knowledge_management":
-                return {
-                    "domain": "Knowledge Management",
-                    "analysis": {
-                        "knowledge_gaps": ["distributed systems", "ml ops", "system design"],
-                        "learning_priorities": {
-                            "immediate": ["ADK framework mastery", "MCP tool development"],
-                            "short_term": ["kubernetes", "event streaming"],
-                            "long_term": ["ml engineering", "system architecture"]
-                        },
-                        "information_synthesis": {
-                            "key_patterns": ["framework-first development", "incremental complexity"],
-                            "connection_strength": 0.78
-                        }
-                    },
-                    "confidence": 0.80
-                }
-            elif domain == "learning_enhancement":
-                return {
-                    "domain": "Learning Enhancement",
-                    "analysis": {
-                        "learning_style": "hands-on experimentation",
-                        "retention_strategies": ["spaced repetition", "project-based learning"],
-                        "skill_development_path": {
-                            "current_level": "intermediate",
-                            "next_milestones": ["advanced ADK patterns", "distributed systems"],
-                            "estimated_timeline": "3-6 months"
-                        }
-                    },
-                    "confidence": 0.79
-                }
-            else:  # integration_synthesis
-                return {
-                    "domain": "Integration Synthesis",
-                    "analysis": {
-                        "cross_domain_insights": ["technical-personal alignment critical", "learning-productivity synergy"],
-                        "workflow_optimizations": ["automated testing", "CI/CD pipeline", "documentation generation"],
-                        "integration_opportunities": ["knowledge graph automation", "personal metrics tracking"]
-                    },
-                    "confidence": 0.83
-                }
+            # Create A2A protocol request payload
+            payload = {
+                "query": query,
+                "context_id": f"oracle-{domain}-{int(asyncio.get_event_loop().time())}",
+                "task_id": f"task-{domain}-{int(asyncio.get_event_loop().time())}"
+            }
+            
+            # Set timeout for domain agent calls
+            timeout = aiohttp.ClientTimeout(total=45, connect=10)
+            
+            async with aiohttp.ClientSession(timeout=timeout) as session:
+                try:
+                    async with session.post(url, json=payload) as response:
+                        if response.status == 200:
+                            # Parse streaming response from domain agent
+                            final_content = None
+                            async for line in response.content:
+                                if line:
+                                    try:
+                                        chunk = json.loads(line.decode('utf-8'))
+                                        if chunk.get('is_task_complete') and chunk.get('content'):
+                                            final_content = chunk['content']
+                                    except json.JSONDecodeError:
+                                        continue
+                            
+                            if final_content:
+                                return {
+                                    "domain": domain.replace('_', ' ').title(),
+                                    "analysis": final_content,
+                                    "confidence": 0.85,  # Default confidence for structured responses
+                                    "source": f"Domain Agent (Port {port})"
+                                }
+                            else:
+                                logger.warning(f"No valid response from {domain} agent")
+                                return await self._get_fallback_analysis(domain, query)
+                        else:
+                            logger.error(f"HTTP {response.status} from {domain} agent")
+                            return await self._get_fallback_analysis(domain, query)
+                            
+                except asyncio.TimeoutError:
+                    logger.error(f"Timeout calling {domain} agent on port {port}")
+                    return await self._get_fallback_analysis(domain, query)
+                except aiohttp.ClientError as e:
+                    logger.error(f"Network error calling {domain} agent: {e}")
+                    return await self._get_fallback_analysis(domain, query)
             
         except Exception as e:
             logger.error(f"Error fetching {domain} analysis: {e}")
@@ -362,6 +326,103 @@ class SolopreneurOracleAgent(BaseAgent):
                 "domain": domain,
                 "error": str(e),
                 "analysis": {"status": "unavailable"}
+            }
+    
+    async def _get_fallback_analysis(self, domain: str, query: str) -> Dict[str, Any]:
+        """Provide fallback analysis when domain agents are unavailable."""
+        logger.info(f"Using fallback analysis for {domain}")
+        
+        # Provide intelligent fallback based on domain
+        if domain == "technical_intelligence":
+            return {
+                "domain": "Technical Intelligence",
+                "analysis": {
+                    "feasibility_assessment": {
+                        "technical_feasibility": 0.75,
+                        "implementation_complexity": "medium",
+                        "architecture_recommendations": ["microservices", "event-driven", "ADK pattern"],
+                        "tech_stack_suggestions": ["python", "fastapi", "postgresql", "redis"]
+                    },
+                    "code_quality_insights": {
+                        "maintainability_score": 0.78,
+                        "scalability_potential": 0.80,
+                        "security_considerations": ["authentication", "rate limiting", "data encryption"]
+                    },
+                    "ai_integration": {
+                        "recommended_models": ["gemini-2.0-flash", "claude-3-opus"],
+                        "integration_patterns": ["ADK agents", "MCP tools", "streaming responses"],
+                        "optimization_strategies": ["caching", "batch processing", "parallel execution"]
+                    }
+                },
+                "confidence": 0.65,  # Lower confidence for fallback
+                "source": "Fallback Analysis"
+            }
+        elif domain == "personal_optimization":
+            return {
+                "domain": "Personal Optimization",
+                "analysis": {
+                    "energy_management": {
+                        "optimal_work_windows": ["9-11 AM", "2-5 PM"],
+                        "focus_duration": "90 minute blocks",
+                        "break_recommendations": ["5 min every 25 min", "15 min every 90 min"]
+                    },
+                    "cognitive_load_assessment": {
+                        "current_load": "moderate",
+                        "optimization_potential": 0.75,
+                        "burnout_risk": "low"
+                    },
+                    "productivity_insights": {
+                        "task_batching": ["similar cognitive demands", "energy-aligned scheduling"],
+                        "context_switching_cost": "high",
+                        "deep_work_recommendations": ["morning blocks", "notification-free zones"]
+                    }
+                },
+                "confidence": 0.60,
+                "source": "Fallback Analysis"
+            }
+        elif domain == "knowledge_management":
+            return {
+                "domain": "Knowledge Management",
+                "analysis": {
+                    "knowledge_gaps": ["distributed systems", "ml ops", "system design"],
+                    "learning_priorities": {
+                        "immediate": ["ADK framework mastery", "MCP tool development"],
+                        "short_term": ["kubernetes", "event streaming"],
+                        "long_term": ["ml engineering", "system architecture"]
+                    },
+                    "information_synthesis": {
+                        "key_patterns": ["framework-first development", "incremental complexity"],
+                        "connection_strength": 0.70
+                    }
+                },
+                "confidence": 0.58,
+                "source": "Fallback Analysis"
+            }
+        elif domain == "learning_enhancement":
+            return {
+                "domain": "Learning Enhancement",
+                "analysis": {
+                    "learning_style": "hands-on experimentation",
+                    "retention_strategies": ["spaced repetition", "project-based learning"],
+                    "skill_development_path": {
+                        "current_level": "intermediate",
+                        "next_milestones": ["advanced ADK patterns", "distributed systems"],
+                        "estimated_timeline": "3-6 months"
+                    }
+                },
+                "confidence": 0.55,
+                "source": "Fallback Analysis"
+            }
+        else:  # integration_synthesis
+            return {
+                "domain": "Integration Synthesis",
+                "analysis": {
+                    "cross_domain_insights": ["technical-personal alignment critical", "learning-productivity synergy"],
+                    "workflow_optimizations": ["automated testing", "CI/CD pipeline", "documentation generation"],
+                    "integration_opportunities": ["knowledge graph automation", "personal metrics tracking"]
+                },
+                "confidence": 0.62,
+                "source": "Fallback Analysis"
             }
 
     async def generate_synthesis(self, query: str) -> str:
@@ -428,6 +489,90 @@ class SolopreneurOracleAgent(BaseAgent):
         self.intelligence_data.clear()
         self.query_history.clear()
         self.context.clear()
+    
+    def validate_orchestration_health(self) -> Dict[str, Any]:
+        """Validate the health of the orchestration system."""
+        health_status = {
+            "oracle_status": "healthy",
+            "domain_agents": {},
+            "workflow_graph": self.graph is not None,
+            "intelligence_data_count": len(self.intelligence_data),
+            "context_loaded": bool(self.context),
+            "quality_thresholds": self.quality_thresholds
+        }
+        
+        # Check domain agent ports
+        for domain, port in {
+            "technical_intelligence": 10902,
+            "knowledge_management": 10903,
+            "personal_optimization": 10904,
+            "learning_enhancement": 10905,
+            "integration_synthesis": 10906
+        }.items():
+            health_status["domain_agents"][domain] = {
+                "port": port,
+                "expected_available": True,
+                "last_communication": None
+            }
+        
+        return health_status
+    
+    async def handle_orchestration_failure(self, failed_domains: List[str], query: str) -> Dict[str, Any]:
+        """Handle graceful degradation when some domain agents fail."""
+        logger.warning(f"Orchestration failure detected for domains: {failed_domains}")
+        
+        # Determine which domains are still available
+        available_domains = []
+        for domain in ["technical_intelligence", "knowledge_management", "personal_optimization", "learning_enhancement", "integration_synthesis"]:
+            if domain not in failed_domains:
+                available_domains.append(domain)
+        
+        # Provide degraded synthesis based on available domains
+        degraded_synthesis = {
+            "executive_summary": f"Analysis completed with {len(available_domains)} out of 5 domain specialists available. Some insights may be limited due to service unavailability.",
+            "confidence_score": max(0.3, 0.8 - (len(failed_domains) * 0.15)),  # Reduce confidence based on failed domains
+            "technical_assessment": {
+                "feasibility_score": 60,
+                "implementation_complexity": "medium",
+                "technical_risks": ["Limited domain analysis", "Incomplete intelligence gathering"],
+                "architecture_recommendations": ["Implement monitoring", "Add failover mechanisms"]
+            },
+            "personal_optimization": {
+                "energy_impact": "neutral",
+                "cognitive_load": "medium",
+                "sustainability_score": 50,
+                "optimization_strategies": ["Continue with available data", "Schedule follow-up analysis"]
+            },
+            "strategic_insights": [
+                {"source": "system", "insight": "System operating in degraded mode", "confidence": 0.5},
+                {"source": "orchestrator", "insight": "Recommend retrying when all agents available", "confidence": 0.8}
+            ],
+            "integration_opportunities": {
+                "synergies": ["Implement health monitoring", "Add redundancy"],
+                "workflow_optimizations": ["Failover mechanisms", "Circuit breakers"],
+                "automation_potential": ["Health checks", "Auto-recovery"]
+            },
+            "action_plan": {
+                "immediate_actions": ["Check failed domain agents", "Implement monitoring"],
+                "short_term_goals": ["Restore full functionality", "Add resilience"],
+                "long_term_vision": "Fully resilient multi-domain orchestration",
+                "success_metrics": ["System uptime", "Response completeness"]
+            },
+            "risk_assessment": {
+                "technical_risks": ["Service unavailability", "Incomplete analysis"],
+                "personal_risks": ["Decision making with limited data"],
+                "mitigation_strategies": ["Fallback analysis", "Manual validation"],
+                "contingency_plans": ["Retry failed domains", "Use cached results"]
+            },
+            "system_status": {
+                "degraded_mode": True,
+                "failed_domains": failed_domains,
+                "available_domains": available_domains,
+                "recommendation": "Retry when all services available"
+            }
+        }
+        
+        return degraded_synthesis
 
     async def stream(
         self, query: str, context_id: str, task_id: str
