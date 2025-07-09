@@ -100,11 +100,13 @@ python clients/solopreneur_client.py
 
 ### Key Components
 
-#### UnifiedSolopreneurAgent
-Base class that powers all 56 agents with tier-specific behavior:
-- Tier 1: Multi-domain orchestration
-- Tier 2: Domain coordination with modules
-- Tier 3: Specialized analysis
+#### UnifiedSolopreneurAgent (Google ADK Implementation)
+Base class that powers all 56 agents using Google ADK framework:
+- Uses `google.adk.agents.Agent` for sophisticated agent capabilities
+- Integrates with `AgentRunner` for execution management
+- Full MCP tool integration via `MCPToolset`
+- Tier-specific behavior patterns
+- Follows the proven `adk_travel_agent.py` and `adk_nexus_agent.py` patterns
 
 #### Agent Registry
 Central registry (`agent_registry.py`) containing:
@@ -116,6 +118,7 @@ Central registry (`agent_registry.py`) containing:
 - Tools defined in `solopreneur_mcp_tools.py`
 - Database queries, external APIs, analysis tools
 - Integrated via `server_solopreneur_patch.py`
+- Seamless integration with Google ADK agents
 
 ## Usage Examples
 

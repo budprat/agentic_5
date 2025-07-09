@@ -125,10 +125,12 @@ def get_agent(agent_card: AgentCard):
         raise e
 ```
 
-### 2.2 SolopreneurOracle Master Agent - Following Oracle Prime Pattern
+### 2.2 SolopreneurOracle Master Agent - Google ADK Implementation
 
 ```python
 """Solopreneur Oracle - Master AI Developer/Entrepreneur Intelligence Agent."""
+
+# type: ignore
 
 import logging
 import json
@@ -137,13 +139,16 @@ from typing import Dict, Any, List
 from datetime import datetime
 
 from a2a_mcp.common.base_agent import BaseAgent
-from a2a_mcp.common.utils import init_api_key
+from a2a_mcp.common.utils import init_api_key, get_mcp_server_config
+from a2a_mcp.common.agent_runner import AgentRunner
 from a2a_mcp.common.parallel_workflow import (
     ParallelWorkflowGraph, 
     ParallelWorkflowNode,
     Status
 )
-from google import genai
+from google.adk.agents import Agent
+from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, SseServerParams
+from google.genai import types as genai_types
 
 logger = logging.getLogger(__name__)
 
@@ -453,13 +458,30 @@ Following the Oracle pattern, each domain oracle has sophisticated internal inte
         raise e
 ```
 
-### 2.2 Unified Solopreneur Agent Class - Following TravelAgent Pattern
+### 2.2 Unified Solopreneur Agent Class - Google ADK Implementation
 
 ```python
+# type: ignore
+
+import json
+import logging
+import re
+from collections.abc import AsyncIterable
+from typing import Any, Dict
+
+from a2a_mcp.common.agent_runner import AgentRunner
+from a2a_mcp.common.base_agent import BaseAgent
+from a2a_mcp.common.utils import get_mcp_server_config, init_api_key
+from google.adk.agents import Agent
+from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, SseServerParams
+from google.genai import types as genai_types
+
+logger = logging.getLogger(__name__)
+
 class UnifiedSolopreneurAgent(BaseAgent):
     """
     Framework-compliant base class for all solopreneur agents.
-    Follows the proven TravelAgent pattern for specialization.
+    Uses Google ADK following the proven adk_nexus_agent.py and TravelAgent patterns.
     """
     
     def __init__(
@@ -475,39 +497,64 @@ class UnifiedSolopreneurAgent(BaseAgent):
             content_types=['text', 'text/plain', 'application/json']
         )
         
+        logger.info(f'Init {self.agent_name}')
+        
         self.instructions = instructions
         self.agent = None
         
     async def init_agent(self):
-        """Initialize with domain-specific MCP tools following framework pattern."""
+        """Initialize with domain-specific MCP tools following ADK framework pattern."""
+        logger.info(f'Initializing {self.agent_name} metadata')
         config = get_mcp_server_config()
+        logger.info(f'MCP Server url={config.url}')
         
-        # Load MCP tools following established pattern
+        # Load MCP tools following ADK pattern from adk_travel_agent.py
         tools = await MCPToolset(
-            connection_params=SseConnectionParams(url=config.url)
+            connection_params=SseServerParams(url=config.url)
         ).get_tools()
         
-        # Initialize Google ADK agent following TravelAgent pattern
+        for tool in tools:
+            logger.info(f'Loaded tools {tool.name}')
+            
+        generate_content_config = genai_types.GenerateContentConfig(
+            temperature=0.0
+        )
+        
+        # Initialize Google ADK agent following adk_nexus_agent.py pattern
         self.agent = Agent(
             name=self.agent_name,
             instruction=self.instructions,
             model='gemini-2.0-flash',
             disallow_transfer_to_parent=True,
             disallow_transfer_to_peers=True,
-            generate_content_config=genai_types.GenerateContentConfig(
-                temperature=0.0
-            ),
-            tools=tools
+            generate_content_config=generate_content_config,
+            tools=tools,
+        )
+        self.runner = AgentRunner()
+        
+    async def invoke(self, query, session_id) -> dict:
+        logger.info(f'Running {self.agent_name} for session {session_id}')
+        raise NotImplementedError('Please use the streaming function')
+        
+    async def stream(
+        self, query, context_id, task_id
+    ) -> AsyncIterable[Dict[str, Any]]:
+        """Stream implementation following ADK framework patterns."""
+        logger.info(
+            f'Running {self.agent_name} stream for session {context_id} {task_id} - {query}'
         )
         
-    async def stream(self, query, context_id, task_id) -> AsyncIterable[Dict[str, Any]]:
-        """Stream implementation following framework patterns."""
+        if not query:
+            raise ValueError('Query cannot be empty')
+            
         if not self.agent:
             await self.init_agent()
             
-        # Use established AgentRunner pattern
-        runner = AgentRunner()
-        async for chunk in runner.run_stream(self.agent, query, context_id):
+        # Use established AgentRunner pattern from ADK
+        async for chunk in self.runner.run_stream(
+            self.agent, query, context_id
+        ):
+            logger.info(f'Received chunk {chunk}')
             if isinstance(chunk, dict) and chunk.get('type') == 'final_result':
                 response = chunk['response']
                 yield self.get_agent_response(response)
@@ -1463,15 +1510,22 @@ python init_solopreneur_data.py
 ##### Step 1.2: Create UnifiedSolopreneurAgent Base Class
 ```bash
 cat > src/a2a_mcp/agents/solopreneur_oracle/base_solopreneur_agent.py << 'EOF'
-"""Base class for all solopreneur agents following framework pattern."""
+"""Base class for all solopreneur agents following Google ADK framework pattern."""
 
+# type: ignore
+
+import json
 import logging
-from typing import Dict, Any, List
+import re
 from collections.abc import AsyncIterable
+from typing import Any, Dict
 
+from a2a_mcp.common.agent_runner import AgentRunner
 from a2a_mcp.common.base_agent import BaseAgent
-from a2a_mcp.common.utils import init_api_key
-from google import genai
+from a2a_mcp.common.utils import get_mcp_server_config, init_api_key
+from google.adk.agents import Agent
+from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, SseServerParams
+from google.genai import types as genai_types
 
 logger = logging.getLogger(__name__)
 
@@ -2434,10 +2488,11 @@ The **AI Solopreneur System** represents a framework-compliant specialization of
 
 **Key Innovations:**
 1. **100% Framework Compliance**: Follows all A2A-MCP patterns based on actual codebase implementation
-2. **Technical Intelligence Focus**: Specialized monitoring of AI research and technology trends
-3. **Personal Optimization Integration**: Energy management and productivity tracking for technical work
-4. **Unified Agent Architecture**: Single `UnifiedSolopreneurAgent` class powering all domain services
-5. **Streamlined Scope**: Focused on high-impact areas without traditional business complexity
+2. **Google ADK Implementation**: Uses `google.adk.agents.Agent` and `AgentRunner` for sophisticated agent capabilities
+3. **Technical Intelligence Focus**: Specialized monitoring of AI research and technology trends
+4. **Personal Optimization Integration**: Energy management and productivity tracking for technical work
+5. **Unified Agent Architecture**: Single `UnifiedSolopreneurAgent` class powering all domain services using ADK
+6. **Streamlined Scope**: Focused on high-impact areas without traditional business complexity
 
 **Framework Compliance Achievements:**
 - ✅ **Correct Port Allocation**: 10901 (orchestrator), 10902 (planner), 10903+ (supervisors)
