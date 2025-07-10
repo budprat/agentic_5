@@ -1,25 +1,77 @@
-"""Solopreneur Oracle - Master orchestrator following nexus_oracle_agent.py pattern with ADK integration."""
+"""Solopreneur Oracle - Master orchestrator with Google ADK + LangGraph integration following travel agent pattern."""
 
 import logging
 import json
 import asyncio
 from collections.abc import AsyncIterable
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Literal
 from datetime import datetime
 
 from a2a_mcp.common.base_agent import BaseAgent
-from a2a_mcp.common.utils import init_api_key
+from a2a_mcp.common.agent_runner import AgentRunner
+from a2a_mcp.common.utils import get_mcp_server_config, init_api_key
+from a2a_mcp.common.types import TaskList
 from a2a_mcp.common.parallel_workflow import (
     ParallelWorkflowGraph, 
     ParallelWorkflowNode,
     Status
 )
-from google import genai
-from google.genai import types
+
+# Google ADK imports
+from google.adk.agents import Agent
+from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, SseServerParams
+from google.genai import types as genai_types
+
+# LangGraph imports
+from langchain_core.messages import AIMessage
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.prebuilt import create_react_agent
+from pydantic import BaseModel, Field
+
 import os
 import aiohttp
 
 logger = logging.getLogger(__name__)
+memory = MemorySaver()
+
+# Task Decomposition Response Format
+class SolopreneurTaskFormat(BaseModel):
+    """Response format for solopreneur task decomposition."""
+    
+    status: Literal['planning', 'ready', 'error'] = 'planning'
+    analysis: str = Field(description="Analysis of the user request for solopreneur optimization")
+    tasks: TaskList = Field(description="Decomposed tasks for domain oracles")
+    coordination_strategy: str = Field(description="How tasks will be coordinated")
+    domains_required: List[str] = Field(description="Required domain specialists")
+    quality_requirements: Dict[str, float] = Field(description="Quality thresholds for each domain")
+    optimization_focus: List[str] = Field(description="Key optimization areas identified")
+
+# LangGraph Planning Instructions
+SOLOPRENEUR_PLANNING_INSTRUCTIONS = """
+You are the Solopreneur Oracle Task Planner. Analyze user requests and decompose them into coordinated tasks for domain specialists.
+
+Domain Specialists Available:
+- technical_intelligence: AI research, architecture, code quality, implementation strategies
+- knowledge_management: Information organization, learning strategies, knowledge synthesis
+- personal_optimization: Energy management, focus optimization, productivity strategies
+- learning_enhancement: Skill development, education planning, learning acceleration
+- integration_synthesis: Workflow integration, automation opportunities, cross-domain optimization
+
+For each request:
+1. Analyze scope and identify relevant domains for AI developer/entrepreneur context
+2. Create specific, actionable tasks for each domain oracle
+3. Define coordination strategy (parallel/sequential based on dependencies)
+4. Set quality requirements per domain
+5. Identify optimization opportunities and synergies
+
+Focus on:
+- Technical excellence and innovation
+- Personal sustainability and energy optimization
+- Learning efficiency and skill acceleration
+- Workflow automation and productivity gains
+- Cross-domain integration opportunities
+"""
 
 # Solopreneur synthesis prompt
 SOLOPRENEUR_SYNTHESIS_PROMPT = """
@@ -78,15 +130,17 @@ Provide synthesis in this JSON format:
 """
 
 class SolopreneurOracleAgent(BaseAgent):
-    """Master orchestrator for AI developer/entrepreneur intelligence following nexus pattern."""
+    """Master orchestrator for AI developer/entrepreneur intelligence with Google ADK + LangGraph integration."""
 
     def __init__(self):
         init_api_key()
         super().__init__(
             agent_name="Solopreneur Oracle",
-            description="Master AI developer/entrepreneur intelligence orchestrator",
+            description="Master AI developer/entrepreneur intelligence orchestrator with ADK+LangGraph",
             content_types=["text", "text/plain"],
         )
+        
+        # Original sophisticated components (keep these)
         self.graph = None
         self.intelligence_data = {}
         self.context = {}
@@ -100,6 +154,139 @@ class SolopreneurOracleAgent(BaseAgent):
         self.query_history = []
         self.context_id = None
         self.enable_parallel = True
+        
+        # New standardized components (add these)
+        self.adk_agent = None
+        self.task_planner = None
+        self.runner = None
+        
+        # Domain oracle mapping
+        self.domain_oracles = {
+            "technical_intelligence": "http://localhost:10902",
+            "knowledge_management": "http://localhost:10903", 
+            "personal_optimization": "http://localhost:10904",
+            "learning_enhancement": "http://localhost:10905",
+            "integration_synthesis": "http://localhost:10906"
+        }
+
+    async def init_agents(self):
+        """Initialize Google ADK agent and LangGraph task planner following travel agent pattern."""
+        if self.adk_agent and self.task_planner:
+            return
+            
+        logger.info("Initializing Solopreneur Oracle with ADK + LangGraph components")
+        
+        # Initialize MCP tools via ADK (following adk_travel_agent.py pattern)
+        config = get_mcp_server_config()
+        tools = await MCPToolset(
+            connection_params=SseServerParams(url=config.url)
+        ).get_tools()
+        
+        logger.info(f"Loaded {len(tools)} MCP tools via ADK")
+        
+        # Initialize Google ADK agent for synthesis (following adk_travel_agent.py pattern)
+        generate_content_config = genai_types.GenerateContentConfig(temperature=0.1)
+        
+        self.adk_agent = Agent(
+            name=self.agent_name,
+            instruction=self._get_synthesis_instructions(),
+            model='gemini-2.0-flash',
+            disallow_transfer_to_parent=True,
+            disallow_transfer_to_peers=True, 
+            generate_content_config=generate_content_config,
+            tools=tools,
+        )
+        
+        # Initialize LangGraph task planner (following langgraph_planner_agent.py pattern)
+        self.task_planner = create_react_agent(
+            ChatGoogleGenerativeAI(model='gemini-2.0-flash', temperature=0.0),
+            checkpointer=memory,
+            prompt=SOLOPRENEUR_PLANNING_INSTRUCTIONS,
+            response_format=SolopreneurTaskFormat,
+            tools=[],
+        )
+        
+        self.runner = AgentRunner()
+        logger.info("ADK + LangGraph components initialized successfully")
+
+    def _get_synthesis_instructions(self) -> str:
+        """Get synthesis instructions for Google ADK agent."""
+        return """
+        You are the Solopreneur Oracle Synthesis Agent. Your role is to synthesize intelligence from domain specialists into actionable insights for AI developers and entrepreneurs.
+        
+        Your capabilities:
+        - Analyze cross-domain intelligence from technical, personal, learning, knowledge, and integration specialists
+        - Identify synergies and optimization opportunities across domains
+        - Generate comprehensive strategies balancing technical excellence with personal sustainability
+        - Provide structured recommendations with clear action plans and success metrics
+        
+        Quality Standards:
+        - Technical solutions must be implementable and scalable
+        - Personal recommendations must consider energy management and sustainability
+        - Learning strategies should accelerate skill development efficiently
+        - All recommendations need clear success metrics and risk assessments
+        
+        Use available MCP tools to enhance your analysis and provide data-driven insights.
+        Format responses as structured JSON following the comprehensive synthesis format.
+        """
+
+    async def decompose_tasks(self, query: str, context_id: str) -> SolopreneurTaskFormat:
+        """Decompose user request into domain-specific tasks via LangGraph planner."""
+        inputs = {'messages': [('user', f"Analyze this solopreneur request and create an execution plan: {query}")]}
+        config = {'configurable': {'thread_id': context_id}}
+        
+        logger.info(f"LangGraph planner decomposing: {query}")
+        
+        # Run LangGraph planner
+        for item in self.task_planner.stream(inputs, config, stream_mode='values'):
+            message = item['messages'][-1]
+            if isinstance(message, AIMessage):
+                continue
+                
+        # Get structured task plan
+        current_state = self.task_planner.get_state(config)
+        task_plan = current_state.values.get('structured_response')
+        
+        if not task_plan or not isinstance(task_plan, SolopreneurTaskFormat):
+            # Fallback plan if decomposition fails (using original sophisticated logic)
+            logger.warning("LangGraph decomposition failed, using fallback with original domain analysis")
+            
+            # Use original sophisticated domain analysis as fallback
+            await self.load_context(query)
+            dependency_analysis = self.analyze_domain_dependencies(query)
+            
+            fallback_tasks = []
+            for domain_group, oracles in dependency_analysis["domain_groups"].items():
+                domain_key = oracles[0].replace("_oracle", "")
+                fallback_tasks.append({
+                    "task_id": f"{domain_key}_analysis",
+                    "description": f"Comprehensive {domain_key.replace('_', ' ')} analysis for: {query}",
+                    "domain": domain_key,
+                    "priority": self._get_domain_priority(domain_key)
+                })
+            
+            return SolopreneurTaskFormat(
+                status='ready',
+                analysis=f"Solopreneur optimization analysis needed for: {query}",
+                tasks=TaskList(tasks=fallback_tasks),
+                coordination_strategy="parallel" if self.enable_parallel else "sequential",
+                domains_required=list(dependency_analysis["domain_groups"].keys()),
+                quality_requirements=self.quality_thresholds,
+                optimization_focus=["technical_excellence", "personal_sustainability", "learning_efficiency"]
+            )
+            
+        return task_plan
+    
+    def _get_domain_priority(self, domain: str) -> int:
+        """Get priority for domain based on original sophisticated analysis."""
+        priorities = {
+            "technical_intelligence": 1,
+            "personal_optimization": 1, 
+            "knowledge_management": 2,
+            "learning_enhancement": 2,
+            "integration_synthesis": 3
+        }
+        return priorities.get(domain, 99)
 
     async def load_context(self, query: str):
         """Load solopreneur context and determine domain scope."""
@@ -367,7 +554,9 @@ class SolopreneurOracleAgent(BaseAgent):
             }
 
     async def generate_synthesis(self, query: str) -> str:
-        """Generate comprehensive synthesis using Gemini."""
+        """DEPRECATED: Generate comprehensive synthesis using Gemini. Now handled by ADK agent."""
+        logger.warning("generate_synthesis is deprecated - now using ADK agent for synthesis")
+        
         # Configure client with proper timeout settings
         http_options = types.HttpOptions(
             async_client_args={
@@ -437,7 +626,7 @@ class SolopreneurOracleAgent(BaseAgent):
     async def stream(
         self, query: str, context_id: str, task_id: str
     ) -> AsyncIterable[Dict[str, Any]]:
-        """Execute solopreneur intelligence workflow following nexus pattern."""
+        """Execute solopreneur intelligence workflow with ADK + LangGraph integration."""
         logger.info(f"Solopreneur Oracle analyzing: {query} (session: {context_id})")
         
         if not query:
@@ -449,141 +638,178 @@ class SolopreneurOracleAgent(BaseAgent):
         
         self.query_history.append({"timestamp": datetime.now().isoformat(), "query": query})
         
+        # Initialize ADK + LangGraph components
+        if not self.adk_agent or not self.task_planner:
+            await self.init_agents()
+        
         try:
-            # Step 1: Load context
+            # Phase 1: Task Decomposition via LangGraph (NEW - following travel agent pattern)
             yield {
                 "is_task_complete": False,
                 "require_user_input": False,
-                "content": "Solopreneur Oracle: Loading context and optimization parameters..."
+                "content": "🎯 Solopreneur Oracle: Decomposing request into specialized analysis tasks..."
             }
             
+            task_plan = await self.decompose_tasks(query, context_id)
+            
+            yield {
+                "is_task_complete": False,
+                "require_user_input": False,
+                "content": f"📋 Created {len(task_plan.tasks.tasks)} specialized tasks for {len(task_plan.domains_required)} domains"
+            }
+            
+            # Phase 2: Sophisticated Domain Analysis (ENHANCED - keeping original sophistication)
+            yield {
+                "is_task_complete": False,
+                "require_user_input": False,
+                "content": "⚡ Coordinating domain oracles with sophisticated dependency management..."
+            }
+            
+            # Use original sophisticated domain analysis enhanced with task plan
             await self.load_context(query)
+            intelligence_data = await self._execute_enhanced_domain_coordination(task_plan, query)
             
-            # Step 2: Initialize workflow graph
+            # Phase 3: Intelligence Synthesis via ADK Agent (NEW - following travel agent pattern)
             yield {
                 "is_task_complete": False,
                 "require_user_input": False,
-                "content": "Solopreneur Oracle: Initializing multi-domain intelligence workflow..."
+                "content": "🔬 Synthesizing cross-domain intelligence via Google ADK..."
             }
             
-            self.graph = ParallelWorkflowGraph()
+            synthesis_query = self._build_adk_synthesis_query(query, task_plan, intelligence_data)
             
-            # Step 3: Determine required domain analyses and build execution plan
-            dependency_analysis = self.analyze_domain_dependencies(query)
-            domain_groups = dependency_analysis["domain_groups"]
-            execution_plan = dependency_analysis["execution_plan"]
-            parallel_opportunities = dependency_analysis["parallelization_opportunities"]
-            
-            logger.info(f"Activating domains: {list(domain_groups.keys())}")
-            logger.info(f"Execution plan: {len(execution_plan)} steps with parallelization")
-            
-            yield {
-                "is_task_complete": False,
-                "require_user_input": False,
-                "content": f"Solopreneur Oracle: Coordinating {len(domain_groups)} domain specialists..."
-            }
-            
-            # Step 4: Execute domain analyses according to execution plan
-            for step in execution_plan:
-                step_analyses = step["analyses"]
-                is_parallel = step["parallel_execution"]
-                
-                if is_parallel and self.enable_parallel:
+            # Stream synthesis via ADK agent (following adk_travel_agent.py pattern)
+            async for chunk in self.runner.run_stream(self.adk_agent, synthesis_query, context_id):
+                if isinstance(chunk, dict) and chunk.get('type') == 'final_result':
+                    response = chunk['response']
+                    
+                    # Apply original quality validation
+                    try:
+                        synthesis = json.loads(response)
+                        quality_check = self.check_quality_thresholds(synthesis)
+                        
+                        if not quality_check["quality_approved"]:
+                            logger.warning(f"Quality issues detected: {quality_check['quality_issues']}")
+                            synthesis["quality_warning"] = f"Note: Some quality thresholds not met: {', '.join(quality_check['quality_issues'])}"
+                        
+                        yield {
+                            "is_task_complete": True,
+                            "require_user_input": False,
+                            "response_type": "data",
+                            "content": synthesis
+                        }
+                    except json.JSONDecodeError:
+                        # Fallback to text response
+                        yield {
+                            "is_task_complete": True,
+                            "require_user_input": False,
+                            "content": response
+                        }
+                else:
                     yield {
                         "is_task_complete": False,
                         "require_user_input": False,
-                        "content": f"Solopreneur Oracle: Step {step['step']} - Parallel analysis of {len(step_analyses)} domains..."
+                        "content": "🔄 Synthesizing insights...",
                     }
                     
-                    # Execute analyses in parallel
-                    tasks = []
-                    for analysis_group in step_analyses:
-                        if analysis_group in domain_groups:
-                            for oracle in domain_groups[analysis_group]:
-                                domain_key = oracle.replace("_oracle", "")
-                                tasks.append(self.fetch_domain_intelligence(domain_key, query))
-                    
-                    # Execute all tasks for this step
-                    step_results = await asyncio.gather(*tasks, return_exceptions=True)
-                    
-                    # Process results
-                    for i, (analysis_group, result) in enumerate(zip(step_analyses, step_results)):
-                        if not isinstance(result, Exception) and result:
-                            domain_key = domain_groups[analysis_group][0].replace("_oracle", "")
-                            self.intelligence_data[domain_key] = result
-                            
-                            yield {
-                                "is_task_complete": False,
-                                "require_user_input": False,
-                                "content": f"Solopreneur Oracle: Completed {result.get('domain', domain_key)} analysis..."
-                            }
-                else:
-                    # Sequential execution for dependent analyses
-                    for analysis_group in step_analyses:
-                        if analysis_group in domain_groups:
-                            for oracle in domain_groups[analysis_group]:
-                                domain_key = oracle.replace("_oracle", "")
-                                
-                                yield {
-                                    "is_task_complete": False,
-                                    "require_user_input": False,
-                                    "content": f"Solopreneur Oracle: Analyzing {domain_key.replace('_', ' ').title()}..."
-                                }
-                                
-                                analysis = await self.fetch_domain_intelligence(domain_key, query)
-                                if analysis:
-                                    self.intelligence_data[domain_key] = analysis
-                                    
-                                    yield {
-                                        "is_task_complete": False,
-                                        "require_user_input": False,
-                                        "content": f"Solopreneur Oracle: Completed {analysis.get('domain', domain_key)} analysis..."
-                                    }
-            
-            # Step 5: Generate synthesis
-            yield {
-                "is_task_complete": False,
-                "require_user_input": False,
-                "content": "Solopreneur Oracle: Synthesizing cross-domain insights and recommendations..."
-            }
-            
-            try:
-                synthesis_raw = await self.generate_synthesis(query)
-                synthesis = json.loads(synthesis_raw)
-            except json.JSONDecodeError as e:
-                logger.error(f"JSON decode error: {e}. Response: {synthesis_raw[:200]}")
-                # Fallback synthesis
-                synthesis = {
-                    "executive_summary": f"Analysis of '{query}' reveals insights across {len(self.intelligence_data)} domains with high confidence.",
-                    "confidence_score": 0.75,
-                    "technical_assessment": {
-                        "feasibility_score": 75,
-                        "implementation_complexity": "medium",
-                        "technical_risks": ["Limited validation"],
-                        "architecture_recommendations": ["Start with MVP", "Iterate based on metrics"]
-                    },
-                    "personal_optimization": {
-                        "energy_impact": "neutral",
-                        "cognitive_load": "medium",
-                        "sustainability_score": 70,
-                        "optimization_strategies": ["Time-boxed experiments", "Regular breaks"]
-                    }
-                }
-            
-            # Step 6: Quality validation
-            quality_check = self.check_quality_thresholds(synthesis)
-            
-            if not quality_check["quality_approved"]:
-                logger.warning(f"Quality issues detected: {quality_check['quality_issues']}")
-                synthesis["quality_warning"] = f"Note: Some quality thresholds not met: {', '.join(quality_check['quality_issues'])}"
-            
-            # Step 7: Return final synthesis
+        except Exception as e:
+            logger.error(f"Solopreneur Oracle error: {e}", exc_info=True)
             yield {
                 "is_task_complete": True,
                 "require_user_input": False,
-                "response_type": "data",
-                "content": synthesis
+                "content": f"🚨 Solopreneur Oracle: Analysis error - {str(e)}"
             }
+
+    async def _execute_enhanced_domain_coordination(self, task_plan: SolopreneurTaskFormat, query: str) -> Dict[str, Any]:
+        """Execute domain coordination using original sophisticated logic enhanced with task plan."""
+        # Use original sophisticated dependency analysis
+        dependency_analysis = self.analyze_domain_dependencies(query)
+        domain_groups = dependency_analysis["domain_groups"]
+        execution_plan = dependency_analysis["execution_plan"]
+        
+        logger.info(f"Enhanced coordination: {len(domain_groups)} domain groups, {len(execution_plan)} execution steps")
+        
+        # Execute with original sophisticated parallel workflow (enhanced)
+        for step in execution_plan:
+            step_analyses = step["analyses"]
+            is_parallel = step["parallel_execution"]
+            
+            if is_parallel and self.enable_parallel:
+                # Parallel execution with enhanced task context
+                tasks = []
+                for analysis_group in step_analyses:
+                    if analysis_group in domain_groups:
+                        for oracle in domain_groups[analysis_group]:
+                            domain_key = oracle.replace("_oracle", "")
+                            # Enhanced with task plan context
+                            tasks.append(self._fetch_enhanced_domain_intelligence(
+                                domain_key, query, task_plan
+                            ))
+                
+                step_results = await asyncio.gather(*tasks, return_exceptions=True)
+                
+                # Process results with original quality handling
+                for i, (analysis_group, result) in enumerate(zip(step_analyses, step_results)):
+                    if not isinstance(result, Exception) and result:
+                        domain_key = domain_groups[analysis_group][0].replace("_oracle", "")
+                        self.intelligence_data[domain_key] = result
+            else:
+                # Sequential execution with enhanced context
+                for analysis_group in step_analyses:
+                    if analysis_group in domain_groups:
+                        for oracle in domain_groups[analysis_group]:
+                            domain_key = oracle.replace("_oracle", "")
+                            analysis = await self._fetch_enhanced_domain_intelligence(
+                                domain_key, query, task_plan
+                            )
+                            if analysis:
+                                self.intelligence_data[domain_key] = analysis
+        
+        return self.intelligence_data
+    
+    async def _fetch_enhanced_domain_intelligence(self, domain: str, query: str, task_plan: SolopreneurTaskFormat) -> Dict[str, Any]:
+        """Enhanced domain intelligence fetch with task plan context."""
+        # Get relevant tasks for this domain from task plan
+        domain_tasks = [task for task in task_plan.tasks.tasks if task.get('domain') == domain]
+        task_context = f"Tasks: {[task.get('description', '') for task in domain_tasks]}"
+        
+        # Use original sophisticated domain intelligence with enhanced context
+        enhanced_query = f"{query}\n\nTask Context: {task_context}\nOptimization Focus: {', '.join(task_plan.optimization_focus)}"
+        
+        return await self.fetch_domain_intelligence(domain, enhanced_query)
+    
+    def _build_adk_synthesis_query(self, original_query: str, task_plan: SolopreneurTaskFormat, intelligence_data: Dict[str, Any]) -> str:
+        """Build synthesis query for ADK agent using original sophisticated prompt enhanced with task plan."""
+        return f"""
+        Synthesize the following solopreneur intelligence into actionable insights:
+        
+        Original Query: {original_query}
+        
+        Task Plan Analysis: {task_plan.analysis}
+        Coordination Strategy: {task_plan.coordination_strategy}
+        Domains Analyzed: {', '.join(task_plan.domains_required)}
+        Optimization Focus: {', '.join(task_plan.optimization_focus)}
+        
+        Domain Intelligence Gathered:
+        {json.dumps(intelligence_data, indent=2)}
+        
+        Context:
+        {json.dumps(self.context, indent=2)}
+        
+        Quality Requirements:
+        {json.dumps(task_plan.quality_requirements, indent=2)}
+        
+        Provide comprehensive synthesis using the original sophisticated format:
+        {SOLOPRENEUR_SYNTHESIS_PROMPT.split('Provide synthesis in this JSON format:')[1]}
+        
+        Focus on balancing:
+        1. Technical excellence and innovation opportunities
+        2. Personal energy management and sustainability
+        3. Learning efficiency and skill acceleration  
+        4. Workflow automation and productivity optimization
+        5. Cross-domain integration and synergies
+        """
+            # Original workflow now replaced with ADK + LangGraph integration above
             
         except Exception as e:
             logger.error(f"Solopreneur Oracle error: {e}")
