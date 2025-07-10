@@ -1,0 +1,7 @@
+warning: `uv run` is experimental and may change without warning.
+Resolved 142 packages in 2.82s
+Installed 1 package in 23ms
+ - packaging==24.2
+ - packaging==25.0
+ + packaging==24.2
+<frozen runpy>:128: RuntimeWarning: 'a2a_mcp.mcp.server' found in sys.modules after import of package 'a2a_mcp.mcp', but prior to execution of 'a2a_mcp.mcp.server'; this may result in unpredictable behaviour
