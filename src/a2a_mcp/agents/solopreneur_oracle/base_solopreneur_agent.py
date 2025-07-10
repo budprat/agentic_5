@@ -11,7 +11,7 @@ from collections.abc import AsyncIterable
 from typing import Any, Dict, Optional
 
 from a2a_mcp.common.agent_runner import AgentRunner
-from a2a_mcp.common.base_agent import BaseAgent
+from a2a_mcp.common.standardized_agent_base import StandardizedAgentBase
 from a2a_mcp.common.utils import get_mcp_server_config, init_api_key
 from google.adk.agents import Agent
 from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, SseConnectionParams
@@ -49,10 +49,10 @@ def create_a2a_request(method: str, message: str, metadata: dict = None):
         }
     }
 
-class UnifiedSolopreneurAgent(BaseAgent):
+class UnifiedSolopreneurAgent(StandardizedAgentBase):
     """
-    Framework-compliant base class for all solopreneur agents.
-    Uses Google ADK following the proven adk_nexus_agent.py and TravelAgent patterns.
+    Framework V2.0 compliant base class for all solopreneur agents.
+    Uses StandardizedAgentBase with Google ADK + MCP tools integration.
     """
     
     def __init__(
@@ -69,22 +69,23 @@ class UnifiedSolopreneurAgent(BaseAgent):
             logger.error(f'Environment validation failed: {e}')
             raise
             
-        init_api_key()
+        # Use StandardizedAgentBase initialization (handles init_api_key internally)
         super().__init__(
             agent_name=agent_name,
             description=description,
-            content_types=['text', 'text/plain', 'application/json']
+            instructions=instructions,
+            quality_config={"domain": "business"},  # Framework V2.0 quality config
+            mcp_tools_enabled=True,
+            a2a_enabled=True
         )
         
         logger.info(f'Init {self.agent_name}')
         
-        self.instructions = instructions
+        # Additional solopreneur-specific attributes
         self.port = port
         self.tier = self._determine_tier(port) if port else 0
-        self.agent = None
-        self.tools = []
-        self.mcp_enabled = False
-        self.google_adk_initialized = False
+        
+        # StandardizedAgentBase handles: agent, tools, mcp_enabled, etc.
         
     def _determine_tier(self, port: int) -> int:
         """Determine agent tier based on port number."""
@@ -97,113 +98,41 @@ class UnifiedSolopreneurAgent(BaseAgent):
         else:
             return 0  # Unknown
         
-    async def init_agent(self):
-        """Initialize with domain-specific MCP tools following ADK framework pattern."""
-        logger.info(f'Initializing {self.agent_name} metadata')
+    async def _execute_agent_logic(self, query: str, context_id: str, task_id: str):
+        """
+        Implement Framework V2.0 required abstract method.
+        Uses inherited StandardizedAgentBase agent for processing.
+        """
+        logger.info(f'UnifiedSolopreneurAgent executing logic for: {query}')
         
-        # Try to load MCP tools, but continue without them if unavailable
-        self.tools = []
-        if os.environ.get('DISABLE_MCP_TOOLS', 'false').lower() != 'true':
-            try:
-                config = get_mcp_server_config()
-                logger.info(f'MCP Server url={config.url}')
-                
-                # Load MCP tools following ADK pattern from adk_travel_agent.py
-                self.tools = await MCPToolset(
-                    connection_params=SseConnectionParams(url=config.url)
-                ).get_tools()
-                
-                for tool in self.tools:
-                    logger.info(f'Loaded tools {tool.name}')
-                self.mcp_enabled = True
-                logger.info('MCP tools loaded successfully')
-            except Exception as e:
-                logger.warning(f'Could not connect to MCP server: {e}. Continuing without MCP tools.')
-                self.mcp_enabled = False
-        else:
-            logger.info('MCP tools disabled by environment variable')
-            self.mcp_enabled = False
-            
-        generate_content_config = genai_types.GenerateContentConfig(
-            temperature=0.0
-        )
+        # Use inherited agent from StandardizedAgentBase
+        if not self.agent:
+            await self.init_agent()  # Framework V2.0 initialization
         
-        # Initialize Google ADK agent following adk_nexus_agent.py pattern with robust error handling
+        if not self.agent:
+            return {"error": "Agent initialization failed", "content": f"Fallback response for: {query}"}
+        
+        # Simple delegation to inherited ADK agent
         try:
-            # Convert agent name to valid identifier (replace spaces with underscores)
-            valid_name = self.agent_name.replace(' ', '_').replace('-', '_')
+            from a2a_mcp.common.agent_runner import AgentRunner
+            if not hasattr(self, 'runner') or not self.runner:
+                self.runner = AgentRunner()
             
-            self.agent = Agent(
-                name=valid_name,
-                instruction=self.instructions,
-                model='gemini-2.0-flash',
-                disallow_transfer_to_parent=True,
-                disallow_transfer_to_peers=True,
-                generate_content_config=generate_content_config,
-                tools=self.tools,
-            )
-            self.runner = AgentRunner()
-            self.google_adk_initialized = True
-            logger.info(f'Google ADK agent initialized successfully for {self.agent_name}')
+            result = ""
+            async for chunk in self.runner.run_stream(self.agent, query, context_id):
+                if isinstance(chunk, dict) and chunk.get('type') == 'final_result':
+                    result = chunk['response']
+                    break
+            
+            return {"content": result}
+            
         except Exception as e:
-            logger.warning(f'Agent initialization failed: {e}. Using fallback mode.')
-            self.agent = None
-            self.runner = None
-            self.google_adk_initialized = False
+            logger.error(f'Execution error: {e}')
+            return {"error": str(e), "content": f"Error processing: {query}"}
         
     async def invoke(self, query, session_id) -> dict:
         logger.info(f'Running {self.agent_name} for session {session_id}')
         raise NotImplementedError('Please use the streaming function')
-        
-    async def stream(
-        self, query, context_id, task_id
-    ) -> AsyncIterable[Dict[str, Any]]:
-        """Stream implementation with graceful degradation."""
-        logger.info(
-            f'Running {self.agent_name} stream for session {context_id} {task_id} - {query}'
-        )
-        
-        if not query:
-            raise ValueError('Query cannot be empty')
-        
-        # Try to initialize agent if not already done
-        if not self.agent:
-            await self.init_agent()
-        
-        # Graceful degradation - if agent is not available, provide fallback response
-        if not self.google_adk_initialized or not self.agent or not self.runner:
-            logger.warning(f'Agent not fully initialized, providing fallback response')
-            yield {
-                'response_type': 'text',
-                'is_task_complete': True,
-                'require_user_input': False,
-                'content': f"{self.agent_name} fallback response: {query} (Google ADK unavailable - MCP enabled: {self.mcp_enabled})"
-            }
-            return
-            
-        # Use established AgentRunner pattern from ADK
-        try:
-            async for chunk in self.runner.run_stream(
-                self.agent, query, context_id
-            ):
-                logger.info(f'Received chunk {chunk}')
-                if isinstance(chunk, dict) and chunk.get('type') == 'final_result':
-                    response = chunk['response']
-                    yield self.get_agent_response(response)
-                else:
-                    yield {
-                        'is_task_complete': False,
-                        'require_user_input': False,
-                        'content': f'{self.agent_name}: Processing Request...',
-                    }
-        except Exception as e:
-            logger.error(f'Error in agent stream: {e}')
-            yield {
-                'response_type': 'text',
-                'is_task_complete': True,
-                'require_user_input': False,
-                'content': f"Error processing request: {str(e)}"
-            }
                 
     def format_response(self, chunk):
         """Response formatting following TravelAgent pattern."""
@@ -225,26 +154,24 @@ class UnifiedSolopreneurAgent(BaseAgent):
 
     async def health_check(self):
         """Add health check endpoints to all agents."""
+        base_health = super().get_health_status()  # Framework V2.0 health check
         return {
-            "status": "healthy",
-            "agent": self.agent_name,
-            "mcp_enabled": self.mcp_enabled,
-            "google_adk_initialized": self.google_adk_initialized,
-            "tools_count": len(self.tools) if self.tools else 0,
-            "tier": getattr(self, 'tier', 0)
+            **base_health,
+            "tier": getattr(self, 'tier', 0),
+            "port": getattr(self, 'port', None)
         }
 
     def get_agent_response(self, chunk):
-        """Agent response handling with graceful degradation."""
+        """Agent response handling with Framework V2.0 compliance."""
         logger.info(f'Response Type {type(chunk)}')
         
-        # Graceful degradation - if agent is not initialized, provide fallback
-        if not self.google_adk_initialized:
+        # Use StandardizedAgentBase initialization status
+        if not self.initialization_complete:
             return {
                 'response_type': 'text',
                 'is_task_complete': True,
                 'require_user_input': False,
-                'content': f"Fallback response for: {chunk} (Google ADK unavailable)"
+                'content': f"Fallback response for: {chunk} (Framework V2.0 agent unavailable)"
             }
         
         data = self.format_response(chunk)
