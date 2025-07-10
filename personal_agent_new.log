@@ -40,3 +40,8 @@ INFO:     127.0.0.1:44304 - "GET /.well-known/ai-plugin.json HTTP/1.1" 404 Not F
 INFO:     127.0.0.1:47796 - "POST / HTTP/1.1" 200 OK
 Json conversion error Expecting value: line 1 column 1 (char 0)
 INFO:     127.0.0.1:39456 - "GET /.well-known/ai-plugin.json HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:52108 - "GET /.well-known/ai-plugin.json HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:42234 - "POST / HTTP/1.1" 200 OK
+Warning: there are non-text parts in the response: ['function_call'], returning concatenated text result from text parts. Check the full candidates.content.parts accessor to get the full model response.
+Json conversion error Expecting value: line 1 column 1 (char 0)
+Error in sse_reader: peer closed connection without sending complete message body (incomplete chunked read)
