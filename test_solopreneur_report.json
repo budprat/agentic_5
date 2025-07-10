@@ -1,0 +1,175 @@
+{
+  "passed": 7,
+  "failed": 21,
+  "errors": 0,
+  "tests": [
+    {
+      "name": "MCP Server Health Check",
+      "status": "FAILED",
+      "duration_ms": 47.289133071899414,
+      "timestamp": "2025-07-10T09:18:03.399690"
+    },
+    {
+      "name": "Oracle Master Agent Health",
+      "status": "PASSED",
+      "duration_ms": 12.284517288208008,
+      "timestamp": "2025-07-10T09:18:03.412522"
+    },
+    {
+      "name": "Domain Specialist Health: Technical Intelligence",
+      "status": "PASSED",
+      "duration_ms": 23.163557052612305,
+      "timestamp": "2025-07-10T09:18:03.436444"
+    },
+    {
+      "name": "Domain Specialist Health: Knowledge Management",
+      "status": "PASSED",
+      "duration_ms": 10.271072387695312,
+      "timestamp": "2025-07-10T09:18:03.450757"
+    },
+    {
+      "name": "Domain Specialist Health: Personal Optimization",
+      "status": "PASSED",
+      "duration_ms": 7.363557815551758,
+      "timestamp": "2025-07-10T09:18:03.458881"
+    },
+    {
+      "name": "Domain Specialist Health: Learning Enhancement",
+      "status": "PASSED",
+      "duration_ms": 9.311437606811523,
+      "timestamp": "2025-07-10T09:18:03.469395"
+    },
+    {
+      "name": "Domain Specialist Health: Integration Synthesis",
+      "status": "PASSED",
+      "duration_ms": 13.750314712524414,
+      "timestamp": "2025-07-10T09:18:03.483475"
+    },
+    {
+      "name": "Intelligence Module Health: Port 10910",
+      "status": "FAILED",
+      "duration_ms": 7.294416427612305,
+      "timestamp": "2025-07-10T09:18:03.491106"
+    },
+    {
+      "name": "Intelligence Module Health: Port 10920",
+      "status": "FAILED",
+      "duration_ms": 10.076284408569336,
+      "timestamp": "2025-07-10T09:18:03.507896"
+    },
+    {
+      "name": "Intelligence Module Health: Port 10930",
+      "status": "FAILED",
+      "duration_ms": 15.271902084350586,
+      "timestamp": "2025-07-10T09:18:03.523692"
+    },
+    {
+      "name": "Intelligence Module Health: Port 10940",
+      "status": "FAILED",
+      "duration_ms": 2.5701522827148438,
+      "timestamp": "2025-07-10T09:18:03.526844"
+    },
+    {
+      "name": "Intelligence Module Health: Port 10950",
+      "status": "FAILED",
+      "duration_ms": 2.5000572204589844,
+      "timestamp": "2025-07-10T09:18:03.529823"
+    },
+    {
+      "name": "Basic A2A JSON-RPC Request",
+      "status": "FAILED",
+      "duration_ms": 6.227016448974609,
+      "timestamp": "2025-07-10T09:18:03.536776"
+    },
+    {
+      "name": "A2A Streaming Request",
+      "status": "FAILED",
+      "duration_ms": 16.443729400634766,
+      "timestamp": "2025-07-10T09:18:03.553488"
+    },
+    {
+      "name": "A2A Batch Request",
+      "status": "FAILED",
+      "duration_ms": 25.689363479614258,
+      "timestamp": "2025-07-10T09:18:03.581388"
+    },
+    {
+      "name": "Technical Intelligence Analysis",
+      "status": "FAILED",
+      "duration_ms": 12.629985809326172,
+      "timestamp": "2025-07-10T09:18:03.594502"
+    },
+    {
+      "name": "Personal Schedule Optimization",
+      "status": "FAILED",
+      "duration_ms": 15.709638595581055,
+      "timestamp": "2025-07-10T09:18:03.610539"
+    },
+    {
+      "name": "Learning Path Generation",
+      "status": "FAILED",
+      "duration_ms": 31.080961227416992,
+      "timestamp": "2025-07-10T09:18:03.641969"
+    },
+    {
+      "name": "Knowledge Synthesis",
+      "status": "FAILED",
+      "duration_ms": 5.757331848144531,
+      "timestamp": "2025-07-10T09:18:03.648015"
+    },
+    {
+      "name": "Technical-Learning Integration",
+      "status": "FAILED",
+      "duration_ms": 9.276628494262695,
+      "timestamp": "2025-07-10T09:18:03.659434"
+    },
+    {
+      "name": "Personal-Technical Integration",
+      "status": "FAILED",
+      "duration_ms": 17.342805862426758,
+      "timestamp": "2025-07-10T09:18:03.677101"
+    },
+    {
+      "name": "Full System Integration",
+      "status": "FAILED",
+      "duration_ms": 13.060331344604492,
+      "timestamp": "2025-07-10T09:18:03.690535"
+    },
+    {
+      "name": "Response Time Test",
+      "status": "FAILED",
+      "duration_ms": 11.135339736938477,
+      "timestamp": "2025-07-10T09:18:03.702175"
+    },
+    {
+      "name": "Concurrent Request Handling",
+      "status": "FAILED",
+      "duration_ms": 44.00348663330078,
+      "timestamp": "2025-07-10T09:18:03.751811"
+    },
+    {
+      "name": "Large Query Processing",
+      "status": "FAILED",
+      "duration_ms": 11.658668518066406,
+      "timestamp": "2025-07-10T09:18:03.764478"
+    },
+    {
+      "name": "Invalid JSON-RPC Request Handling",
+      "status": "FAILED",
+      "duration_ms": 8.96596908569336,
+      "timestamp": "2025-07-10T09:18:03.776045"
+    },
+    {
+      "name": "Timeout Handling",
+      "status": "PASSED",
+      "duration_ms": 5.232334136962891,
+      "timestamp": "2025-07-10T09:18:03.781563"
+    },
+    {
+      "name": "Empty Query Handling",
+      "status": "FAILED",
+      "duration_ms": 12.587547302246094,
+      "timestamp": "2025-07-10T09:18:03.794535"
+    }
+  ]
+}
