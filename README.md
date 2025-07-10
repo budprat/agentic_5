@@ -2,6 +2,8 @@
 
 **Leveraging Model Context Protocol (MCP) as a standardized mechanism for discovering and retrieving Google A2A Agent Cards, enabling dynamic agent interaction using A2A.**
 
+**🎯 Framework Standards**: This project follows the [A2A-MCP Unified Framework V2.0](A2A_MCP_UNIFIED_FRAMEWORK_V2.md) for standardized multi-agent architecture patterns, including Oracle, Service, and Research agent implementations.
+
 ## Table of Contents
 
 - [A2A with MCP as Registry](#a2a-with-mcp-as-registry)
