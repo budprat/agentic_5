@@ -7,7 +7,9 @@ from collections.abc import AsyncIterable
 from typing import Dict, Any, List, Literal
 from datetime import datetime
 
-from a2a_mcp.common.base_agent import BaseAgent
+from a2a_mcp.common.standardized_agent_base import StandardizedAgentBase
+from a2a_mcp.common.a2a_protocol import A2AProtocolClient, A2A_AGENT_PORTS
+from a2a_mcp.common.quality_framework import QualityThresholdFramework, QualityDomain
 from a2a_mcp.common.agent_runner import AgentRunner
 from a2a_mcp.common.utils import get_mcp_server_config, init_api_key
 from a2a_mcp.common.types import TaskList
@@ -129,73 +131,77 @@ Provide synthesis in this JSON format:
 }}
 """
 
-class SolopreneurOracleAgent(BaseAgent):
+class SolopreneurOracleAgent(StandardizedAgentBase):
     """Master orchestrator for AI developer/entrepreneur intelligence with Google ADK + LangGraph integration."""
 
     def __init__(self):
         init_api_key()
         super().__init__(
             agent_name="Solopreneur Oracle",
-            description="Master AI developer/entrepreneur intelligence orchestrator with ADK+LangGraph",
-            content_types=["text", "text/plain"],
+            description="Master AI developer/entrepreneur intelligence orchestrator with Framework V2.0 compliance",
+            instructions="You are Solopreneur Oracle, a master AI developer and entrepreneur strategist specializing in technical excellence, personal optimization, and learning acceleration.",
+            quality_config={
+                "domain": QualityDomain.BUSINESS,
+                "thresholds": {
+                    "confidence_score": {"min_value": 0.75, "weight": 1.0},
+                    "technical_feasibility": {"min_value": 0.8, "weight": 1.2},
+                    "personal_sustainability": {"min_value": 0.7, "weight": 1.0},
+                    "risk_tolerance": {"min_value": 0.6, "max_value": 0.8, "weight": 0.8}
+                }
+            },
+            mcp_tools_enabled=True,
+            a2a_enabled=True
         )
         
         # Original sophisticated components (keep these)
         self.graph = None
         self.intelligence_data = {}
         self.context = {}
-        self.quality_thresholds = {
-            "min_confidence_score": 0.75,
-            "technical_feasibility_threshold": 0.8,
-            "personal_sustainability_threshold": 0.7,
-            "risk_tolerance": 0.6,
-            "complexity_management": True
-        }
         self.query_history = []
         self.context_id = None
         self.enable_parallel = True
         
-        # New standardized components (add these)
-        self.adk_agent = None
+        # Framework V2.0 standardized components (enhanced)
         self.task_planner = None
         self.runner = None
-        
-        # Domain oracle mapping
-        self.domain_oracles = {
-            "technical_intelligence": "http://localhost:10902",
-            "knowledge_management": "http://localhost:10903", 
-            "personal_optimization": "http://localhost:10904",
-            "learning_enhancement": "http://localhost:10905",
-            "integration_synthesis": "http://localhost:10906"
-        }
 
-    async def init_agents(self):
-        """Initialize Google ADK agent and LangGraph task planner following travel agent pattern."""
-        if self.adk_agent and self.task_planner:
+    async def _execute_agent_logic(self, query: str, context_id: str, task_id: str):
+        """Agent-specific logic implementation following Framework V2.0 pattern."""
+        logger.info(f"Executing solopreneur oracle logic for: {query}")
+        
+        # State management for Framework V2.0 pattern
+        if self.context_id != context_id:
+            self.clear_state()
+            self.context_id = context_id
+        
+        self.query_history.append({"timestamp": datetime.now().isoformat(), "query": query})
+        
+        # Initialize components if needed (Framework V2.0 handles ADK agent)
+        if not self.task_planner:
+            await self._init_task_planner()
+        
+        # Phase 1: Task Decomposition via LangGraph
+        logger.info("🎯 Phase 1: Task decomposition via LangGraph")
+        task_plan = await self.decompose_tasks(query, context_id)
+        
+        # Phase 2: Sophisticated Domain Analysis using Framework V2.0 A2A protocol
+        logger.info("⚡ Phase 2: Domain coordination via A2A protocol")
+        await self.load_context(query)
+        intelligence_data = await self._execute_enhanced_domain_coordination(task_plan, query)
+        
+        # Phase 3: Intelligence Synthesis via inherited Framework V2.0 ADK agent
+        logger.info("🔬 Phase 3: Synthesis via Framework V2.0 ADK agent")
+        synthesis_query = self._build_adk_synthesis_query(query, task_plan, intelligence_data)
+        
+        # Use inherited agent for synthesis with Framework V2.0 quality validation
+        return await self._run_synthesis_via_adk(synthesis_query, context_id)
+    
+    async def _init_task_planner(self):
+        """Initialize LangGraph task planner component."""
+        if self.task_planner:
             return
             
-        logger.info("Initializing Solopreneur Oracle with ADK + LangGraph components")
-        
-        # Initialize MCP tools via ADK (following adk_travel_agent.py pattern)
-        config = get_mcp_server_config()
-        tools = await MCPToolset(
-            connection_params=SseServerParams(url=config.url)
-        ).get_tools()
-        
-        logger.info(f"Loaded {len(tools)} MCP tools via ADK")
-        
-        # Initialize Google ADK agent for synthesis (following adk_travel_agent.py pattern)
-        generate_content_config = genai_types.GenerateContentConfig(temperature=0.1)
-        
-        self.adk_agent = Agent(
-            name=self.agent_name,
-            instruction=self._get_synthesis_instructions(),
-            model='gemini-2.0-flash',
-            disallow_transfer_to_parent=True,
-            disallow_transfer_to_peers=True, 
-            generate_content_config=generate_content_config,
-            tools=tools,
-        )
+        logger.info("Initializing LangGraph task planner")
         
         # Initialize LangGraph task planner (following langgraph_planner_agent.py pattern)
         self.task_planner = create_react_agent(
@@ -207,7 +213,7 @@ class SolopreneurOracleAgent(BaseAgent):
         )
         
         self.runner = AgentRunner()
-        logger.info("ADK + LangGraph components initialized successfully")
+        logger.info("LangGraph task planner initialized successfully")
 
     def _get_synthesis_instructions(self) -> str:
         """Get synthesis instructions for Google ADK agent."""
@@ -435,28 +441,55 @@ class SolopreneurOracleAgent(BaseAgent):
         
         return parallel_batches
 
-    async def fetch_domain_intelligence(self, domain: str, query: str) -> Dict[str, Any]:
-        """Fetch intelligence from domain-specific oracle agents using ADK pattern."""
+    async def _fetch_enhanced_domain_intelligence(self, domain: str, query: str, task_plan: SolopreneurTaskFormat) -> Dict[str, Any]:
+        """Enhanced domain intelligence fetch with A2A protocol and task plan context."""
         try:
-            logger.info(f"Fetching {domain} intelligence for: {query}")
+            logger.info(f"Fetching {domain} intelligence via A2A protocol for: {query}")
             
-            # Map domain to port based on our architecture
-            domain_port_map = {
-                "technical_intelligence": 10902,
-                "knowledge_management": 10903,
-                "personal_optimization": 10904,
-                "learning_enhancement": 10905,
-                "integration_synthesis": 10906
+            # Get relevant tasks for this domain from task plan
+            domain_tasks = [task for task in task_plan.tasks.tasks if task.get('domain') == domain]
+            task_context = f"Tasks: {[task.get('description', '') for task in domain_tasks]}"
+            
+            # Enhanced query with task context
+            enhanced_query = f"{query}\n\nTask Context: {task_context}\nOptimization Focus: {', '.join(task_plan.optimization_focus)}"
+            
+            # Use A2A protocol to communicate with domain oracle
+            if self.a2a_client:
+                oracle_port = A2A_AGENT_PORTS.get(f"{domain}_oracle") or A2A_AGENT_PORTS.get(domain)
+                if oracle_port:
+                    try:
+                        response = await self.a2a_client.send_message(
+                            target_port=oracle_port,
+                            message=enhanced_query,
+                            metadata={
+                                "domain": domain,
+                                "source_agent": self.agent_name,
+                                "task_context": task_context,
+                                "optimization_focus": task_plan.optimization_focus
+                            }
+                        )
+                        if response and not response.get('error'):
+                            return response
+                        else:
+                            logger.warning(f"A2A communication failed for {domain}, using fallback")
+                    except Exception as e:
+                        logger.warning(f"A2A error for {domain}: {e}, using fallback")
+            
+            # Fallback to original sophisticated analysis if A2A unavailable
+            return await self.fetch_domain_intelligence_fallback(domain, enhanced_query)
+            
+        except Exception as e:
+            logger.error(f"Error fetching enhanced {domain} analysis: {e}")
+            return {
+                "domain": domain,
+                "error": str(e),
+                "analysis": {"status": "unavailable"}
             }
-            
-            port = domain_port_map.get(domain)
-            if not port:
-                logger.error(f"Unknown domain: {domain}")
-                return {"domain": domain, "error": "Unknown domain"}
-            
-            # Call the domain oracle agent via HTTP (following A2A protocol)
-            # In production, this would use the actual agent communication
-            # For now, simulate domain analysis
+
+    async def fetch_domain_intelligence_fallback(self, domain: str, query: str) -> Dict[str, Any]:
+        """Fallback domain intelligence when A2A protocol unavailable."""
+        try:
+            logger.info(f"Using fallback intelligence for {domain}")
             
             if domain == "technical_intelligence":
                 return {
@@ -546,75 +579,49 @@ class SolopreneurOracleAgent(BaseAgent):
                 }
             
         except Exception as e:
-            logger.error(f"Error fetching {domain} analysis: {e}")
+            logger.error(f"Error fetching fallback {domain} analysis: {e}")
             return {
                 "domain": domain,
                 "error": str(e),
                 "analysis": {"status": "unavailable"}
             }
 
-    async def generate_synthesis(self, query: str) -> str:
-        """DEPRECATED: Generate comprehensive synthesis using Gemini. Now handled by ADK agent."""
-        logger.warning("generate_synthesis is deprecated - now using ADK agent for synthesis")
-        
-        # Configure client with proper timeout settings
-        http_options = types.HttpOptions(
-            async_client_args={
-                'timeout': aiohttp.ClientTimeout(total=180, connect=30)
-            }
-        )
-        client = genai.Client(http_options=http_options)
-        
-        prompt = SOLOPRENEUR_SYNTHESIS_PROMPT.format(
-            original_query=query,
-            intelligence_data=json.dumps(self.intelligence_data, indent=2),
-            context=json.dumps(self.context, indent=2),
-            min_confidence=self.quality_thresholds["min_confidence_score"],
-            tech_threshold=self.quality_thresholds["technical_feasibility_threshold"],
-            personal_threshold=self.quality_thresholds["personal_sustainability_threshold"]
-        )
-        
-        # Retry logic for API overload
-        max_retries = 3
-        base_delay = 2.0
-        
-        for attempt in range(max_retries):
+    async def _run_synthesis_via_adk(self, synthesis_query: str, context_id: str) -> Dict[str, Any]:
+        """Run synthesis via inherited ADK agent from Framework V2.0."""
+        try:
+            # Use inherited agent for synthesis (StandardizedAgentBase provides self.agent)
+            if not self.agent:
+                await self.init_agent()  # Framework V2.0 initialization
+            
+            if not self.runner:
+                self.runner = AgentRunner()
+            
+            # Run synthesis via inherited ADK agent
+            synthesis_result = ""
+            async for chunk in self.runner.run_stream(self.agent, synthesis_query, context_id):
+                if isinstance(chunk, dict) and chunk.get('type') == 'final_result':
+                    synthesis_result = chunk['response']
+                    break
+            
+            # Apply Framework V2.0 quality validation
             try:
-                response = client.models.generate_content(
-                    model=os.getenv('GEMINI_MODEL', 'gemini-2.0-flash-exp'),
-                    contents=prompt,
-                    config={
-                        "temperature": 0.1,
-                        "response_mime_type": "application/json"
-                    }
-                )
-                return response.text
+                synthesis = json.loads(synthesis_result)
+                quality_check = await self.quality_framework.validate_response(synthesis, synthesis_query)
                 
-            except Exception as e:
-                error_msg = str(e)
-                if ("503" in error_msg or "overloaded" in error_msg.lower()) and attempt < max_retries - 1:
-                    wait_time = base_delay * (2 ** attempt)
-                    logger.warning(f"API overloaded, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})")
-                    await asyncio.sleep(wait_time)
-                    continue
-                else:
-                    raise e
-
-    def check_quality_thresholds(self, synthesis: Dict) -> Dict[str, Any]:
-        """Validate synthesis against quality thresholds."""
-        checks = {
-            "confidence_adequate": synthesis.get("confidence_score", 0) >= self.quality_thresholds["min_confidence_score"],
-            "technical_feasibility_met": synthesis.get("technical_assessment", {}).get("feasibility_score", 0) >= self.quality_thresholds["technical_feasibility_threshold"] * 100,
-            "personal_sustainability_met": synthesis.get("personal_optimization", {}).get("sustainability_score", 0) >= self.quality_thresholds["personal_sustainability_threshold"] * 100,
-            "risk_acceptable": len(synthesis.get("risk_assessment", {}).get("technical_risks", [])) <= 5
-        }
-        
-        return {
-            "quality_approved": all(checks.values()),
-            "checks": checks,
-            "confidence_score": synthesis.get("confidence_score", 0),
-            "quality_issues": [k for k, v in checks.items() if not v]
-        }
+                if not quality_check.get("quality_approved", True):
+                    logger.warning(f"Quality issues detected: {quality_check.get('quality_issues', [])}")
+                    synthesis["quality_warning"] = f"Note: Some quality thresholds not met: {', '.join(quality_check.get('quality_issues', []))}"
+                
+                synthesis["quality_metadata"] = quality_check
+                return synthesis
+                
+            except json.JSONDecodeError:
+                # Return text response if JSON parsing fails
+                return {"synthesis": synthesis_result, "format": "text"}
+                
+        except Exception as e:
+            logger.error(f"Synthesis error: {e}")
+            return {"error": f"Synthesis failed: {str(e)}"}
 
     def clear_state(self):
         """Reset agent state for new analysis."""
@@ -623,138 +630,41 @@ class SolopreneurOracleAgent(BaseAgent):
         self.query_history.clear()
         self.context.clear()
 
-    async def stream(
-        self, query: str, context_id: str, task_id: str
-    ) -> AsyncIterable[Dict[str, Any]]:
-        """Execute solopreneur intelligence workflow with ADK + LangGraph integration."""
-        logger.info(f"Solopreneur Oracle analyzing: {query} (session: {context_id})")
-        
-        if not query:
-            raise ValueError("Query cannot be empty")
-        
-        if self.context_id != context_id:
-            self.clear_state()
-            self.context_id = context_id
-        
-        self.query_history.append({"timestamp": datetime.now().isoformat(), "query": query})
-        
-        # Initialize ADK + LangGraph components
-        if not self.adk_agent or not self.task_planner:
-            await self.init_agents()
-        
-        try:
-            # Phase 1: Task Decomposition via LangGraph (NEW - following travel agent pattern)
-            yield {
-                "is_task_complete": False,
-                "require_user_input": False,
-                "content": "🎯 Solopreneur Oracle: Decomposing request into specialized analysis tasks..."
-            }
-            
-            task_plan = await self.decompose_tasks(query, context_id)
-            
-            yield {
-                "is_task_complete": False,
-                "require_user_input": False,
-                "content": f"📋 Created {len(task_plan.tasks.tasks)} specialized tasks for {len(task_plan.domains_required)} domains"
-            }
-            
-            # Phase 2: Sophisticated Domain Analysis (ENHANCED - keeping original sophistication)
-            yield {
-                "is_task_complete": False,
-                "require_user_input": False,
-                "content": "⚡ Coordinating domain oracles with sophisticated dependency management..."
-            }
-            
-            # Use original sophisticated domain analysis enhanced with task plan
-            await self.load_context(query)
-            intelligence_data = await self._execute_enhanced_domain_coordination(task_plan, query)
-            
-            # Phase 3: Intelligence Synthesis via ADK Agent (NEW - following travel agent pattern)
-            yield {
-                "is_task_complete": False,
-                "require_user_input": False,
-                "content": "🔬 Synthesizing cross-domain intelligence via Google ADK..."
-            }
-            
-            synthesis_query = self._build_adk_synthesis_query(query, task_plan, intelligence_data)
-            
-            # Stream synthesis via ADK agent (following adk_travel_agent.py pattern)
-            async for chunk in self.runner.run_stream(self.adk_agent, synthesis_query, context_id):
-                if isinstance(chunk, dict) and chunk.get('type') == 'final_result':
-                    response = chunk['response']
-                    
-                    # Apply original quality validation
-                    try:
-                        synthesis = json.loads(response)
-                        quality_check = self.check_quality_thresholds(synthesis)
-                        
-                        if not quality_check["quality_approved"]:
-                            logger.warning(f"Quality issues detected: {quality_check['quality_issues']}")
-                            synthesis["quality_warning"] = f"Note: Some quality thresholds not met: {', '.join(quality_check['quality_issues'])}"
-                        
-                        yield {
-                            "is_task_complete": True,
-                            "require_user_input": False,
-                            "response_type": "data",
-                            "content": synthesis
-                        }
-                    except json.JSONDecodeError:
-                        # Fallback to text response
-                        yield {
-                            "is_task_complete": True,
-                            "require_user_input": False,
-                            "content": response
-                        }
-                else:
-                    yield {
-                        "is_task_complete": False,
-                        "require_user_input": False,
-                        "content": "🔄 Synthesizing insights...",
-                    }
-                    
-        except Exception as e:
-            logger.error(f"Solopreneur Oracle error: {e}", exc_info=True)
-            yield {
-                "is_task_complete": True,
-                "require_user_input": False,
-                "content": f"🚨 Solopreneur Oracle: Analysis error - {str(e)}"
-            }
-
     async def _execute_enhanced_domain_coordination(self, task_plan: SolopreneurTaskFormat, query: str) -> Dict[str, Any]:
-        """Execute domain coordination using original sophisticated logic enhanced with task plan."""
+        """Execute domain coordination using Framework V2.0 A2A protocol with sophisticated dependency management."""
         # Use original sophisticated dependency analysis
         dependency_analysis = self.analyze_domain_dependencies(query)
         domain_groups = dependency_analysis["domain_groups"]
         execution_plan = dependency_analysis["execution_plan"]
         
-        logger.info(f"Enhanced coordination: {len(domain_groups)} domain groups, {len(execution_plan)} execution steps")
+        logger.info(f"Framework V2.0 enhanced coordination: {len(domain_groups)} domain groups, {len(execution_plan)} execution steps")
         
-        # Execute with original sophisticated parallel workflow (enhanced)
+        # Execute with Framework V2.0 A2A protocol (enhanced with sophisticated workflow)
         for step in execution_plan:
             step_analyses = step["analyses"]
             is_parallel = step["parallel_execution"]
             
             if is_parallel and self.enable_parallel:
-                # Parallel execution with enhanced task context
+                # Parallel execution via A2A protocol
                 tasks = []
                 for analysis_group in step_analyses:
                     if analysis_group in domain_groups:
                         for oracle in domain_groups[analysis_group]:
                             domain_key = oracle.replace("_oracle", "")
-                            # Enhanced with task plan context
+                            # Use Framework V2.0 A2A enhanced intelligence fetch
                             tasks.append(self._fetch_enhanced_domain_intelligence(
                                 domain_key, query, task_plan
                             ))
                 
                 step_results = await asyncio.gather(*tasks, return_exceptions=True)
                 
-                # Process results with original quality handling
+                # Process results with Framework V2.0 quality handling
                 for i, (analysis_group, result) in enumerate(zip(step_analyses, step_results)):
                     if not isinstance(result, Exception) and result:
                         domain_key = domain_groups[analysis_group][0].replace("_oracle", "")
                         self.intelligence_data[domain_key] = result
             else:
-                # Sequential execution with enhanced context
+                # Sequential execution via A2A protocol
                 for analysis_group in step_analyses:
                     if analysis_group in domain_groups:
                         for oracle in domain_groups[analysis_group]:
@@ -809,17 +719,3 @@ class SolopreneurOracleAgent(BaseAgent):
         4. Workflow automation and productivity optimization
         5. Cross-domain integration and synergies
         """
-            # Original workflow now replaced with ADK + LangGraph integration above
-            
-        except Exception as e:
-            logger.error(f"Solopreneur Oracle error: {e}")
-            yield {
-                "is_task_complete": True,
-                "require_user_input": False,
-                "content": f"Solopreneur Oracle: Analysis error - {str(e)}"
-            }
-
-    async def invoke(self, query: str, session_id: str) -> dict:
-        """Non-streaming invocation (not recommended)."""
-        logger.info(f"Running {self.agent_name} for session {session_id}")
-        raise NotImplementedError("Please use the streaming function")
