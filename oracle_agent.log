@@ -1,0 +1,27 @@
+nohup: ignoring input
+warning: `uv run` is experimental and may change without warning.
+✓ Environment validation passed
+/home/user/solopreneur/.venv/lib/python3.13/site-packages/websockets/legacy/__init__.py:6: DeprecationWarning: websockets.legacy is deprecated; see https://websockets.readthedocs.io/en/stable/howto/upgrade.html for upgrade instructions
+  warnings.warn(  # deprecated in 14.0 - 2024-11-09
+/home/user/solopreneur/.venv/lib/python3.13/site-packages/uvicorn/protocols/websockets/websockets_impl.py:17: DeprecationWarning: websockets.server.WebSocketServerProtocol is deprecated
+  from websockets.server import WebSocketServerProtocol
+INFO:     Started server process [272138]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+ERROR:    [Errno 98] error while attempting to bind on address ('127.0.0.1'INFO:     127.0.0.1:32902 - "GET /.well-known/ai-plugin.json HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60132 - "GET /.well-known/ai-plugin.json HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:33224 - "GET /.well-known/ai-plugin.json HTTP/1.1" 404 Not Found
+Timeout calling technical_intelligence agent on port 10902 (attempt 1/3)
+Timeout calling personal_optimization agent on port 10904 (attempt 1/3)
+Timeout calling technical_intelligence agent on port 10902 (attempt 2/3)
+Timeout calling personal_optimization agent on port 10904 (attempt 2/3)
+Timeout calling technical_intelligence agent on port 10902 (attempt 3/3)
+Timeout calling personal_optimization agent on port 10904 (attempt 3/3)
+Timeout calling integration_synthesis agent on port 10906 (attempt 1/3)
+Timeout calling integration_synthesis agent on port 10906 (attempt 2/3)
+Timeout calling integration_synthesis agent on port 10906 (attempt 3/3)
+Quality issues detected: ['confidence_adequate', 'technical_feasibility_met']
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [271517]

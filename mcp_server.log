@@ -1,5 +1,5 @@
 nohup: ignoring input
-[07/10/25 10:30:53] INFO     Loading agent cards from card repo:    server.py:59
+[07/10/25 10:35:48] INFO     Loading agent cards from card repo:    server.py:59
                              agent_cards                                        
                     INFO     Reading file: car_rental_agent.json    server.py:66
                     INFO     Reading file: oracle_prime_agent.json  server.py:66
@@ -36,7 +36,7 @@ nohup: ignoring input
                              social_sciences_supervisor_agent.json              
                     INFO     Reading file:                          server.py:66
                              technical_intelligence_agent.json                  
-[07/10/25 10:30:54] INFO     Reading file: hotel_booking_agent.json server.py:66
+                    INFO     Reading file: hotel_booking_agent.json server.py:66
                     INFO     Reading file:                          server.py:66
                              knowledge_management_agent.json                    
                     INFO     Reading file:                          server.py:66
@@ -59,9 +59,9 @@ nohup: ignoring input
                     INFO     Finished loading agent cards. Found 31 server.py:83
                              cards.                                             
                     INFO     Generating Embeddings for agent cards  server.py:99
-[07/10/25 10:31:00] INFO     Agent cards MCP Server at             server.py:292
+[07/10/25 10:35:55] INFO     Agent cards MCP Server at             server.py:292
                              localhost:10100 and transport sse                  
-INFO:     Started server process [264645]
+INFO:     Started server process [269824]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 ERROR:    [Errno 98] error while attempting to bind on address ('127.0.0.1', 10100): [errno 98] address already in use
