@@ -36,3 +36,6 @@ Json conversion error Expecting value: line 1 column 1 (char 0)
 INFO:     127.0.0.1:50886 - "GET /.well-known/ai-plugin.json HTTP/1.1" 404 Not Found
 INFO:     127.0.0.1:49114 - "GET /.well-known/ai-plugin.json HTTP/1.1" 404 Not Found
 INFO:     127.0.0.1:37778 - "GET /.well-known/ai-plugin.json HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:44304 - "GET /.well-known/ai-plugin.json HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:47796 - "POST / HTTP/1.1" 200 OK
+Json conversion error Expecting value: line 1 column 1 (char 0)

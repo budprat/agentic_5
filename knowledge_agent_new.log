@@ -18,3 +18,5 @@ INFO:     127.0.0.1:50994 - "POST / HTTP/1.1" 200 OK
 INFO:     127.0.0.1:36894 - "GET /.well-known/ai-plugin.json HTTP/1.1" 404 Not Found
 INFO:     127.0.0.1:40292 - "GET /.well-known/ai-plugin.json HTTP/1.1" 404 Not Found
 INFO:     127.0.0.1:56398 - "GET /.well-known/ai-plugin.json HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:49140 - "GET /.well-known/ai-plugin.json HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:58192 - "POST / HTTP/1.1" 200 OK
