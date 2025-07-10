@@ -253,45 +253,48 @@ class SolopreneurOracleAgent(BaseAgent):
         return parallel_batches
 
     async def fetch_domain_intelligence(self, domain: str, query: str) -> Dict[str, Any]:
-        """Fetch intelligence from domain-specific oracle agents using A2A protocol."""
-        try:
-            logger.info(f"Fetching {domain} intelligence for: {query}")
+        """Fetch intelligence from domain-specific oracle agents using A2A protocol with retry logic."""
+        max_retries = 3
+        retry_delay = 1.0  # Initial retry delay in seconds
+        
+        for attempt in range(max_retries):
+            try:
+                logger.info(f"Fetching {domain} intelligence for: {query} (attempt {attempt + 1}/{max_retries})")
+                
+                # Map domain to port based on our architecture
+                domain_port_map = {
+                    "technical_intelligence": 10902,
+                    "knowledge_management": 10903,
+                    "personal_optimization": 10904,
+                    "learning_enhancement": 10905,
+                    "integration_synthesis": 10906
+                }
+                
+                port = domain_port_map.get(domain)
+                if not port:
+                    logger.error(f"Unknown domain: {domain}")
+                    return {"domain": domain, "error": "Unknown domain"}
+                
+                # Call the domain oracle agent via HTTP using A2A protocol
+                url = f"http://localhost:{port}"
+                
+                # Create proper A2A JSON-RPC request using standardized format
+                from a2a_mcp.agents.solopreneur_oracle.base_solopreneur_agent import create_a2a_request
+                
+                payload = create_a2a_request(
+                    method="message/stream",
+                    message=query,
+                    metadata={"domain": domain, "oracle_request": True}
+                )
+                
+                # Set comprehensive timeout configuration (following nexus pattern)
+                timeout = aiohttp.ClientTimeout(
+                    total=60,      # Total request timeout increased for complex analyses
+                    connect=10,    # Connection timeout
+                    sock_read=30   # Socket read timeout for streaming responses
+                )
             
-            # Map domain to port based on our architecture
-            domain_port_map = {
-                "technical_intelligence": 10902,
-                "knowledge_management": 10903,
-                "personal_optimization": 10904,
-                "learning_enhancement": 10905,
-                "integration_synthesis": 10906
-            }
-            
-            port = domain_port_map.get(domain)
-            if not port:
-                logger.error(f"Unknown domain: {domain}")
-                return {"domain": domain, "error": "Unknown domain"}
-            
-            # Call the domain oracle agent via HTTP using A2A protocol
-            url = f"http://localhost:{port}"
-            
-            # Create proper A2A JSON-RPC request using standardized format
-            from a2a_mcp.agents.solopreneur_oracle.base_solopreneur_agent import create_a2a_request
-            
-            payload = create_a2a_request(
-                method="message/stream",
-                message=query,
-                metadata={"domain": domain, "oracle_request": True}
-            )
-            
-            # Set comprehensive timeout configuration (following nexus pattern)
-            timeout = aiohttp.ClientTimeout(
-                total=60,      # Total request timeout increased for complex analyses
-                connect=10,    # Connection timeout
-                sock_read=30   # Socket read timeout for streaming responses
-            )
-            
-            async with aiohttp.ClientSession(timeout=timeout) as session:
-                try:
+                async with aiohttp.ClientSession(timeout=timeout) as session:
                     async with session.post(url, json=payload) as response:
                         if response.status == 200:
                             content_type = response.headers.get('Content-Type', '')
@@ -301,6 +304,7 @@ class SolopreneurOracleAgent(BaseAgent):
                                 final_content = None
                                 task_id = None
                                 context_id = None
+                                accumulated_content = []
                                 
                                 async for line in response.content:
                                     if line:
@@ -318,23 +322,70 @@ class SolopreneurOracleAgent(BaseAgent):
                                                     if result.get('kind') == 'task':
                                                         task_id = result.get('id')
                                                         context_id = result.get('contextId')
+                                                        logger.info(f"Task created for {domain}: {task_id}")
                                                     
-                                                    # Check for final message with content
-                                                    if result.get('kind') == 'message' and result.get('final'):
-                                                        # Extract text from message parts
-                                                        parts = result.get('parts', [])
-                                                        text_parts = [p.get('text', '') for p in parts if p.get('kind') == 'text']
-                                                        final_content = '\n'.join(text_parts) if text_parts else None
+                                                    # Handle streaming response messages
+                                                    elif result.get('kind') == 'streaming-response':
+                                                        message = result.get('message', {})
+                                                        parts = message.get('parts', [])
+                                                        
+                                                        for part in parts:
+                                                            if part.get('kind') == 'text':
+                                                                text = part.get('text', '')
+                                                                if text:
+                                                                    accumulated_content.append(text)
+                                                        
+                                                        # Check if this is the final message
+                                                        if result.get('final', False):
+                                                            final_content = '\n'.join(accumulated_content)
+                                                            logger.info(f"Received final content from {domain} agent")
+                                                    
+                                                    # Handle artifact updates (alternative response format)
+                                                    elif result.get('kind') == 'artifact-update':
+                                                        artifact = result.get('artifact', {})
+                                                        parts = artifact.get('parts', [])
+                                                        
+                                                        for part in parts:
+                                                            if part.get('kind') == 'text':
+                                                                text = part.get('text', '')
+                                                                if text:
+                                                                    if result.get('append', False):
+                                                                        accumulated_content.append(text)
+                                                                    else:
+                                                                        accumulated_content = [text]
+                                                        
+                                                        # Check if this is the last chunk
+                                                        if result.get('lastChunk', False):
+                                                            final_content = '\n'.join(accumulated_content)
+                                                            logger.info(f"Received final artifact from {domain} agent")
                                                     
                                                     # Check for status update indicating completion
-                                                    elif result.get('kind') == 'status-update' and result.get('final'):
-                                                        logger.info(f"Task {task_id} completed with status: {result.get('status')}")
-                                                        break
+                                                    elif result.get('kind') == 'status-update':
+                                                        status = result.get('status', {})
+                                                        state = status.get('state', '')
+                                                        if result.get('final', False) or state in ['completed', 'failed']:
+                                                            logger.info(f"Task {task_id} {state} for {domain}")
+                                                            if not final_content and accumulated_content:
+                                                                final_content = '\n'.join(accumulated_content)
                                                         
-                                            except json.JSONDecodeError:
-                                                logger.warning(f"Failed to parse SSE data: {data}")
+                                            except json.JSONDecodeError as e:
+                                                logger.warning(f"Failed to parse SSE data: {data[:100]}... Error: {e}")
                                 
                                 if final_content:
+                                    # Try to parse as JSON if it looks like JSON
+                                    try:
+                                        if final_content.strip().startswith('{'):
+                                            analysis_data = json.loads(final_content)
+                                            return {
+                                                "domain": domain.replace('_', ' ').title(),
+                                                "analysis": analysis_data,
+                                                "confidence": 0.85,
+                                                "source": f"Domain Agent (Port {port})"
+                                            }
+                                    except json.JSONDecodeError:
+                                        pass
+                                    
+                                    # Return as text if not JSON
                                     return {
                                         "domain": domain.replace('_', ' ').title(),
                                         "analysis": final_content,
@@ -343,30 +394,58 @@ class SolopreneurOracleAgent(BaseAgent):
                                     }
                                 else:
                                     logger.warning(f"No valid response content from {domain} agent")
+                                    if attempt < max_retries - 1:
+                                        await asyncio.sleep(retry_delay)
+                                        retry_delay *= 2
+                                        continue
                                     return await self._get_fallback_analysis(domain, query)
                             else:
                                 # Handle regular JSON response
                                 result = await response.json()
                                 logger.warning(f"Unexpected non-SSE response from {domain} agent: {result}")
+                                if attempt < max_retries - 1:
+                                    await asyncio.sleep(retry_delay)
+                                    retry_delay *= 2
+                                    continue
                                 return await self._get_fallback_analysis(domain, query)
                         else:
-                            logger.error(f"HTTP {response.status} from {domain} agent")
+                            error_text = await response.text()
+                            logger.error(f"HTTP {response.status} from {domain} agent: {error_text}")
+                            if attempt < max_retries - 1:
+                                await asyncio.sleep(retry_delay)
+                                retry_delay *= 2
+                                continue
                             return await self._get_fallback_analysis(domain, query)
-                            
-                except asyncio.TimeoutError:
-                    logger.error(f"Timeout calling {domain} agent on port {port}")
-                    return await self._get_fallback_analysis(domain, query)
-                except aiohttp.ClientError as e:
-                    logger.error(f"Network error calling {domain} agent: {e}")
-                    return await self._get_fallback_analysis(domain, query)
-            
-        except Exception as e:
-            logger.error(f"Error fetching {domain} analysis: {e}")
-            return {
-                "domain": domain,
-                "error": str(e),
-                "analysis": {"status": "unavailable"}
-            }
+            except asyncio.TimeoutError:
+                logger.error(f"Timeout calling {domain} agent on port {port} (attempt {attempt + 1}/{max_retries})")
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(retry_delay)
+                    retry_delay *= 2  # Exponential backoff
+                    continue
+                return await self._get_fallback_analysis(domain, query)
+            except aiohttp.ClientError as e:
+                logger.error(f"Network error calling {domain} agent: {e} (attempt {attempt + 1}/{max_retries})")
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(retry_delay)
+                    retry_delay *= 2  # Exponential backoff
+                    continue
+                return await self._get_fallback_analysis(domain, query)
+                    
+            except Exception as e:
+                logger.error(f"Error fetching {domain} analysis: {e} (attempt {attempt + 1}/{max_retries})")
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(retry_delay)
+                    retry_delay *= 2  # Exponential backoff
+                    continue
+                return {
+                    "domain": domain,
+                    "error": str(e),
+                    "analysis": {"status": "unavailable"}
+                }
+        
+        # If we've exhausted all retries
+        logger.error(f"All retry attempts failed for {domain} agent")
+        return await self._get_fallback_analysis(domain, query)
     
     async def _get_fallback_analysis(self, domain: str, query: str) -> Dict[str, Any]:
         """Provide fallback analysis when domain agents are unavailable."""
