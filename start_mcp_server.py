@@ -25,6 +25,8 @@ try:
     print("   Tools: find_agent, query_places_data, query_travel_data")
     print("          query_solopreneur_metrics, analyze_energy_patterns")
     print("          track_learning_progress, search_relevant_research")
+    print("          query_knowledge_graph, monitor_technical_trends")
+    print("          optimize_task_schedule, analyze_workflow_patterns")
     
     # Start the MCP server
     serve(host="localhost", port=10100, transport="sse")

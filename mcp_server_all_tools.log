@@ -1,0 +1,71 @@
+warning: `uv run` is experimental and may change without warning.
+[07/10/25 13:11:44] INFO     Loading agent cards from card repo:    server.py:68
+                             agent_cards                                        
+                    INFO     Reading file: car_rental_agent.json    server.py:75
+                    INFO     Reading file: oracle_prime_agent.json  server.py:75
+                    INFO     Reading file:                          server.py:75
+                             trend_correlator_agent.json                        
+                    INFO     Reading file:                          server.py:75
+                             personal_optimization_agent.json                   
+                    INFO     Reading file:                          server.py:75
+                             life_sciences_supervisor_agent.json                
+                    INFO     Reading file:                          server.py:75
+                             psychology_supervisor_agent.json                   
+                    INFO     Reading file:                          server.py:75
+                             sentiment_seeker_agent_brightdata.json             
+                    INFO     Reading file:                          server.py:75
+                             sentiment_seeker_agent.json                        
+                    INFO     Reading file: audio_briefer_agent.json server.py:75
+                    INFO     Reading file: air_ticketing_agent.json server.py:75
+                    INFO     Reading file:                          server.py:75
+                             visualization_synthesis_supervisor_age             
+                             nt.json                                            
+                    INFO     Reading file: nexus_planner_agent.json server.py:75
+                    INFO     Reading file: planner_agent.json       server.py:75
+                    INFO     Reading file:                          server.py:75
+                             cross_domain_analysis_supervisor_agent             
+                             .json                                              
+                    INFO     Reading file:                          server.py:75
+                             economics_policy_supervisor_agent.json             
+                    INFO     Reading file:                          server.py:75
+                             technical_prophet_agent.json                       
+                    INFO     Reading file:                          server.py:75
+                             computer_science_supervisor_agent.json             
+                    INFO     Reading file: risk_guardian_agent.json server.py:75
+                    INFO     Reading file:                          server.py:75
+                             social_sciences_supervisor_agent.json              
+                    INFO     Reading file:                          server.py:75
+                             technical_intelligence_agent.json                  
+                    INFO     Reading file: hotel_booking_agent.json server.py:75
+                    INFO     Reading file:                          server.py:75
+                             knowledge_management_agent.json                    
+                    INFO     Reading file:                          server.py:75
+                             nexus_orchestrator_agent.json                      
+                    INFO     Reading file:                          server.py:75
+                             physical_sciences_supervisor_agent.jso             
+                             n                                                  
+                    INFO     Reading file:                          server.py:75
+                             learning_enhancement_agent.json                    
+                    INFO     Reading file: nexus_oracle_agent.json  server.py:75
+                    INFO     Reading file:                          server.py:75
+                             solopreneur_oracle_agent.json                      
+                    INFO     Reading file:                          server.py:75
+                             fundamental_analyst_agent.json                     
+                    INFO     Reading file: orchestrator_agent.json  server.py:75
+                    INFO     Reading file:                          server.py:75
+                             integration_synthesis_agent.json                   
+                    INFO     Reading file:                          server.py:75
+                             report_synthesizer_agent.json                      
+                    INFO     Finished loading agent cards. Found 31 server.py:92
+                             cards.                                             
+                    INFO     Generating Embeddings for agent cards server.py:108
+[07/10/25 13:11:51] INFO     Agent cards MCP Server at            server.py:1002
+                             localhost:10100 and transport sse                  
+INFO:     Started server process [27362]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:10100 (Press CTRL+C to quit)
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [27362]
