@@ -1,6 +1,2 @@
 warning: `uv run` is experimental and may change without warning.
-Resolved 142 packages in 505ms
-Installed 1 package in 17ms
- - packaging==24.2
- - packaging==25.0
- + packaging==24.2
+error: No such file or directory (os error 2)

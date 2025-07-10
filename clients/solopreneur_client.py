@@ -1,11 +1,12 @@
 """
-AI Solopreneur System Client - WebSocket-enabled client for real-time interaction.
+AI Solopreneur System Client - A2A JSON-RPC Protocol compliant client.
 Supports both REST API and WebSocket connections for streaming updates.
 """
 
 import asyncio
 import json
 import logging
+import uuid
 from typing import Dict, Any, Optional, AsyncIterator
 from datetime import datetime
 import aiohttp
@@ -64,14 +65,33 @@ class SolopreneurClient:
         stream: bool = True,
         include_metrics: bool = True
     ) -> AsyncIterator[Dict[str, Any]]:
-        """Send request to Solopreneur Oracle with streaming support."""
+        """Send request to Solopreneur Oracle using A2A JSON-RPC protocol."""
         
+        # Generate IDs for A2A protocol
+        request_id = str(uuid.uuid4())
+        message_id = str(uuid.uuid4())
+        
+        # Create A2A JSON-RPC request
         request_data = {
-            "query": query,
-            "context_id": self.context_id,
-            "task_id": f"task-{datetime.now().timestamp()}",
-            "include_metrics": include_metrics,
-            "stream": stream
+            "jsonrpc": "2.0",
+            "id": request_id,
+            "method": "message/stream" if stream else "message/send",
+            "params": {
+                "message": {
+                    "role": "user",
+                    "parts": [
+                        {
+                            "kind": "text",
+                            "text": query
+                        }
+                    ],
+                    "messageId": message_id,
+                    "kind": "message"
+                },
+                "metadata": {
+                    "include_metrics": include_metrics
+                }
+            }
         }
         
         # Try WebSocket first if available and streaming requested
@@ -91,25 +111,88 @@ class SolopreneurClient:
                 console.print("[yellow]Switching to REST API[/yellow]")
                 # Fall through to REST API
         
-        # REST API fallback or primary method
-        endpoint = f"{self.orchestrator_url}/stream" if stream else f"{self.orchestrator_url}/query"
-        
+        # REST API with A2A JSON-RPC protocol
         async with self.session.post(
-            endpoint,
+            self.orchestrator_url,  # Direct URL, no /stream endpoint
             json=request_data,
             headers={"Content-Type": "application/json"}
         ) as response:
-            if stream:
+            if response.status != 200:
+                error_text = await response.text()
+                yield {
+                    "error": f"HTTP {response.status}: {error_text}",
+                    "is_task_complete": True
+                }
+                return
+            
+            content_type = response.headers.get('Content-Type', '')
+            
+            if stream and 'text/event-stream' in content_type:
+                # Handle SSE stream response
                 async for line in response.content:
                     if line:
-                        try:
-                            data = json.loads(line.decode('utf-8').strip())
-                            yield data
-                        except json.JSONDecodeError:
-                            continue
+                        line_str = line.decode('utf-8').strip()
+                        if line_str.startswith('data: '):
+                            data_str = line_str[6:]  # Remove 'data: ' prefix
+                            try:
+                                event = json.loads(data_str)
+                                
+                                if 'result' in event and isinstance(event['result'], dict):
+                                    result = event['result']
+                                    
+                                    # Convert A2A format to client expected format
+                                    if result.get('kind') == 'task':
+                                        yield {
+                                            "content": f"Task created: {result.get('id')}",
+                                            "is_task_complete": False,
+                                            "task_id": result.get('id'),
+                                            "context_id": result.get('contextId')
+                                        }
+                                    elif result.get('kind') == 'status-update':
+                                        yield {
+                                            "content": f"Status: {result.get('status', {}).get('state')}",
+                                            "is_task_complete": result.get('final', False)
+                                        }
+                                    elif result.get('kind') == 'streaming-response':
+                                        message = result.get('message', {})
+                                        parts = message.get('parts', [])
+                                        for part in parts:
+                                            if part.get('kind') == 'text':
+                                                yield {
+                                                    "content": part.get('text'),
+                                                    "is_task_complete": result.get('final', False),
+                                                    "response_type": "data" if result.get('final') else "stream"
+                                                }
+                                
+                            except json.JSONDecodeError as e:
+                                logger.warning(f"Failed to parse SSE data: {e}")
             else:
-                data = await response.json()
-                yield data
+                # Regular JSON response
+                response_data = await response.json()
+                
+                if 'error' in response_data:
+                    yield {
+                        "error": response_data['error'],
+                        "is_task_complete": True
+                    }
+                elif 'result' in response_data:
+                    # Handle non-streaming response
+                    result = response_data['result']
+                    if result.get('kind') == 'message':
+                        parts = result.get('parts', [])
+                        for part in parts:
+                            if part.get('kind') == 'text':
+                                yield {
+                                    "content": part.get('text'),
+                                    "is_task_complete": True,
+                                    "response_type": "data"
+                                }
+                    else:
+                        yield {
+                            "content": result,
+                            "is_task_complete": True,
+                            "response_type": "data"
+                        }
     
     async def analyze_technical_intelligence(self, research_areas: list[str]) -> None:
         """Analyze technical intelligence for given research areas."""

@@ -58,16 +58,22 @@ class UnifiedSolopreneurAgent(BaseAgent):
     async def init_agent(self):
         """Initialize with domain-specific MCP tools following ADK framework pattern."""
         logger.info(f'Initializing {self.agent_name} metadata')
-        config = get_mcp_server_config()
-        logger.info(f'MCP Server url={config.url}')
         
-        # Load MCP tools following ADK pattern from adk_travel_agent.py
-        tools = await MCPToolset(
-            connection_params=SseConnectionParams(url=config.url)
-        ).get_tools()
-        
-        for tool in tools:
-            logger.info(f'Loaded tools {tool.name}')
+        # Try to load MCP tools, but continue without them if unavailable
+        tools = []
+        try:
+            config = get_mcp_server_config()
+            logger.info(f'MCP Server url={config.url}')
+            
+            # Load MCP tools following ADK pattern from adk_travel_agent.py
+            tools = await MCPToolset(
+                connection_params=SseConnectionParams(url=config.url)
+            ).get_tools()
+            
+            for tool in tools:
+                logger.info(f'Loaded tools {tool.name}')
+        except Exception as e:
+            logger.warning(f'Could not connect to MCP server: {e}. Continuing without MCP tools.')
             
         generate_content_config = genai_types.GenerateContentConfig(
             temperature=0.0

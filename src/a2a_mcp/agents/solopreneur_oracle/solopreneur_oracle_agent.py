@@ -272,13 +272,31 @@ class SolopreneurOracleAgent(BaseAgent):
                 return {"domain": domain, "error": "Unknown domain"}
             
             # Call the domain oracle agent via HTTP using A2A protocol
-            url = f"http://localhost:{port}/stream"
+            url = f"http://localhost:{port}"
             
-            # Create A2A protocol request payload
+            # Create proper A2A JSON-RPC request with message/stream method
+            import uuid
+            request_id = str(uuid.uuid4())
+            message_id = str(uuid.uuid4())
+            
             payload = {
-                "query": query,
-                "context_id": f"oracle-{domain}-{int(asyncio.get_event_loop().time())}",
-                "task_id": f"task-{domain}-{int(asyncio.get_event_loop().time())}"
+                "jsonrpc": "2.0",
+                "id": request_id,
+                "method": "message/stream",
+                "params": {
+                    "message": {
+                        "role": "user",
+                        "parts": [
+                            {
+                                "kind": "text",
+                                "text": query
+                            }
+                        ],
+                        "messageId": message_id,
+                        "kind": "message"
+                    },
+                    "metadata": {}
+                }
             }
             
             # Set timeout for domain agent calls
@@ -288,26 +306,60 @@ class SolopreneurOracleAgent(BaseAgent):
                 try:
                     async with session.post(url, json=payload) as response:
                         if response.status == 200:
-                            # Parse streaming response from domain agent
-                            final_content = None
-                            async for line in response.content:
-                                if line:
-                                    try:
-                                        chunk = json.loads(line.decode('utf-8'))
-                                        if chunk.get('is_task_complete') and chunk.get('content'):
-                                            final_content = chunk['content']
-                                    except json.JSONDecodeError:
-                                        continue
+                            content_type = response.headers.get('Content-Type', '')
                             
-                            if final_content:
-                                return {
-                                    "domain": domain.replace('_', ' ').title(),
-                                    "analysis": final_content,
-                                    "confidence": 0.85,  # Default confidence for structured responses
-                                    "source": f"Domain Agent (Port {port})"
-                                }
+                            # Handle SSE stream response
+                            if 'text/event-stream' in content_type:
+                                final_content = None
+                                task_id = None
+                                context_id = None
+                                
+                                async for line in response.content:
+                                    if line:
+                                        line_str = line.decode('utf-8').strip()
+                                        if line_str.startswith('data: '):
+                                            data = line_str[6:]  # Remove 'data: ' prefix
+                                            try:
+                                                event = json.loads(data)
+                                                
+                                                # Extract task information
+                                                if 'result' in event and isinstance(event['result'], dict):
+                                                    result = event['result']
+                                                    
+                                                    # Get task ID and context ID from initial response
+                                                    if result.get('kind') == 'task':
+                                                        task_id = result.get('id')
+                                                        context_id = result.get('contextId')
+                                                    
+                                                    # Check for final message with content
+                                                    if result.get('kind') == 'message' and result.get('final'):
+                                                        # Extract text from message parts
+                                                        parts = result.get('parts', [])
+                                                        text_parts = [p.get('text', '') for p in parts if p.get('kind') == 'text']
+                                                        final_content = '\n'.join(text_parts) if text_parts else None
+                                                    
+                                                    # Check for status update indicating completion
+                                                    elif result.get('kind') == 'status-update' and result.get('final'):
+                                                        logger.info(f"Task {task_id} completed with status: {result.get('status')}")
+                                                        break
+                                                        
+                                            except json.JSONDecodeError:
+                                                logger.warning(f"Failed to parse SSE data: {data}")
+                                
+                                if final_content:
+                                    return {
+                                        "domain": domain.replace('_', ' ').title(),
+                                        "analysis": final_content,
+                                        "confidence": 0.85,
+                                        "source": f"Domain Agent (Port {port})"
+                                    }
+                                else:
+                                    logger.warning(f"No valid response content from {domain} agent")
+                                    return await self._get_fallback_analysis(domain, query)
                             else:
-                                logger.warning(f"No valid response from {domain} agent")
+                                # Handle regular JSON response
+                                result = await response.json()
+                                logger.warning(f"Unexpected non-SSE response from {domain} agent: {result}")
                                 return await self._get_fallback_analysis(domain, query)
                         else:
                             logger.error(f"HTTP {response.status} from {domain} agent")

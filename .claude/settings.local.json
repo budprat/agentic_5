@@ -71,7 +71,11 @@
       "Bash(env)",
       "Bash(./run_solopreneur_agents.sh:*)",
       "Bash(./stop_solopreneur_agents.sh:*)",
-      "Bash(./check_solopreneur_status.sh:*)"
+      "Bash(./check_solopreneur_status.sh:*)",
+      "Bash(./start_a2a_mcp_server.sh:*)",
+      "Bash(true)",
+      "Bash(echo:*)",
+      "Bash(pgrep:*)"
     ],
     "deny": []
   },
