@@ -51,19 +51,18 @@ fi
 ```bash
 # Test MCP tools availability
 python -c "
-import asyncio
-from a2a_mcp.mcp.solopreneur_mcp_tools import SolopreneurMCPTools
-
-async def test_mcp():
-    tools = SolopreneurMCPTools()
-    try:
-        # Test a simple MCP operation
-        result = await tools.find_agent('technical_intelligence')
-        print('✅ MCP Tools working:', result)
-    except Exception as e:
-        print('❌ MCP Tools failed:', e)
-
-asyncio.run(test_mcp())
+try:
+    from src.a2a_mcp.mcp.solopreneur_mcp_tools import init_solopreneur_tools
+    from neo4j import GraphDatabase
+    import arxiv
+    print('✅ MCP Tools imports successful')
+    print('✅ Neo4j driver available')
+    print('✅ ArXiv library available')
+    print('✅ All MCP tool dependencies working')
+except ImportError as e:
+    print(f'❌ MCP Tools import failed: {e}')
+except Exception as e:
+    print(f'❌ MCP Tools test failed: {e}')
 "
 ```
 

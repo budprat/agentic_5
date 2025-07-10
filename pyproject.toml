@@ -28,6 +28,7 @@ dependencies = [
     "python-dotenv>=1.0.0",
     "feedparser>=6.0.10",
     "requests>=2.32.0",
+    "neo4j>=5.28.0",
 ]
 
 [project.scripts]

@@ -2906,6 +2906,23 @@ timeout = aiohttp.ClientTimeout(
 - **Response Time**: Optimized timeout configuration
 - **System Resilience**: Graceful degradation when agents unavailable
 
+### 10.5 Dependencies Fixed
+
+**Issue**: `ModuleNotFoundError: No module named 'neo4j'` when testing MCP tools.
+
+**Root Cause**: Missing Neo4j Python driver dependency required by `solopreneur_mcp_tools.py`.
+
+**Fix Applied**:
+1. **Installed Neo4j driver**: `uv pip install neo4j` 
+2. **Updated pyproject.toml**: Added `"neo4j>=5.28.0"` to dependencies
+3. **Updated testing workflow**: Corrected MCP tools test to use `init_solopreneur_tools` function instead of non-existent `SolopreneurMCPTools` class
+
+**Files Modified**:
+- `pyproject.toml`: Added neo4j dependency 
+- `TESTING_WORKFLOW.md`: Corrected MCP tools import test
+
+**Test Results**: All MCP tool dependencies now working correctly.
+
 ---
 
 ## 11. Conclusion
