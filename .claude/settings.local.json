@@ -75,7 +75,10 @@
       "Bash(./start_a2a_mcp_server.sh:*)",
       "Bash(true)",
       "Bash(echo:*)",
-      "Bash(pgrep:*)"
+      "Bash(pgrep:*)",
+      "Bash(./run_mcp_server.sh:*)",
+      "Bash(# First, check if Oracle is still trying to run\nps aux | grep \"\"10901\"\" | grep -v grep | awk ''{print $2}'' | xargs -r kill -9 2>/dev/null\n\n# Export the environment variable\nexport GOOGLE_API_KEY=$(grep GOOGLE_API_KEY .env | cut -d ''='' -f2 | tr -d ''\"\"'')\n\n# Start the Oracle agent properly\n\\\nexport GOOGLE_API_KEY=\"\"$GOOGLE_API_KEY\"\" && \\\nuv run python src/a2a_mcp/agents/__main__.py --agent-card agent_cards/solopreneur_oracle_agent.json --port 10901 > logs/oracle_restart2.log 2>&1 &\n\necho \"\"Starting Oracle agent with API key...\"\"\nsleep 5)",
+      "Bash(# Start Oracle agent with proper environment\nexport GOOGLE_API_KEY=$(grep GOOGLE_API_KEY .env | cut -d ''='' -f2 | tr -d ''\"\"'')\ncd /home/user/solopreneur\nuv run python src/a2a_mcp/agents/__main__.py --agent-card agent_cards/solopreneur_oracle_agent.json --port 10901 > logs/oracle_restart3.log 2>&1 &\n\necho \"\"Oracle agent starting...\"\"\nsleep 8)"
     ],
     "deny": []
   },

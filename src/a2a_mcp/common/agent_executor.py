@@ -66,7 +66,7 @@ class GenericAgentExecutor(AgentExecutor):
             require_user_input = item['require_user_input']
 
             if is_task_complete:
-                if item['response_type'] == 'data':
+                if item.get('response_type', 'text') == 'data':
                     part = DataPart(data=item['content'])
                 else:
                     part = TextPart(text=item['content'])

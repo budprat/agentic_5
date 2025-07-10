@@ -326,18 +326,39 @@ class SolopreneurOracleTestSuite:
         """Check individual agent health."""
         try:
             async with aiohttp.ClientSession() as session:
-                # Try multiple endpoints
-                endpoints = ["/", "/health", "/status"]
-                for endpoint in endpoints:
-                    try:
-                        async with session.get(
-                            f"http://localhost:{port}{endpoint}",
-                            timeout=aiohttp.ClientTimeout(total=2)
-                        ) as response:
-                            if response.status in [200, 405]:  # 405 for GET on POST-only endpoints
-                                return True
-                    except:
-                        continue
+                # For A2A agents, we need to check if they accept POST requests
+                # Try a simple GET first to see if service is up
+                try:
+                    async with session.get(
+                        f"http://localhost:{port}/",
+                        timeout=aiohttp.ClientTimeout(total=2)
+                    ) as response:
+                        # 404 or 405 means the service is running but doesn't accept GET
+                        if response.status in [404, 405]:
+                            return True
+                        elif response.status == 200:
+                            return True
+                except:
+                    pass
+                    
+                # Try a minimal JSON-RPC health check
+                try:
+                    health_request = {
+                        "jsonrpc": "2.0",
+                        "id": "health-check",
+                        "method": "health",
+                        "params": {}
+                    }
+                    async with session.post(
+                        f"http://localhost:{port}/",
+                        json=health_request,
+                        timeout=aiohttp.ClientTimeout(total=2)
+                    ) as response:
+                        # Any response means the service is up
+                        return True
+                except:
+                    pass
+                    
                 return False
         except:
             return False
@@ -362,13 +383,18 @@ class SolopreneurOracleTestSuite:
                 }
                 
                 async with session.post(
-                    self.base_url,
+                    self.base_url,  # POST to main endpoint
                     json=request_data,
+                    headers={"Content-Type": "application/json"},
                     timeout=aiohttp.ClientTimeout(total=10)
                 ) as response:
                     if response.status == 200:
                         data = await response.json()
                         return all(field in data for field in expected_fields)
+                    else:
+                        logger.debug(f"JSON-RPC request returned status {response.status}")
+                        text = await response.text()
+                        logger.debug(f"Response: {text}")
                     return False
         except Exception as e:
             logger.debug(f"JSON-RPC request failed: {e}")
