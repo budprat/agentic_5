@@ -405,12 +405,32 @@ class SolopreneurOracleChat:
                         result = await response.json()
                         self.print_colored(f"✅ {agent['name']} responded in {response_time:.1f}s", Colors.GREEN)
                         
-                        # Extract and display basic response info
+                        # Extract and display response content
                         if 'result' in result:
                             response_data = result['result']
                             if response_data.get('kind') == 'task':
                                 task_id = response_data.get('id')
                                 self.print_colored(f"📋 Task created: {task_id}", Colors.DIM)
+                                
+                                # Extract artifacts and display content
+                                artifacts = response_data.get('artifacts', [])
+                                if artifacts:
+                                    artifact = artifacts[0]
+                                    parts = artifact.get('parts', [])
+                                    
+                                    for part in parts:
+                                        if part.get('kind') == 'data' and 'data' in part:
+                                            # Display structured data response
+                                            data_content = part['data']
+                                            self.print_colored(f"\n📄 {agent['name']} Analysis:", Colors.BOLD + Colors.CYAN)
+                                            self._display_domain_analysis(data_content)
+                                            break
+                                        elif part.get('kind') == 'text' and 'text' in part:
+                                            # Display text response
+                                            text_content = part['text']
+                                            self.print_colored(f"\n📄 {agent['name']} Response:", Colors.CYAN)
+                                            print(f"{text_content}\n")
+                                            break
                         
                         return {"status": "success", "data": result, "response_time": response_time}
                     else:
@@ -422,6 +442,33 @@ class SolopreneurOracleChat:
             response_time = time.time() - start_time
             self.print_colored(f"❌ {agent['name']} Communication Error: {e}", Colors.RED)
             return {"error": str(e), "response_time": response_time}
+    
+    def _display_domain_analysis(self, analysis: Dict[str, Any]):
+        """Display formatted analysis from domain agents."""
+        print("="*50)
+        
+        # Check if it's a structured analysis response
+        if isinstance(analysis, dict):
+            for key, value in analysis.items():
+                if key == 'analysis' and isinstance(value, str):
+                    print(f"📊 Analysis: {value}")
+                elif key == 'recommendations' and isinstance(value, list):
+                    print(f"💡 Recommendations:")
+                    for i, rec in enumerate(value[:3], 1):
+                        print(f"   {i}. {rec}")
+                elif key == 'tools' and isinstance(value, list):
+                    print(f"🛠️  Tools: {', '.join(value[:5])}")
+                elif key == 'assessment' and isinstance(value, dict):
+                    print(f"⚖️  Assessment:")
+                    for assess_key, assess_value in value.items():
+                        print(f"   {assess_key}: {assess_value}")
+                elif isinstance(value, (str, int, float)) and len(str(value)) < 200:
+                    print(f"📋 {key.replace('_', ' ').title()}: {value}")
+        else:
+            # Fallback for non-dict responses
+            print(f"📊 Response: {str(analysis)[:500]}")
+        
+        print("="*50 + "\n")
     
     def show_performance_metrics(self):
         """Display session performance metrics."""

@@ -20,3 +20,4 @@ INFO:     127.0.0.1:50210 - "GET /.well-known/ai-plugin.json HTTP/1.1" 404 Not F
 INFO:     127.0.0.1:56776 - "GET /.well-known/ai-plugin.json HTTP/1.1" 404 Not Found
 INFO:     127.0.0.1:37182 - "GET /.well-known/ai-plugin.json HTTP/1.1" 404 Not Found
 INFO:     127.0.0.1:50992 - "GET /.well-known/ai-plugin.json HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:47632 - "GET /.well-known/ai-plugin.json HTTP/1.1" 404 Not Found

@@ -54,3 +54,4 @@ No valid response content from technical_intelligence agent
 No valid response content from technical_intelligence agent
 Quality issues detected: ['confidence_adequate', 'technical_feasibility_met', 'personal_sustainability_met']
 INFO:     127.0.0.1:60058 - "POST / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57432 - "GET /.well-known/ai-plugin.json HTTP/1.1" 404 Not Found

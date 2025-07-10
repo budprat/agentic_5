@@ -45,3 +45,4 @@ Json conversion error Expecting value: line 1 column 1 (char 0)
 INFO:     127.0.0.1:38022 - "POST / HTTP/1.1" 200 OK
 INFO:     127.0.0.1:38038 - "POST / HTTP/1.1" 200 OK
 INFO:     127.0.0.1:60780 - "POST / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49628 - "GET /.well-known/ai-plugin.json HTTP/1.1" 404 Not Found

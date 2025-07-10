@@ -20,3 +20,7 @@ INFO:     127.0.0.1:40292 - "GET /.well-known/ai-plugin.json HTTP/1.1" 404 Not F
 INFO:     127.0.0.1:56398 - "GET /.well-known/ai-plugin.json HTTP/1.1" 404 Not Found
 INFO:     127.0.0.1:49140 - "GET /.well-known/ai-plugin.json HTTP/1.1" 404 Not Found
 INFO:     127.0.0.1:58192 - "POST / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41922 - "GET /.well-known/ai-plugin.json HTTP/1.1" 404 Not Found
+Warning: there are non-text parts in the response: ['function_call'], returning concatenated text result from text parts. Check the full candidates.content.parts accessor to get the full model response.
+Json conversion error Expecting value: line 1 column 1 (char 0)
+INFO:     127.0.0.1:35822 - "POST / HTTP/1.1" 200 OK
