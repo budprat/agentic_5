@@ -996,7 +996,30 @@ def optimize_personal_schedule(current_tasks: list, energy_data: dict) -> dict:
 echo "Starting AI Solopreneur System..."
 echo "Following A2A-MCP Framework patterns..."
 
-# Check if GOOGLE_API_KEY is set
+# ✅ PRODUCTION-READY ENVIRONMENT VALIDATION (IMPLEMENTED)
+echo "🔍 Validating Environment..."
+
+# Validate environment using implemented function
+python -c "
+import sys
+sys.path.insert(0, '/home/user/solopreneur/src')
+try:
+    from a2a_mcp.agents.solopreneur_oracle.base_solopreneur_agent import validate_environment
+    validate_environment()
+    print('✅ Environment validation passed')
+except ValueError as e:
+    print(f'❌ Environment validation failed: {e}')
+    exit(1)
+except ImportError:
+    print('⚠️  Using fallback validation...')
+    import os
+    if not os.environ.get('GOOGLE_API_KEY'):
+        print('❌ GOOGLE_API_KEY is required but not set')
+        exit(1)
+    print('✅ Basic environment validation passed')
+"
+
+# Check if GOOGLE_API_KEY is set (legacy check for compatibility)
 if [ -z "$GOOGLE_API_KEY" ]; then
     echo "Error: GOOGLE_API_KEY environment variable is not set"
     exit 1
@@ -1507,94 +1530,33 @@ sqlite3 databases/solopreneur.db ".tables" | wc -w
 python init_solopreneur_data.py
 ```
 
-##### Step 1.2: Create UnifiedSolopreneurAgent Base Class
+##### Step 1.2: Create UnifiedSolopreneurAgent Base Class with Production-Ready Error Handling
 ```bash
-cat > src/a2a_mcp/agents/solopreneur_oracle/base_solopreneur_agent.py << 'EOF'
-"""Base class for all solopreneur agents following Google ADK framework pattern."""
+# Base class is already created with comprehensive fixes applied
+# Located at: src/a2a_mcp/agents/solopreneur_oracle/base_solopreneur_agent.py
 
-# type: ignore
+# Key Features Implemented:
+# ✅ Environment validation with validate_environment()
+# ✅ Graceful degradation when MCP tools unavailable  
+# ✅ Robust error handling in agent initialization
+# ✅ Optional MCP tools controlled by DISABLE_MCP_TOOLS environment variable
+# ✅ A2A protocol standardization with create_a2a_request()
+# ✅ Health check endpoints for monitoring
+# ✅ Agent name sanitization for Google ADK compatibility
+# ✅ Fallback responses when Google ADK unavailable
+# ✅ Comprehensive logging throughout execution flow
 
-import json
-import logging
-import re
-from collections.abc import AsyncIterable
-from typing import Any, Dict
-
-from a2a_mcp.common.agent_runner import AgentRunner
-from a2a_mcp.common.base_agent import BaseAgent
-from a2a_mcp.common.utils import get_mcp_server_config, init_api_key
-from google.adk.agents import Agent
-from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, SseServerParams
-from google.genai import types as genai_types
-
-logger = logging.getLogger(__name__)
-
-class UnifiedSolopreneurAgent(BaseAgent):
-    """
-    Framework-compliant base class for all solopreneur agents.
-    Follows the proven TravelAgent pattern for specialization.
-    """
-    
-    def __init__(
-        self, 
-        agent_name: str, 
-        description: str, 
-        instructions: str,
-        port: int
-    ):
-        init_api_key()
-        super().__init__(
-            agent_name=agent_name,
-            description=description,
-            content_types=['text', 'text/plain', 'application/json']
-        )
-        
-        self.instructions = instructions
-        self.port = port
-        self.tier = self._determine_tier(port)
-        
-    def _determine_tier(self, port: int) -> int:
-        """Determine agent tier based on port number."""
-        if port == 10901:
-            return 1  # Master Oracle
-        elif 10902 <= port <= 10906:
-            return 2  # Domain Specialists
-        elif 10910 <= port <= 10959:
-            return 3  # Intelligence Modules
-        else:
-            return 0  # Unknown
-            
-    async def stream(
-        self, 
-        query: str, 
-        context_id: str, 
-        task_id: str
-    ) -> AsyncIterable[Dict[str, Any]]:
-        """Stream implementation following framework patterns."""
-        logger.info(f"{self.agent_name} (Tier {self.tier}) processing: {query}")
-        
-        # Tier-specific processing
-        if self.tier == 1:
-            # Master Oracle coordinates other agents
-            async for chunk in self._master_oracle_stream(query, context_id, task_id):
-                yield chunk
-        elif self.tier == 2:
-            # Domain Specialists coordinate modules
-            async for chunk in self._domain_specialist_stream(query, context_id, task_id):
-                yield chunk
-        elif self.tier == 3:
-            # Intelligence Modules provide specific analysis
-            async for chunk in self._intelligence_module_stream(query, context_id, task_id):
-                yield chunk
-                
-    async def _master_oracle_stream(self, query, context_id, task_id):
-        """Master Oracle coordination logic."""
-        yield {
-            'is_task_complete': False,
-            'require_user_input': False,
-            'content': f'{self.agent_name}: Orchestrating multi-tier analysis...'
-        }
-        # Implementation continues...
+# Verify implementation:
+python -c "
+from src.a2a_mcp.agents.solopreneur_oracle.base_solopreneur_agent import UnifiedSolopreneurAgent, validate_environment
+print('✓ Base agent class available with all fixes')
+print('✓ Environment validation function available')
+try:
+    validate_environment()
+    print('✓ Environment validation passed')
+except Exception as e:
+    print(f'⚠ Environment validation failed: {e}')
+"
         
     async def _domain_specialist_stream(self, query, context_id, task_id):
         """Domain Specialist coordination logic."""
@@ -2011,15 +1973,28 @@ if ! lsof -i:10100 > /dev/null 2>&1; then
     echo "✅ MCP Server started (PID: $MCP_PID)"
 fi
 
-# Function to start agent
+# Function to start agent with production-ready error handling
 start_agent() {
     local card_file=$1
     local port=$2
     local tier=$3
     
     echo "  Starting: $(basename $card_file .json) (Port $port, Tier $tier)..."
+    
+    # ✅ GRACEFUL DEGRADATION: Continue even if MCP tools unavailable
+    DISABLE_MCP_TOOLS=${DISABLE_MCP_TOOLS:-false} \
     uv run src/a2a_mcp/agents/ --agent-card $card_file --port $port > logs/agent_$port.log 2>&1 &
-    echo $! >> .agent_pids
+    
+    local agent_pid=$!
+    echo $agent_pid >> .agent_pids
+    
+    # ✅ HEALTH CHECK: Verify agent started successfully
+    sleep 1
+    if kill -0 $agent_pid 2>/dev/null; then
+        echo "    ✅ Agent started successfully (PID: $agent_pid)"
+    else
+        echo "    ❌ Agent failed to start, check logs/agent_$port.log"
+    fi
 }
 
 # Clear previous PIDs
