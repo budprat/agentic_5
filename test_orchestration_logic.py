@@ -6,7 +6,7 @@ import sys
 import os
 sys.path.insert(0, '/home/solopreneur/src')
 
-from a2a_mcp.agents.solopreneur_oracle.solopreneur_oracle_agent import SolopreneurOracleAgent
+from a2a_mcp.agents.solopreneur_oracle.solopreneur_oracle_agent_adk import SolopreneurOracleAgent
 
 class MockOrchestrationTest:
     def __init__(self):

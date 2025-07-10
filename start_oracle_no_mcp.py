@@ -16,7 +16,7 @@ load_dotenv()
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
 # Import after path setup
-from a2a_mcp.agents.solopreneur_oracle.solopreneur_oracle_agent import SolopreneurOracleAgent
+from a2a_mcp.agents.solopreneur_oracle.solopreneur_oracle_agent_adk import SolopreneurOracleAgent
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')

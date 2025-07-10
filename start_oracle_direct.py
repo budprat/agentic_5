@@ -8,7 +8,7 @@ import os
 from a2a.server.apps.jsonrpc.starlette_app import A2AStarletteApplication
 from a2a.server.request_handlers.default_request_handler import DefaultRequestHandler
 from a2a_mcp.common.agent_executor import GenericAgentExecutor
-from a2a_mcp.agents.solopreneur_oracle.solopreneur_oracle_agent import SolopreneurOracleAgent
+from a2a_mcp.agents.solopreneur_oracle.solopreneur_oracle_agent_adk import SolopreneurOracleAgent
 from a2a.server.tasks import InMemoryTaskStore
 from a2a.types import AgentCard
 import uvicorn

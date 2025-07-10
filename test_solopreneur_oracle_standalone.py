@@ -37,7 +37,7 @@ def test_basic_functionality():
         a2a_mcp.common.base_agent.BaseAgent = MockBaseAgent
         
         # Now import the solopreneur oracle agent
-        from a2a_mcp.agents.solopreneur_oracle.solopreneur_oracle_agent import SolopreneurOracleAgent
+        from a2a_mcp.agents.solopreneur_oracle.solopreneur_oracle_agent_adk import SolopreneurOracleAgent
         
         print("✅ Test 1: Successfully imported SolopreneurOracleAgent")
         
@@ -149,7 +149,7 @@ def test_architecture_compliance():
         a2a_mcp.common.base_agent.BaseAgent = MockBaseAgent
         
         # Import the agent
-        from a2a_mcp.agents.solopreneur_oracle.solopreneur_oracle_agent import SolopreneurOracleAgent
+        from a2a_mcp.agents.solopreneur_oracle.solopreneur_oracle_agent_adk import SolopreneurOracleAgent
         
         agent = SolopreneurOracleAgent()
         

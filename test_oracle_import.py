@@ -15,7 +15,7 @@ try:
     os.environ['GOOGLE_API_KEY'] = 'AIzaSyBGUGI7fZQT06Hl49OKcTMS5BgPEqC8fvY'
     
     # Try importing the Oracle agent
-    from src.a2a_mcp.agents.solopreneur_oracle.solopreneur_oracle_agent import SolopreneurOracleAgent
+    from src.a2a_mcp.agents.solopreneur_oracle.solopreneur_oracle_agent_adk import SolopreneurOracleAgent
     print("✅ Oracle agent imported successfully")
     
     # Try creating an instance

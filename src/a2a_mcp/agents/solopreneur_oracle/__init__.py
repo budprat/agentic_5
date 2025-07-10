@@ -3,9 +3,9 @@
 from .base_solopreneur_agent import UnifiedSolopreneurAgent
 from .agent_registry import SOLOPRENEUR_AGENTS, create_agent, get_agents_by_tier, get_agent_count
 
-# Import the original oracle agent if it exists
+# Import the Framework V2.0 compliant oracle agent if it exists
 try:
-    from .solopreneur_oracle_agent import SolopreneurOracleAgent
+    from .solopreneur_oracle_agent_adk import SolopreneurOracleAgent
 except ImportError:
     # Use UnifiedSolopreneurAgent for the master oracle
     class SolopreneurOracleAgent(UnifiedSolopreneurAgent):

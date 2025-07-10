@@ -19,7 +19,7 @@ class Phase23Validator:
         print("🧪 Validating Oracle Agent Implementation")
         print("=" * 50)
         
-        oracle_file = self.base_path / "src/a2a_mcp/agents/solopreneur_oracle/solopreneur_oracle_agent.py"
+        oracle_file = self.base_path / "src/a2a_mcp/agents/solopreneur_oracle/solopreneur_oracle_agent_adk.py"
         
         if oracle_file.exists():
             content = oracle_file.read_text()
@@ -207,7 +207,7 @@ class Phase23Validator:
         print("\n🧪 Validating Orchestration Logic Implementation")
         print("=" * 50)
         
-        oracle_file = self.base_path / "src/a2a_mcp/agents/solopreneur_oracle/solopreneur_oracle_agent.py"
+        oracle_file = self.base_path / "src/a2a_mcp/agents/solopreneur_oracle/solopreneur_oracle_agent_adk.py"
         
         if oracle_file.exists():
             content = oracle_file.read_text()
