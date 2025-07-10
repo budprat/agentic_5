@@ -274,30 +274,14 @@ class SolopreneurOracleAgent(BaseAgent):
             # Call the domain oracle agent via HTTP using A2A protocol
             url = f"http://localhost:{port}"
             
-            # Create proper A2A JSON-RPC request with message/stream method
-            import uuid
-            request_id = str(uuid.uuid4())
-            message_id = str(uuid.uuid4())
+            # Create proper A2A JSON-RPC request using standardized format
+            from a2a_mcp.agents.solopreneur_oracle.base_solopreneur_agent import create_a2a_request
             
-            payload = {
-                "jsonrpc": "2.0",
-                "id": request_id,
-                "method": "message/stream",
-                "params": {
-                    "message": {
-                        "role": "user",
-                        "parts": [
-                            {
-                                "kind": "text",
-                                "text": query
-                            }
-                        ],
-                        "messageId": message_id,
-                        "kind": "message"
-                    },
-                    "metadata": {}
-                }
-            }
+            payload = create_a2a_request(
+                method="message/stream",
+                message=query,
+                metadata={"domain": domain, "oracle_request": True}
+            )
             
             # Set timeout for domain agent calls
             timeout = aiohttp.ClientTimeout(total=45, connect=10)

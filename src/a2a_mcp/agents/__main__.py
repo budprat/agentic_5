@@ -11,6 +11,9 @@ import click
 import httpx
 import uvicorn
 
+# Add environment validation
+from a2a_mcp.agents.solopreneur_oracle.base_solopreneur_agent import validate_environment
+
 from a2a.server.apps import A2AStarletteApplication
 from a2a.server.request_handlers import DefaultRequestHandler
 from a2a.server.tasks import InMemoryTaskStore
@@ -173,6 +176,14 @@ class NoOpPushNotifier:
 def main(host, port, agent_card):
     """Starts an Agent server."""
     try:
+        # Validate environment before starting
+        try:
+            validate_environment()
+            print("✓ Environment validation passed")
+        except ValueError as e:
+            print(f"✗ Environment validation failed: {e}")
+            sys.exit(1)
+            
         if not agent_card:
             raise ValueError('Agent card is required')
         with Path.open(agent_card) as file:

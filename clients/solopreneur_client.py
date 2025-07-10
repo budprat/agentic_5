@@ -6,6 +6,8 @@ Supports both REST API and WebSocket connections for streaming updates.
 import asyncio
 import json
 import logging
+import os
+import sys
 import uuid
 from typing import Dict, Any, Optional, AsyncIterator
 from datetime import datetime
@@ -13,6 +15,26 @@ import aiohttp
 import websockets
 from rich.console import Console
 from rich.panel import Panel
+
+# Add project root to path for imports
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../src'))
+
+def create_a2a_request(method: str, message: str, metadata: dict = None):
+    """Standardize A2A request format - local copy for client."""
+    return {
+        "jsonrpc": "2.0",
+        "id": str(uuid.uuid4()),
+        "method": method,  # Use 'message/send' or 'message/stream'
+        "params": {
+            "message": {
+                "role": "user",
+                "parts": [{"kind": "text", "text": message}],
+                "messageId": str(uuid.uuid4()),
+                "kind": "message"
+            },
+            "metadata": metadata or {}
+        }
+    }
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
 from rich.live import Live
@@ -67,32 +89,15 @@ class SolopreneurClient:
     ) -> AsyncIterator[Dict[str, Any]]:
         """Send request to Solopreneur Oracle using A2A JSON-RPC protocol."""
         
-        # Generate IDs for A2A protocol
-        request_id = str(uuid.uuid4())
-        message_id = str(uuid.uuid4())
+        # Create A2A JSON-RPC request using standardized format
+        method = "message/stream" if stream else "message/send"
+        metadata = {"include_metrics": include_metrics}
         
-        # Create A2A JSON-RPC request
-        request_data = {
-            "jsonrpc": "2.0",
-            "id": request_id,
-            "method": "message/stream" if stream else "message/send",
-            "params": {
-                "message": {
-                    "role": "user",
-                    "parts": [
-                        {
-                            "kind": "text",
-                            "text": query
-                        }
-                    ],
-                    "messageId": message_id,
-                    "kind": "message"
-                },
-                "metadata": {
-                    "include_metrics": include_metrics
-                }
-            }
-        }
+        request_data = create_a2a_request(
+            method=method,
+            message=query,
+            metadata=metadata
+        )
         
         # Try WebSocket first if available and streaming requested
         if stream and self.websocket:

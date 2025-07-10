@@ -26,6 +26,21 @@ async def main():
     """Start the oracle agent without MCP tools."""
     logger.info("Starting Solopreneur Oracle Agent on port 10901 (without MCP tools)")
     
+    # Validate environment
+    try:
+        from a2a_mcp.agents.solopreneur_oracle.base_solopreneur_agent import validate_environment
+        validate_environment()
+        logger.info("✓ Environment validation passed")
+    except ValueError as e:
+        logger.error(f"✗ Environment validation failed: {e}")
+        return
+    except ImportError:
+        # Fallback validation
+        if not os.environ.get('GOOGLE_API_KEY'):
+            logger.error("✗ GOOGLE_API_KEY is required but not set")
+            return
+        logger.info("✓ Basic environment validation passed")
+    
     # Create agent
     agent = SolopreneurOracleAgent()
     
