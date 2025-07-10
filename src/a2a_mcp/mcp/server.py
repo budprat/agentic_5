@@ -14,6 +14,7 @@ import pandas as pd
 import requests
 
 from a2a_mcp.common.utils import init_api_key
+from neo4j import GraphDatabase
 from mcp.server.fastmcp import FastMCP
 from mcp.server.fastmcp.utilities.logging import get_logger
 
@@ -30,6 +31,13 @@ NEO4J_URI = os.getenv('NEO4J_URI', 'bolt://localhost:7687')
 NEO4J_USER = os.getenv('NEO4J_USER', 'neo4j')
 NEO4J_PASSWORD = os.getenv('NEO4J_PASSWORD', 'password')
 GITHUB_TOKEN = os.getenv('GITHUB_TOKEN', '')
+
+# Initialize Neo4j driver
+neo4j_driver = None
+try:
+    neo4j_driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
+except Exception as e:
+    logger.warning(f"Neo4j connection failed: {e}. Knowledge graph features will be disabled.")
 
 
 def generate_embeddings(text):
