@@ -84,9 +84,9 @@ class SolopreneurOracleChat:
             "8": "Design a personal optimization system for maintaining high performance as a solo developer."
         }
     
-    def print_colored(self, text: str, color: str = Colors.END):
+    def print_colored(self, text: str, color: str = Colors.END, end: str = "\n"):
         """Print colored text to terminal."""
-        print(f"{color}{text}{Colors.END}")
+        print(f"{color}{text}{Colors.END}", end=end)
     
     def print_header(self):
         """Print the application header."""
