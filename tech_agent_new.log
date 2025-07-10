@@ -32,3 +32,9 @@ INFO:     127.0.0.1:45576 - "POST / HTTP/1.1" 200 OK
 Json conversion error Expecting value: line 1 column 1 (char 0)
 Json conversion error Expecting value: line 1 column 1 (char 0)
 Json conversion error Expecting value: line 1 column 1 (char 0)
+INFO:     127.0.0.1:45600 - "GET /.well-known/ai-plugin.json HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:45616 - "POST / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45626 - "POST / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53088 - "POST / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40472 - "POST / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56914 - "GET /.well-known/ai-plugin.json HTTP/1.1" 404 Not Found

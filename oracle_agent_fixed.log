@@ -35,3 +35,12 @@ INFO:     127.0.0.1:46950 - "POST / HTTP/1.1" 200 OK
 Quality issues detected: ['technical_feasibility_met', 'personal_sustainability_met']
 INFO:     127.0.0.1:46958 - "POST / HTTP/1.1" 200 OK
 INFO:     127.0.0.1:46972 - "POST / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42984 - "GET /.well-known/ai-plugin.json HTTP/1.1" 404 Not Found
+No valid response content from technical_intelligence agent
+No valid response content from technical_intelligence agent
+No valid response content from technical_intelligence agent
+Quality issues detected: ['confidence_adequate', 'technical_feasibility_met', 'personal_sustainability_met']
+INFO:     127.0.0.1:42990 - "POST / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44012 - "POST / HTTP/1.1" 200 OK
+Circular dependency detected in execution plan
+INFO:     127.0.0.1:57668 - "GET /.well-known/ai-plugin.json HTTP/1.1" 404 Not Found
