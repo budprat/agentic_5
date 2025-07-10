@@ -15,7 +15,7 @@ import requests
 from a2a_mcp.common.utils import init_api_key
 from mcp.server.fastmcp import FastMCP
 from mcp.server.fastmcp.utilities.logging import get_logger
-from a2a_mcp.mcp.remote_mcp_connector import RemoteMCPRegistry
+from fastmcp.server.middleware.error_handling import ErrorHandlingMiddleware
 
 
 logger = get_logger(__name__)
@@ -128,13 +128,23 @@ def serve(host, port, transport):  # noqa: PLR0915
     """
     init_api_key()
     logger.info('Starting Agent Cards MCP Server')
-    mcp = FastMCP('agent-cards', host=host, port=port)
+    
+    try:
+        logger.info(f'Creating FastMCP instance with name=agent-cards, host={host}, port={port}')
+        mcp = FastMCP('agent-cards', host=host, port=port)
+        
+        # Add error handling middleware for production-ready error management
+        mcp.add_middleware(ErrorHandlingMiddleware(include_traceback=True))
+        logger.info('FastMCP instance created successfully with error handling middleware')
+    except Exception as e:
+        logger.error(f'Failed to create FastMCP instance: {e}', exc_info=True)
+        raise
 
     df = build_agent_card_embeddings()
     
-    # Initialize remote MCP registry
-    remote_registry = RemoteMCPRegistry()
-    logger.info('Initialized Remote MCP Registry')
+    # Skip RemoteMCPRegistry initialization for now (following nexus oracle pattern)
+    remote_registry = None
+    logger.info('Skipping remote MCP registry for debugging - making MCP tools optional')
 
     @mcp.tool(
         name='find_agent',
@@ -314,6 +324,9 @@ def serve(host, port, transport):  # noqa: PLR0915
         Returns:
             The result from the remote tool call
         """
+        if remote_registry is None:
+            return {'success': False, 'error': 'Remote MCP registry not available'}
+            
         try:
             result = await remote_registry.connector.call_remote_tool(
                 server_name, tool_name, arguments
@@ -333,6 +346,9 @@ def serve(host, port, transport):  # noqa: PLR0915
         Returns:
             Dictionary containing information about all remote servers
         """
+        if remote_registry is None:
+            return {'servers': [], 'error': 'Remote MCP registry not available'}
+            
         servers = []
         for name, server in remote_registry.connector.servers.items():
             servers.append({
@@ -357,6 +373,9 @@ def serve(host, port, transport):  # noqa: PLR0915
         Returns:
             Dictionary of available tools grouped by server
         """
+        if remote_registry is None:
+            return {'success': False, 'error': 'Remote MCP registry not available'}
+            
         try:
             if server_name:
                 tools = remote_registry.connector.get_available_tools(server_name)
@@ -394,6 +413,9 @@ def serve(host, port, transport):  # noqa: PLR0915
         Returns:
             Success status
         """
+        if remote_registry is None:
+            return {'success': False, 'error': 'Remote MCP registry not available'}
+            
         try:
             from a2a_mcp.mcp.remote_mcp_connector import RemoteMCPServer
             
@@ -601,6 +623,21 @@ def serve(host, port, transport):  # noqa: PLR0915
             logger.error(f'Research synthesis error: {e}')
             return {'error': str(e)}
 
+    logger.info('All tools and resources registered, ready to start server')
+    
+    # Start the MCP server directly (following FastMCP best practices)
+    logger.info(f'Starting MCP Server on {host}:{port} via {transport}')
+    logger.info('All agent cards loaded, embeddings generated, tools registered')
+    
+    try:
+        # Use direct FastMCP run pattern (production-ready)
+        mcp.run(transport=transport)
+        logger.info('mcp.run() returned - server shutdown')
+    except Exception as e:
+        logger.error(f'Fatal error in mcp.run(): {e}', exc_info=True)
+        raise
+
+
 def simulate_academic_query(database: str, query: str) -> list:
     """Simulate academic database query results."""
     # In production, this would make real API calls to academic databases
@@ -617,8 +654,3 @@ def simulate_academic_query(database: str, query: str) -> list:
         }
     ]
     return base_results
-
-    logger.info(
-        f'Agent cards MCP Server at {host}:{port} and transport {transport}'
-    )
-    mcp.run(transport=transport)

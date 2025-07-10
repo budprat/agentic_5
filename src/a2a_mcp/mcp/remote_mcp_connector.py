@@ -388,5 +388,6 @@ async def example_usage():
     print("Workflow results:", results)
 
 
-if __name__ == "__main__":
-    asyncio.run(example_usage())
+# Commented out to prevent automatic execution during import
+# if __name__ == "__main__":
+#     asyncio.run(example_usage())

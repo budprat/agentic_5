@@ -1,7 +1,81 @@
 warning: `uv run` is experimental and may change without warning.
-Resolved 142 packages in 2.82s
-Installed 1 package in 23ms
- - packaging==24.2
- - packaging==25.0
- + packaging==24.2
-<frozen runpy>:128: RuntimeWarning: 'a2a_mcp.mcp.server' found in sys.modules after import of package 'a2a_mcp.mcp', but prior to execution of 'a2a_mcp.mcp.server'; this may result in unpredictable behaviour
+[07/10/25 06:51:48] INFO     Loading agent cards from card repo:    server.py:61
+                             agent_cards                                        
+                    INFO     Reading file: car_rental_agent.json    server.py:68
+                    INFO     Reading file: oracle_prime_agent.json  server.py:68
+                    INFO     Reading file:                          server.py:68
+                             trend_correlator_agent.json                        
+                    INFO     Reading file:                          server.py:68
+                             personal_optimization_agent.json                   
+                    INFO     Reading file:                          server.py:68
+                             life_sciences_supervisor_agent.json                
+                    INFO     Reading file:                          server.py:68
+                             psychology_supervisor_agent.json                   
+                    INFO     Reading file:                          server.py:68
+                             sentiment_seeker_agent_brightdata.json             
+                    INFO     Reading file:                          server.py:68
+                             sentiment_seeker_agent.json                        
+                    INFO     Reading file: audio_briefer_agent.json server.py:68
+                    INFO     Reading file: air_ticketing_agent.json server.py:68
+                    INFO     Reading file:                          server.py:68
+                             visualization_synthesis_supervisor_age             
+                             nt.json                                            
+                    INFO     Reading file: nexus_planner_agent.json server.py:68
+                    INFO     Reading file: planner_agent.json       server.py:68
+                    INFO     Reading file:                          server.py:68
+                             cross_domain_analysis_supervisor_agent             
+                             .json                                              
+                    INFO     Reading file:                          server.py:68
+                             economics_policy_supervisor_agent.json             
+                    INFO     Reading file:                          server.py:68
+                             technical_prophet_agent.json                       
+                    INFO     Reading file:                          server.py:68
+                             computer_science_supervisor_agent.json             
+                    INFO     Reading file: risk_guardian_agent.json server.py:68
+                    INFO     Reading file:                          server.py:68
+                             social_sciences_supervisor_agent.json              
+                    INFO     Reading file:                          server.py:68
+                             technical_intelligence_agent.json                  
+                    INFO     Reading file: hotel_booking_agent.json server.py:68
+                    INFO     Reading file:                          server.py:68
+                             knowledge_management_agent.json                    
+                    INFO     Reading file:                          server.py:68
+                             nexus_orchestrator_agent.json                      
+                    INFO     Reading file:                          server.py:68
+                             physical_sciences_supervisor_agent.jso             
+                             n                                                  
+                    INFO     Reading file:                          server.py:68
+                             learning_enhancement_agent.json                    
+                    INFO     Reading file: nexus_oracle_agent.json  server.py:68
+                    INFO     Reading file:                          server.py:68
+                             solopreneur_oracle_agent.json                      
+                    INFO     Reading file:                          server.py:68
+                             fundamental_analyst_agent.json                     
+                    INFO     Reading file: orchestrator_agent.json  server.py:68
+                    INFO     Reading file:                          server.py:68
+                             integration_synthesis_agent.json                   
+                    INFO     Reading file:                          server.py:68
+                             report_synthesizer_agent.json                      
+                    INFO     Finished loading agent cards. Found 31 server.py:85
+                             cards.                                             
+                    INFO     Generating Embeddings for agent cards server.py:101
+[07/10/25 06:51:55] INFO     Loading 8 remote MCP    remote_mcp_connector.py:259
+                             servers from                                       
+                             configuration                                      
+                    INFO     Registered remote MCP    remote_mcp_connector.py:54
+                             server: supabase                                   
+                    INFO     Registered remote MCP    remote_mcp_connector.py:54
+                             server: brightdata                                 
+                    INFO     Registered remote MCP    remote_mcp_connector.py:54
+                             server: brave                                      
+                    INFO     Registered remote MCP    remote_mcp_connector.py:54
+                             server: puppeteer                                  
+                    INFO     Registered remote MCP    remote_mcp_connector.py:54
+                             server: context7                                   
+                    INFO     Registered remote MCP    remote_mcp_connector.py:54
+                             server: upstash                                    
+                    INFO     Registered remote MCP    remote_mcp_connector.py:54
+                             server: firecrawl                                  
+                    INFO     Registered remote MCP    remote_mcp_connector.py:54
+                             server: notionAI                                   
+                    INFO     Initialized Remote MCP Registry       server.py:137

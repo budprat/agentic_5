@@ -1,6 +1,7 @@
 """Convience methods to start servers."""
 
 import click
+from dotenv import load_dotenv
 
 from a2a_mcp.mcp import server
 
@@ -26,6 +27,9 @@ from a2a_mcp.mcp import server
     help='MCP Transport',
 )
 def main(command, host, port, transport) -> None:
+    # Load environment variables
+    load_dotenv()
+    
     # TODO: Add other servers, perhaps dynamic port allocation
     if command == 'mcp-server':
         server.serve(host, port, transport)
