@@ -776,6 +776,11 @@ def serve(host, port, transport):  # noqa: PLR0915
             # Identify optimization opportunities using helper function
             optimizations = identify_workflow_optimizations(task_patterns, productivity_patterns)
             
+            # Calculate best and worst productivity hours for summary
+            sorted_hours = sorted(productivity_patterns, key=lambda x: x['avg_productivity'], reverse=True)
+            best_hours = [h['hour'] for h in sorted_hours[:1]] if sorted_hours else []
+            worst_hours = [h['hour'] for h in sorted_hours[-1:]] if sorted_hours else []
+            
             return json.dumps({
                 'analysis_period_days': time_period,
                 'user_id': user_id,

@@ -65,3 +65,122 @@ INFO:     Started server process [37525]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://localhost:10100 (Press CTRL+C to quit)
+🚀 Starting Solopreneur MCP Server...
+   Host: localhost
+   Port: 10100
+   Transport: sse
+   Tools: find_agent, query_places_data, query_travel_data
+          query_solopreneur_metrics, analyze_energy_patterns
+          track_learning_progress, search_relevant_research
+          query_knowledge_graph, monitor_technical_trends
+          optimize_task_schedule, analyze_workflow_patterns
+INFO:     127.0.0.1:38996 - "GET /sse HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39010 - "POST /messages/?session_id=23e1ac4814b744b3bc23d53bd2cde255 HTTP/1.1" 202 Accepted
+INFO:     127.0.0.1:39010 - "POST /messages/?session_id=23e1ac4814b744b3bc23d53bd2cde255 HTTP/1.1" 202 Accepted
+INFO:     127.0.0.1:39010 - "POST /messages/?session_id=23e1ac4814b744b3bc23d53bd2cde255 HTTP/1.1" 202 Accepted
+[07/10/25 13:33:37] INFO     Processing request of type            server.py:619
+                             ListToolsRequest                                   
+INFO:     127.0.0.1:39010 - "POST /messages/?session_id=23e1ac4814b744b3bc23d53bd2cde255 HTTP/1.1" 202 Accepted
+[07/10/25 13:33:39] INFO     Processing request of type            server.py:619
+                             CallToolRequest                                    
+                    INFO     Query solopreneur metrics: energy for server.py:279
+                             week                                               
+                    ERROR    Error querying metrics: no such       server.py:328
+                             table: personal_metrics                            
+INFO:     127.0.0.1:56840 - "POST /messages/?session_id=23e1ac4814b744b3bc23d53bd2cde255 HTTP/1.1" 202 Accepted
+[07/10/25 13:34:11] INFO     Processing request of type            server.py:619
+                             CallToolRequest                                    
+                    INFO     Monitor technical trends: ['machine   server.py:648
+                             learning', 'artificial intelligence']              
+                             from ['arxiv']                                     
+                    INFO     Requesting page (first: True, try:  __init__.py:680
+                             0):                                                
+                             https://export.arxiv.org/api/query?                
+                             search_query=machine+learning&id_li                
+                             st=&sortBy=submittedDate&sortOrder=                
+                             descending&start=0&max_results=100                 
+[07/10/25 13:34:12] INFO     Got first page: 100 of 418280 total __init__.py:606
+                             results                                            
+                    INFO     Sleeping: 2.828437 seconds          __init__.py:677
+[07/10/25 13:34:15] INFO     Requesting page (first: True, try:  __init__.py:680
+                             0):                                                
+                             https://export.arxiv.org/api/query?                
+                             search_query=artificial+intelligenc                
+                             e&id_list=&sortBy=submittedDate&sor                
+                             tOrder=descending&start=0&max_resul                
+                             ts=100                                             
+[07/10/25 13:34:16] INFO     Got first page: 100 of 187139 total __init__.py:606
+                             results                                            
+                    INFO     Stored technical intelligence data    server.py:839
+                             from 1 sources                                     
+INFO:     127.0.0.1:52322 - "POST /messages/?session_id=23e1ac4814b744b3bc23d53bd2cde255 HTTP/1.1" 202 Accepted
+[07/10/25 13:34:49] INFO     Processing request of type            server.py:619
+                             CallToolRequest                                    
+INFO:     127.0.0.1:52322 - "POST /messages/?session_id=23e1ac4814b744b3bc23d53bd2cde255 HTTP/1.1" 202 Accepted
+[07/10/25 13:34:50] INFO     Processing request of type            server.py:619
+                             CallToolRequest                                    
+INFO:     127.0.0.1:52322 - "POST /messages/?session_id=23e1ac4814b744b3bc23d53bd2cde255 HTTP/1.1" 202 Accepted
+[07/10/25 13:34:52] INFO     Processing request of type            server.py:619
+                             CallToolRequest                                    
+INFO:     127.0.0.1:47566 - "POST /messages/?session_id=23e1ac4814b744b3bc23d53bd2cde255 HTTP/1.1" 202 Accepted
+[07/10/25 13:36:01] INFO     Processing request of type            server.py:619
+                             CallToolRequest                                    
+                    INFO     Analyze workflow patterns for user:   server.py:739
+                             default                                            
+                    ERROR    Error analyzing workflow: name        server.py:794
+                             'best_hours' is not defined                        
+INFO:     Shutting down
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/home/user/solopreneur/.venv/lib/python3.13/site-packages/uvicorn/protocols/http/h11_impl.py", line 403, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        self.scope, self.receive, self.send
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/user/solopreneur/.venv/lib/python3.13/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/solopreneur/.venv/lib/python3.13/site-packages/starlette/applications.py", line 112, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/user/solopreneur/.venv/lib/python3.13/site-packages/starlette/middleware/errors.py", line 187, in __call__
+    raise exc
+  File "/home/user/solopreneur/.venv/lib/python3.13/site-packages/starlette/middleware/errors.py", line 165, in __call__
+    await self.app(scope, receive, _send)
+  File "/home/user/solopreneur/.venv/lib/python3.13/site-packages/starlette/middleware/exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/home/user/solopreneur/.venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/user/solopreneur/.venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/user/solopreneur/.venv/lib/python3.13/site-packages/starlette/routing.py", line 714, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/user/solopreneur/.venv/lib/python3.13/site-packages/starlette/routing.py", line 734, in app
+    await route.handle(scope, receive, send)
+  File "/home/user/solopreneur/.venv/lib/python3.13/site-packages/starlette/routing.py", line 288, in handle
+    await self.app(scope, receive, send)
+  File "/home/user/solopreneur/.venv/lib/python3.13/site-packages/starlette/routing.py", line 76, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/home/user/solopreneur/.venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/user/solopreneur/.venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/user/solopreneur/.venv/lib/python3.13/site-packages/starlette/routing.py", line 74, in app
+    await response(scope, receive, send)
+  File "/home/user/solopreneur/.venv/lib/python3.13/site-packages/starlette/responses.py", line 150, in __call__
+    await send(
+    ...<5 lines>...
+    )
+  File "/home/user/solopreneur/.venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 39, in sender
+    await send(message)
+  File "/home/user/solopreneur/.venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 39, in sender
+    await send(message)
+  File "/home/user/solopreneur/.venv/lib/python3.13/site-packages/starlette/middleware/errors.py", line 162, in _send
+    await send(message)
+  File "/home/user/solopreneur/.venv/lib/python3.13/site-packages/uvicorn/protocols/http/h11_impl.py", line 492, in send
+    raise RuntimeError(msg % message_type)
+RuntimeError: Expected ASGI message 'http.response.body', but got 'http.response.start'.
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [37525]

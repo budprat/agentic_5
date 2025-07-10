@@ -1,0 +1,311 @@
+warning: `uv run` is experimental and may change without warning.
+[07/10/25 13:41:14] INFO     Loading agent cards from card repo:    server.py:68
+                             agent_cards                                        
+                    INFO     Reading file: car_rental_agent.json    server.py:75
+                    INFO     Reading file: oracle_prime_agent.json  server.py:75
+                    INFO     Reading file:                          server.py:75
+                             trend_correlator_agent.json                        
+                    INFO     Reading file:                          server.py:75
+                             personal_optimization_agent.json                   
+                    INFO     Reading file:                          server.py:75
+                             life_sciences_supervisor_agent.json                
+                    INFO     Reading file:                          server.py:75
+                             psychology_supervisor_agent.json                   
+                    INFO     Reading file:                          server.py:75
+                             sentiment_seeker_agent_brightdata.json             
+                    INFO     Reading file:                          server.py:75
+                             sentiment_seeker_agent.json                        
+                    INFO     Reading file: audio_briefer_agent.json server.py:75
+                    INFO     Reading file: air_ticketing_agent.json server.py:75
+                    INFO     Reading file:                          server.py:75
+                             visualization_synthesis_supervisor_age             
+                             nt.json                                            
+                    INFO     Reading file: nexus_planner_agent.json server.py:75
+                    INFO     Reading file: planner_agent.json       server.py:75
+                    INFO     Reading file:                          server.py:75
+                             cross_domain_analysis_supervisor_agent             
+                             .json                                              
+                    INFO     Reading file:                          server.py:75
+                             economics_policy_supervisor_agent.json             
+                    INFO     Reading file:                          server.py:75
+                             technical_prophet_agent.json                       
+                    INFO     Reading file:                          server.py:75
+                             computer_science_supervisor_agent.json             
+                    INFO     Reading file: risk_guardian_agent.json server.py:75
+                    INFO     Reading file:                          server.py:75
+                             social_sciences_supervisor_agent.json              
+                    INFO     Reading file:                          server.py:75
+                             technical_intelligence_agent.json                  
+                    INFO     Reading file: hotel_booking_agent.json server.py:75
+                    INFO     Reading file:                          server.py:75
+                             knowledge_management_agent.json                    
+                    INFO     Reading file:                          server.py:75
+                             nexus_orchestrator_agent.json                      
+                    INFO     Reading file:                          server.py:75
+                             physical_sciences_supervisor_agent.jso             
+                             n                                                  
+                    INFO     Reading file:                          server.py:75
+                             learning_enhancement_agent.json                    
+                    INFO     Reading file: nexus_oracle_agent.json  server.py:75
+                    INFO     Reading file:                          server.py:75
+                             solopreneur_oracle_agent.json                      
+                    INFO     Reading file:                          server.py:75
+                             fundamental_analyst_agent.json                     
+                    INFO     Reading file: orchestrator_agent.json  server.py:75
+                    INFO     Reading file:                          server.py:75
+                             integration_synthesis_agent.json                   
+                    INFO     Reading file:                          server.py:75
+                             report_synthesizer_agent.json                      
+                    INFO     Finished loading agent cards. Found 31 server.py:92
+                             cards.                                             
+                    INFO     Generating Embeddings for agent cards server.py:108
+                    ERROR    An unexpected error occurred : 400    server.py:121
+                             API key not valid. Please pass a                   
+                             valid API key. [reason:                            
+                             "API_KEY_INVALID"                                  
+                             domain: "googleapis.com"                           
+                             metadata {                                         
+                               key: "service"                                   
+                               value:                                           
+                             "generativelanguage.googleapis.com"                
+                             }                                                  
+                             , locale: "en-US"                                  
+                             message: "API key not valid. Please                
+                             pass a valid API key."                             
+                             ].                                                 
+                             ╭─ Traceback (most recent call last─╮              
+                             │ /home/user/solopreneur/src/a2a_mc │              
+                             │ p/mcp/server.py:114 in            │              
+                             │ build_agent_card_embeddings       │              
+                             │                                   │              
+                             │    111 │   │   │   df = pd.DataFr │              
+                             │    112 │   │   │   │   {'card_uri │              
+                             │    113 │   │   │   )              │              
+                             │ ❱  114 │   │   │   df['card_embed │              
+                             │    115 │   │   │   │   lambda row │              
+                             │    116 │   │   │   │   axis=1,    │              
+                             │    117 │   │   │   )              │              
+                             │                                   │              
+                             │ /home/user/solopreneur/.venv/lib/ │              
+                             │ python3.13/site-packages/pandas/c │              
+                             │ ore/frame.py:10381 in apply       │              
+                             │                                   │              
+                             │   10378 │   │   │   args=args,    │              
+                             │   10379 │   │   │   kwargs=kwargs │              
+                             │   10380 │   │   )                 │              
+                             │ ❱ 10381 │   │   return op.apply() │              
+                             │   10382 │                         │              
+                             │   10383 │   def map(              │              
+                             │   10384 │   │   self, func: Pytho │              
+                             │                                   │              
+                             │ /home/user/solopreneur/.venv/lib/ │              
+                             │ python3.13/site-packages/pandas/c │              
+                             │ ore/apply.py:916 in apply         │              
+                             │                                   │              
+                             │    913 │   │   elif self.raw:     │              
+                             │    914 │   │   │   return self.ap │              
+                             │    915 │   │                      │              
+                             │ ❱  916 │   │   return self.apply_ │              
+                             │    917 │                          │              
+                             │    918 │   def agg(self):         │              
+                             │    919 │   │   obj = self.obj     │              
+                             │                                   │              
+                             │ /home/user/solopreneur/.venv/lib/ │              
+                             │ python3.13/site-packages/pandas/c │              
+                             │ ore/apply.py:1063 in              │              
+                             │ apply_standard                    │              
+                             │                                   │              
+                             │   1060 │                          │              
+                             │   1061 │   def apply_standard(sel │              
+                             │   1062 │   │   if self.engine ==  │              
+                             │ ❱ 1063 │   │   │   results, res_i │              
+                             │   1064 │   │   else:              │              
+                             │   1065 │   │   │   results, res_i │              
+                             │   1066                            │              
+                             │                                   │              
+                             │ /home/user/solopreneur/.venv/lib/ │              
+                             │ python3.13/site-packages/pandas/c │              
+                             │ ore/apply.py:1081 in              │              
+                             │ apply_series_generator            │              
+                             │                                   │              
+                             │   1078 │   │   with option_contex │              
+                             │   1079 │   │   │   for i, v in en │              
+                             │   1080 │   │   │   │   # ignore S │              
+                             │ ❱ 1081 │   │   │   │   results[i] │              
+                             │   1082 │   │   │   │   if isinsta │              
+                             │   1083 │   │   │   │   │   # If w │              
+                             │   1084 │   │   │   │   │   #  ser │              
+                             │                                   │              
+                             │ /home/user/solopreneur/src/a2a_mc │              
+                             │ p/mcp/server.py:115 in <lambda>   │              
+                             │                                   │              
+                             │    112 │   │   │   │   {'card_uri │              
+                             │    113 │   │   │   )              │              
+                             │    114 │   │   │   df['card_embed │              
+                             │ ❱  115 │   │   │   │   lambda row │              
+                             │    116 │   │   │   │   axis=1,    │              
+                             │    117 │   │   │   )              │              
+                             │    118 │   │   │   return df      │              
+                             │                                   │              
+                             │ /home/user/solopreneur/src/a2a_mc │              
+                             │ p/mcp/server.py:44 in             │              
+                             │ generate_embeddings               │              
+                             │                                   │              
+                             │     41 │   Returns:               │              
+                             │     42 │   │   A list of embeddin │              
+                             │     43 │   """                    │              
+                             │ ❱   44 │   return genai.embed_con │              
+                             │     45 │   │   model=MODEL,       │              
+                             │     46 │   │   content=text,      │              
+                             │     47 │   │   task_type='retriev │              
+                             │                                   │              
+                             │ /home/user/solopreneur/.venv/lib/ │              
+                             │ python3.13/site-packages/google/g │              
+                             │ enerativeai/embedding.py:213 in   │              
+                             │ embed_content                     │              
+                             │                                   │              
+                             │   210 │   │   │   title=title,    │              
+                             │   211 │   │   │   output_dimensio │              
+                             │   212 │   │   )                   │              
+                             │ ❱ 213 │   │   embedding_response  │              
+                             │   214 │   │   │   embedding_reque │              
+                             │   215 │   │   │   **request_optio │              
+                             │   216 │   │   )                   │              
+                             │                                   │              
+                             │ /home/user/solopreneur/.venv/lib/ │              
+                             │ python3.13/site-packages/google/a │              
+                             │ i/generativelanguage_v1beta/servi │              
+                             │ ces/generative_service/client.py: │              
+                             │ 1263 in embed_content             │              
+                             │                                   │              
+                             │   1260 │   │   self._validate_uni │              
+                             │   1261 │   │                      │              
+                             │   1262 │   │   # Send the request │              
+                             │ ❱ 1263 │   │   response = rpc(    │              
+                             │   1264 │   │   │   request,       │              
+                             │   1265 │   │   │   retry=retry,   │              
+                             │   1266 │   │   │   timeout=timeou │              
+                             │                                   │              
+                             │ /home/user/solopreneur/.venv/lib/ │              
+                             │ python3.13/site-packages/google/a │              
+                             │ pi_core/gapic_v1/method.py:131 in │              
+                             │ __call__                          │              
+                             │                                   │              
+                             │   128 │   │   if self._compressio │              
+                             │   129 │   │   │   kwargs["compres │              
+                             │   130 │   │                       │              
+                             │ ❱ 131 │   │   return wrapped_func │              
+                             │   132                             │              
+                             │   133                             │              
+                             │   134 def wrap_method(            │              
+                             │                                   │              
+                             │ /home/user/solopreneur/.venv/lib/ │              
+                             │ python3.13/site-packages/google/a │              
+                             │ pi_core/retry/retry_unary.py:294  │              
+                             │ in retry_wrapped_func             │              
+                             │                                   │              
+                             │   291 │   │   │   sleep_generator │              
+                             │   292 │   │   │   │   self._initi │              
+                             │   293 │   │   │   )               │              
+                             │ ❱ 294 │   │   │   return retry_ta │              
+                             │   295 │   │   │   │   target,     │              
+                             │   296 │   │   │   │   self._predi │              
+                             │   297 │   │   │   │   sleep_gener │              
+                             │                                   │              
+                             │ /home/user/solopreneur/.venv/lib/ │              
+                             │ python3.13/site-packages/google/a │              
+                             │ pi_core/retry/retry_unary.py:156  │              
+                             │ in retry_target                   │              
+                             │                                   │              
+                             │   153 │   │   # This function exp │              
+                             │   154 │   │   except Exception as │              
+                             │   155 │   │   │   # defer to shar │              
+                             │ ❱ 156 │   │   │   next_sleep = _r │              
+                             │   157 │   │   │   │   exc,        │              
+                             │   158 │   │   │   │   deadline,   │              
+                             │   159 │   │   │   │   sleep_iter, │              
+                             │                                   │              
+                             │ /home/user/solopreneur/.venv/lib/ │              
+                             │ python3.13/site-packages/google/a │              
+                             │ pi_core/retry/retry_base.py:214   │              
+                             │ in _retry_error_helper            │              
+                             │                                   │              
+                             │   211 │   │   │   RetryFailureRea │              
+                             │   212 │   │   │   original_timeou │              
+                             │   213 │   │   )                   │              
+                             │ ❱ 214 │   │   raise final_exc fro │              
+                             │   215 │   if on_error_fn is not N │              
+                             │   216 │   │   on_error_fn(exc)    │              
+                             │   217 │   # next_sleep is fetched │              
+                             │                                   │              
+                             │ /home/user/solopreneur/.venv/lib/ │              
+                             │ python3.13/site-packages/google/a │              
+                             │ pi_core/retry/retry_unary.py:147  │              
+                             │ in retry_target                   │              
+                             │                                   │              
+                             │   144 │   # TODO: support max_att │              
+                             │       https://github.com/googleap │              
+                             │   145 │   while True:             │              
+                             │   146 │   │   try:                │              
+                             │ ❱ 147 │   │   │   result = target │              
+                             │   148 │   │   │   if inspect.isaw │              
+                             │   149 │   │   │   │   warnings.wa │              
+                             │   150 │   │   │   return result   │              
+                             │                                   │              
+                             │ /home/user/solopreneur/.venv/lib/ │              
+                             │ python3.13/site-packages/google/a │              
+                             │ pi_core/timeout.py:130 in         │              
+                             │ func_with_timeout                 │              
+                             │                                   │              
+                             │   127 │   │   │   │               │              
+                             │   128 │   │   │   │   kwargs["tim │              
+                             │   129 │   │   │                   │              
+                             │ ❱ 130 │   │   │   return func(*ar │              
+                             │   131 │   │                       │              
+                             │   132 │   │   return func_with_ti │              
+                             │   133                             │              
+                             │                                   │              
+                             │ /home/user/solopreneur/.venv/lib/ │              
+                             │ python3.13/site-packages/google/a │              
+                             │ pi_core/grpc_helpers.py:78 in     │              
+                             │ error_remapped_callable           │              
+                             │                                   │              
+                             │    75 │   │   try:                │              
+                             │    76 │   │   │   return callable │              
+                             │    77 │   │   except grpc.RpcErro │              
+                             │ ❱  78 │   │   │   raise exception │              
+                             │    79 │                           │              
+                             │    80 │   return error_remapped_c │              
+                             │    81                             │              
+                             ╰───────────────────────────────────╯              
+                             InvalidArgument: 400 API key not                   
+                             valid. Please pass a valid API key.                
+                             [reason: "API_KEY_INVALID"                         
+                             domain: "googleapis.com"                           
+                             metadata {                                         
+                               key: "service"                                   
+                               value:                                           
+                             "generativelanguage.googleapis.com"                
+                             }                                                  
+                             , locale: "en-US"                                  
+                             message: "API key not valid. Please                
+                             pass a valid API key."                             
+                             ]                                                  
+[07/10/25 13:41:17] INFO     Agent cards MCP Server at            server.py:1177
+                             localhost:10100 and transport sse                  
+INFO:     Started server process [43779]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:10100 (Press CTRL+C to quit)
+🚀 Starting Solopreneur MCP Server...
+   Host: localhost
+   Port: 10100
+   Transport: sse
+   Tools: find_agent, query_places_data, query_travel_data
+          query_solopreneur_metrics, analyze_energy_patterns
+          track_learning_progress, search_relevant_research
+          query_knowledge_graph, monitor_technical_trends
+          optimize_task_schedule, analyze_workflow_patterns
+INFO:     127.0.0.1:57208 - "POST /v1/mcp/tools/analyze_workflow_patterns HTTP/1.1" 404 Not Found
+[07/10/25 13:43:36] WARNING  Received request without session_id      sse.py:187
+INFO:     127.0.0.1:53078 - "POST /messages/ HTTP/1.1" 400 Bad Request

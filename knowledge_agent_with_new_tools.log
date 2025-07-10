@@ -8,3 +8,35 @@ INFO:     Started server process [33719]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://localhost:10903 (Press CTRL+C to quit)
+INFO:     127.0.0.1:50418 - "GET /.well-known/ai-plugin.json HTTP/1.1" 404 Not Found
+/home/user/solopreneur/.venv/lib/python3.13/site-packages/google/adk/tools/mcp_tool/mcp_tool.py:87: UserWarning: [EXPERIMENTAL] BaseAuthenticatedTool: This feature is experimental and may change or be removed in future versions without notice. It may introduce breaking changes at any time.
+  super().__init__(
+auth_config or auth_config.auth_scheme is missing. Will skip authentication.Using FunctionTool instead if authentication is not required.
+auth_config or auth_config.auth_scheme is missing. Will skip authentication.Using FunctionTool instead if authentication is not required.
+auth_config or auth_config.auth_scheme is missing. Will skip authentication.Using FunctionTool instead if authentication is not required.
+auth_config or auth_config.auth_scheme is missing. Will skip authentication.Using FunctionTool instead if authentication is not required.
+auth_config or auth_config.auth_scheme is missing. Will skip authentication.Using FunctionTool instead if authentication is not required.
+auth_config or auth_config.auth_scheme is missing. Will skip authentication.Using FunctionTool instead if authentication is not required.
+auth_config or auth_config.auth_scheme is missing. Will skip authentication.Using FunctionTool instead if authentication is not required.
+auth_config or auth_config.auth_scheme is missing. Will skip authentication.Using FunctionTool instead if authentication is not required.
+auth_config or auth_config.auth_scheme is missing. Will skip authentication.Using FunctionTool instead if authentication is not required.
+auth_config or auth_config.auth_scheme is missing. Will skip authentication.Using FunctionTool instead if authentication is not required.
+auth_config or auth_config.auth_scheme is missing. Will skip authentication.Using FunctionTool instead if authentication is not required.
+Warning: there are non-text parts in the response: ['function_call'], returning concatenated text result from text parts. Check the full candidates.content.parts accessor to get the full model response.
+Json conversion error Expecting value: line 1 column 1 (char 0)
+INFO:     127.0.0.1:50428 - "POST / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43226 - "GET /.well-known/ai-plugin.json HTTP/1.1" 404 Not Found
+Warning: there are non-text parts in the response: ['function_call'], returning concatenated text result from text parts. Check the full candidates.content.parts accessor to get the full model response.
+INFO:     127.0.0.1:43234 - "POST / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40680 - "GET /.well-known/ai-plugin.json HTTP/1.1" 404 Not Found
+Warning: there are non-text parts in the response: ['function_call'], returning concatenated text result from text parts. Check the full candidates.content.parts accessor to get the full model response.
+Warning: there are non-text parts in the response: ['function_call'], returning concatenated text result from text parts. Check the full candidates.content.parts accessor to get the full model response.
+Warning: there are non-text parts in the response: ['function_call'], returning concatenated text result from text parts. Check the full candidates.content.parts accessor to get the full model response.
+Json conversion error Expecting value: line 1 column 1 (char 0)
+INFO:     127.0.0.1:40694 - "POST / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35414 - "GET /.well-known/ai-plugin.json HTTP/1.1" 404 Not Found
+Warning: there are non-text parts in the response: ['function_call'], returning concatenated text result from text parts. Check the full candidates.content.parts accessor to get the full model response.
+INFO:     127.0.0.1:35426 - "POST / HTTP/1.1" 200 OK
+Error in sse_reader: peer closed connection without sending complete message body (incomplete chunked read)
+INFO:     127.0.0.1:55488 - "GET /.well-known/ai-plugin.json HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:33166 - "GET /.well-known/ai-plugin.json HTTP/1.1" 404 Not Found
