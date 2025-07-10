@@ -4,7 +4,9 @@ import json
 import os
 import sqlite3
 import traceback
+from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Dict, List, Optional, Any
 
 import google.generativeai as genai
 import numpy as np
@@ -21,6 +23,13 @@ AGENT_CARDS_DIR = 'agent_cards'
 MODEL = 'models/embedding-001'
 SQLLITE_DB = 'travel_agency.db'
 PLACES_API_URL = 'https://places.googleapis.com/v1/places:searchText'
+
+# Solopreneur database configuration
+SOLOPRENEUR_DB = os.getenv('SOLOPRENEUR_DB', 'solopreneur.db')
+NEO4J_URI = os.getenv('NEO4J_URI', 'bolt://localhost:7687')
+NEO4J_USER = os.getenv('NEO4J_USER', 'neo4j')
+NEO4J_PASSWORD = os.getenv('NEO4J_PASSWORD', 'password')
+GITHUB_TOKEN = os.getenv('GITHUB_TOKEN', '')
 
 
 def generate_embeddings(text):
@@ -246,6 +255,370 @@ def serve(host, port, transport):  # noqa: PLR0915
                     'error': f'Please check your query, {e}. Use the table schema to regenerate the query'
                 }
             return {'error': {e}}
+
+    # Solopreneur-specific tools for knowledge management and personal optimization
+    @mcp.tool(
+        name='query_solopreneur_metrics',
+        description='Query personal optimization metrics from the database (energy, focus, productivity, stress).',
+    )
+    def query_solopreneur_metrics(
+        metric_type: str,
+        user_id: str = "default",
+        time_range: str = "day",
+        aggregation: str = "avg"
+    ) -> str:
+        """
+        Query personal optimization metrics from the database.
+        
+        Args:
+            metric_type: Type of metric ('energy', 'focus', 'productivity', 'stress')
+            user_id: User identifier
+            time_range: Time range ('day', 'week', 'month')
+            aggregation: Aggregation method ('avg', 'max', 'min', 'sum')
+        """
+        logger.info(f'Query solopreneur metrics: {metric_type} for {time_range}')
+        
+        # Calculate date range
+        end_date = datetime.now()
+        if time_range == 'day':
+            start_date = end_date - timedelta(days=1)
+        elif time_range == 'week':
+            start_date = end_date - timedelta(weeks=1)
+        elif time_range == 'month':
+            start_date = end_date - timedelta(days=30)
+        else:
+            start_date = end_date - timedelta(days=7)
+        
+        try:
+            with sqlite3.connect(SOLOPRENEUR_DB) as conn:
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+                
+                query = f"""
+                SELECT 
+                    DATE(timestamp) as date,
+                    {aggregation}(value) as {aggregation}_value,
+                    COUNT(*) as data_points,
+                    MIN(value) as min_value,
+                    MAX(value) as max_value
+                FROM personal_metrics
+                WHERE user_id = ? 
+                    AND metric_type = ?
+                    AND timestamp BETWEEN ? AND ?
+                GROUP BY DATE(timestamp)
+                ORDER BY date DESC
+                """
+                
+                cursor.execute(query, (user_id, metric_type, start_date, end_date))
+                rows = cursor.fetchall()
+                
+                results = {
+                    'metric_type': metric_type,
+                    'time_range': time_range,
+                    'aggregation': aggregation,
+                    'data': [dict(row) for row in rows],
+                    'summary': {
+                        'total_data_points': sum(row['data_points'] for row in rows),
+                        'overall_avg': sum(row[f'{aggregation}_value'] * row['data_points'] for row in rows) / sum(row['data_points'] for row in rows) if rows else 0
+                    }
+                }
+                
+                return json.dumps(results)
+        except Exception as e:
+            logger.error(f'Error querying metrics: {e}')
+            return json.dumps({'error': str(e)})
+
+    @mcp.tool(
+        name='analyze_energy_patterns',
+        description='Analyze energy patterns to find optimal work windows and productivity schedules.',
+    )
+    def analyze_energy_patterns(
+        user_id: str = "default",
+        date: Optional[str] = None
+    ) -> str:
+        """
+        Analyze energy patterns to find optimal work windows.
+        
+        Args:
+            user_id: User identifier
+            date: Specific date to analyze (YYYY-MM-DD) or None for today
+        """
+        logger.info(f'Analyze energy patterns for user: {user_id}')
+        
+        if not date:
+            date = datetime.now().strftime('%Y-%m-%d')
+        
+        try:
+            with sqlite3.connect(SOLOPRENEUR_DB) as conn:
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+                
+                # Get energy patterns for the date
+                cursor.execute("""
+                SELECT hour, energy_level, cognitive_capacity, optimal_task_types
+                FROM energy_patterns
+                WHERE user_id = ? AND date = ?
+                ORDER BY hour
+                """, (user_id, date))
+                
+                patterns = cursor.fetchall()
+                
+                if not patterns:
+                    # Get average patterns if no data for specific date
+                    cursor.execute("""
+                    SELECT 
+                        hour,
+                        AVG(energy_level) as energy_level,
+                        AVG(cognitive_capacity) as cognitive_capacity,
+                        GROUP_CONCAT(DISTINCT optimal_task_types) as optimal_task_types
+                    FROM energy_patterns
+                    WHERE user_id = ?
+                    GROUP BY hour
+                    ORDER BY hour
+                    """, (user_id,))
+                    patterns = cursor.fetchall()
+                
+                # Analyze patterns
+                peak_hours = []
+                low_hours = []
+                deep_work_windows = []
+                
+                for row in patterns:
+                    hour_data = dict(row)
+                    if hour_data['energy_level'] >= 8:
+                        peak_hours.append(hour_data['hour'])
+                    elif hour_data['energy_level'] <= 4:
+                        low_hours.append(hour_data['hour'])
+                    
+                    if hour_data['cognitive_capacity'] >= 8:
+                        optimal_tasks = []
+                        if hour_data['optimal_task_types']:
+                            try:
+                                optimal_tasks = json.loads(hour_data['optimal_task_types'])
+                            except json.JSONDecodeError:
+                                optimal_tasks = hour_data['optimal_task_types'].split(',')
+                        
+                        deep_work_windows.append({
+                            'hour': hour_data['hour'],
+                            'capacity': hour_data['cognitive_capacity'],
+                            'optimal_tasks': optimal_tasks
+                        })
+                
+                recommendations = []
+                if peak_hours:
+                    recommendations.append(f"Schedule complex tasks during peak hours: {', '.join(map(str, peak_hours))}")
+                if low_hours:
+                    recommendations.append(f"Reserve low-energy hours for routine tasks: {', '.join(map(str, low_hours))}")
+                if deep_work_windows:
+                    recommendations.append(f"Deep work windows available at: {', '.join([str(w['hour']) for w in deep_work_windows])}")
+                
+                return json.dumps({
+                    'date': date,
+                    'patterns': [dict(row) for row in patterns],
+                    'analysis': {
+                        'peak_energy_hours': peak_hours,
+                        'low_energy_hours': low_hours,
+                        'deep_work_windows': deep_work_windows,
+                        'recommendations': recommendations
+                    }
+                })
+                
+        except Exception as e:
+            logger.error(f'Error analyzing energy patterns: {e}')
+            return json.dumps({'error': str(e)})
+
+    @mcp.tool(
+        name='track_learning_progress',
+        description='Track and update learning progress for skills, including hours invested and milestone achievements.',
+    )
+    def track_learning_progress(
+        skill_name: str,
+        user_id: str = "default",
+        hours_to_add: Optional[float] = None,
+        new_level: Optional[int] = None
+    ) -> str:
+        """
+        Track and update learning progress for a skill.
+        
+        Args:
+            skill_name: Name of the skill
+            user_id: User identifier
+            hours_to_add: Optional hours to add to the skill
+            new_level: Optional new level to set for the skill
+        """
+        logger.info(f'Track learning progress for skill: {skill_name}')
+        
+        try:
+            with sqlite3.connect(SOLOPRENEUR_DB) as conn:
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+                
+                # Update skill progress if data provided
+                if hours_to_add is not None:
+                    cursor.execute("""
+                    UPDATE skill_progress 
+                    SET hours_invested = hours_invested + ?,
+                        last_practice_date = CURRENT_TIMESTAMP
+                    WHERE user_id = ? AND skill_name = ?
+                    """, (hours_to_add, user_id, skill_name))
+                
+                if new_level is not None:
+                    cursor.execute("""
+                    UPDATE skill_progress 
+                    SET current_level = ?
+                    WHERE user_id = ? AND skill_name = ?
+                    """, (new_level, user_id, skill_name))
+                
+                conn.commit()
+                
+                # Get current progress
+                cursor.execute("""
+                SELECT sp.*, 
+                    COUNT(ls.id) as total_sessions,
+                    AVG(ls.productivity_score) as avg_productivity
+                FROM skill_progress sp
+                LEFT JOIN learning_sessions ls ON sp.id = ls.skill_id
+                WHERE sp.user_id = ? AND sp.skill_name = ?
+                GROUP BY sp.id
+                """, (user_id, skill_name))
+                
+                progress = cursor.fetchone()
+                
+                if not progress:
+                    # Create new skill entry
+                    cursor.execute("""
+                    INSERT INTO skill_progress (user_id, skill_name, current_level, target_level, hours_invested)
+                    VALUES (?, ?, 1, 5, 0)
+                    """, (user_id, skill_name))
+                    conn.commit()
+                    
+                    progress = cursor.execute("""
+                    SELECT * FROM skill_progress 
+                    WHERE user_id = ? AND skill_name = ?
+                    """, (user_id, skill_name)).fetchone()
+                
+                # Calculate learning velocity
+                hours = progress['hours_invested'] or 0
+                current_level = progress['current_level'] or 1
+                target_level = progress['target_level'] or 5
+                
+                velocity = 0
+                trajectory = 'just_started'
+                estimated_hours = float('inf')
+                
+                if hours > 0:
+                    velocity = (current_level - 1) / hours
+                    trajectory = 'improving' if velocity > 0 else 'stagnant'
+                    remaining_levels = target_level - current_level
+                    estimated_hours = remaining_levels / velocity if velocity > 0 else float('inf')
+                
+                learning_velocity = {
+                    'velocity': velocity,
+                    'trajectory': trajectory,
+                    'estimated_hours_to_target': estimated_hours
+                }
+                
+                # Generate recommendations
+                recommendations = []
+                if velocity < 0.01 and hours > 0:
+                    recommendations.append("Consider more active learning methods or shorter, focused sessions")
+                
+                if progress['last_practice_date']:
+                    try:
+                        last_practice = datetime.fromisoformat(progress['last_practice_date'])
+                        days_since = (datetime.now() - last_practice).days
+                        if days_since > 7:
+                            recommendations.append(f"It's been {days_since} days since last practice. Schedule a review session.")
+                    except ValueError:
+                        pass
+                
+                if current_level >= 3 and progress['total_sessions'] < 5:
+                    recommendations.append("Consider working on a practical project to solidify your knowledge")
+                
+                return json.dumps({
+                    'skill': skill_name,
+                    'progress': dict(progress),
+                    'learning_velocity': learning_velocity,
+                    'recommendations': recommendations
+                })
+                
+        except Exception as e:
+            logger.error(f'Error tracking learning progress: {e}')
+            return json.dumps({'error': str(e)})
+
+    @mcp.tool(
+        name='search_relevant_research',
+        description='Search for relevant research papers and technical content using ArXiv and stored intelligence.',
+    )
+    def search_relevant_research(
+        query: str,
+        research_area: str,
+        max_results: int = 20
+    ) -> str:
+        """
+        Search for relevant research papers and technical content.
+        
+        Args:
+            query: Search query
+            research_area: Specific research area
+            max_results: Maximum number of results
+        """
+        logger.info(f'Search relevant research: {query} in {research_area}')
+        
+        try:
+            # Search stored technical intelligence first
+            stored_results = []
+            with sqlite3.connect(SOLOPRENEUR_DB) as conn:
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+                
+                cursor.execute("""
+                SELECT * FROM technical_intelligence
+                WHERE research_area = ? 
+                    AND (title LIKE ? OR summary LIKE ?)
+                ORDER BY relevance_score DESC
+                LIMIT ?
+                """, (research_area, f'%{query}%', f'%{query}%', max_results))
+                
+                stored_results = [dict(row) for row in cursor.fetchall()]
+            
+            # Try to search ArXiv if available
+            arxiv_results = []
+            try:
+                import arxiv
+                client = arxiv.Client()
+                search = arxiv.Search(
+                    query=f"{query} AND cat:{research_area}",
+                    max_results=min(max_results, 10),
+                    sort_by=arxiv.SortCriterion.Relevance
+                )
+                
+                for result in client.results(search):
+                    arxiv_results.append({
+                        'arxiv_id': result.entry_id.split('/')[-1],
+                        'title': result.title,
+                        'authors': [author.name for author in result.authors][:3],
+                        'abstract': result.summary[:500],
+                        'published': result.published.isoformat(),
+                        'url': result.pdf_url,
+                        'source': 'arxiv'
+                    })
+            except ImportError:
+                logger.warning("ArXiv library not available, using stored results only")
+            except Exception as e:
+                logger.warning(f"ArXiv search failed: {e}")
+            
+            return json.dumps({
+                'query': query,
+                'research_area': research_area,
+                'arxiv_results': arxiv_results,
+                'stored_results': stored_results,
+                'total_results': len(arxiv_results) + len(stored_results)
+            })
+            
+        except Exception as e:
+            logger.error(f'Error searching research: {e}')
+            return json.dumps({'error': str(e)})
 
     @mcp.resource('resource://agent_cards/list', mime_type='application/json')
     def get_agent_cards() -> dict:

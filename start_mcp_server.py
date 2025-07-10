@@ -23,6 +23,8 @@ try:
     print("   Port: 10100")
     print("   Transport: sse")
     print("   Tools: find_agent, query_places_data, query_travel_data")
+    print("          query_solopreneur_metrics, analyze_energy_patterns")
+    print("          track_learning_progress, search_relevant_research")
     
     # Start the MCP server
     serve(host="localhost", port=10100, transport="sse")
