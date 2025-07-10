@@ -100,3 +100,15 @@ INFO:     127.0.0.1:44522 - "POST /messages/?session_id=0db23ae58f6642218b57bb44
 INFO:     127.0.0.1:44522 - "POST /messages/?session_id=0db23ae58f6642218b57bb443bab88dc HTTP/1.1" 202 Accepted
 [07/10/25 10:52:05] INFO     Processing request of type            server.py:619
                              ListToolsRequest                                   
+INFO:     127.0.0.1:55564 - "POST /messages/?session_id=de0a79454d6d45ccaa4d8756e0ae277b HTTP/1.1" 202 Accepted
+[07/10/25 11:03:32] INFO     Processing request of type            server.py:619
+                             CallToolRequest                                    
+INFO:     127.0.0.1:40862 - "POST /messages/?session_id=de0a79454d6d45ccaa4d8756e0ae277b HTTP/1.1" 202 Accepted
+[07/10/25 11:05:46] INFO     Processing request of type            server.py:619
+                             CallToolRequest                                    
+INFO:     127.0.0.1:40864 - "POST /messages/?session_id=de0a79454d6d45ccaa4d8756e0ae277b HTTP/1.1" 202 Accepted
+[07/10/25 11:05:54] INFO     Processing request of type            server.py:619
+                             CallToolRequest                                    
+INFO:     127.0.0.1:53464 - "POST /messages/?session_id=de0a79454d6d45ccaa4d8756e0ae277b HTTP/1.1" 202 Accepted
+[07/10/25 11:06:04] INFO     Processing request of type            server.py:619
+                             CallToolRequest                                    

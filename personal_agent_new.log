@@ -17,3 +17,19 @@ INFO:     127.0.0.1:39638 - "POST / HTTP/1.1" 200 OK
 INFO:     127.0.0.1:58028 - "POST / HTTP/1.1" 200 OK
 INFO:     127.0.0.1:39748 - "POST / HTTP/1.1" 200 OK
 INFO:     127.0.0.1:34250 - "POST / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38558 - "POST / HTTP/1.1" 200 OK
+Warning: there are non-text parts in the response: ['function_call'], returning concatenated text result from text parts. Check the full candidates.content.parts accessor to get the full model response.
+Json conversion error Expecting value: line 1 column 1 (char 0)
+INFO:     127.0.0.1:59650 - "POST / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51074 - "POST / HTTP/1.1" 200 OK
+Warning: there are non-text parts in the response: ['function_call'], returning concatenated text result from text parts. Check the full candidates.content.parts accessor to get the full model response.
+INFO:     127.0.0.1:49026 - "POST / HTTP/1.1" 200 OK
+Warning: there are non-text parts in the response: ['function_call'], returning concatenated text result from text parts. Check the full candidates.content.parts accessor to get the full model response.
+INFO:     127.0.0.1:54766 - "POST / HTTP/1.1" 200 OK
+Warning: there are non-text parts in the response: ['function_call'], returning concatenated text result from text parts. Check the full candidates.content.parts accessor to get the full model response.
+INFO:     127.0.0.1:37692 - "POST / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37706 - "POST / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37710 - "POST / HTTP/1.1" 200 OK
+Json conversion error Expecting value: line 1 column 1 (char 0)
+Json conversion error Expecting value: line 1 column 1 (char 0)
+Json conversion error Expecting value: line 1 column 1 (char 0)

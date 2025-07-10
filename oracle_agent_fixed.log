@@ -4,22 +4,34 @@ warning: `uv run` is experimental and may change without warning.
   warnings.warn(  # deprecated in 14.0 - 2024-11-09
 /home/user/solopreneur/.venv/lib/python3.13/site-packages/uvicorn/protocols/websockets/websockets_impl.py:17: DeprecationWarning: websockets.server.WebSocketServerProtocol is deprecated
   from websockets.server import WebSocketServerProtocol
-INFO:     Started server process [279693]
+INFO:     Started server process [293462]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://localhost:10901 (Press CTRL+C to quit)
 No valid response content from technical_intelligence agent
-No valid response content from personal_optimization agent
+No valid response content from technical_intelligence agent
+No valid response content from technical_intelligence agent
+No valid response content from integration_synthesis agent
+No valid response content from integration_synthesis agent
+No valid response content from integration_synthesis agent
+Quality issues detected: ['confidence_adequate', 'technical_feasibility_met']
+INFO:     127.0.0.1:52986 - "POST / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51266 - "POST / HTTP/1.1" 200 OK
+Circular dependency detected in execution plan
+Circular dependency detected in execution plan
+No valid response content from technical_intelligence agent
 No valid response content from technical_intelligence agent
 No valid response content from personal_optimization agent
 No valid response content from technical_intelligence agent
+No valid response content from personal_optimization agent
 No valid response content from personal_optimization agent
 No valid response content from integration_synthesis agent
 No valid response content from integration_synthesis agent
 No valid response content from integration_synthesis agent
 Quality issues detected: ['confidence_adequate', 'technical_feasibility_met']
-INFO:     127.0.0.1:59070 - "POST / HTTP/1.1" 200 OK
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [279693]
+INFO:     127.0.0.1:56338 - "POST / HTTP/1.1" 200 OK
+Quality issues detected: ['technical_feasibility_met', 'personal_sustainability_met']
+INFO:     127.0.0.1:46950 - "POST / HTTP/1.1" 200 OK
+Quality issues detected: ['technical_feasibility_met', 'personal_sustainability_met']
+INFO:     127.0.0.1:46958 - "POST / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46972 - "POST / HTTP/1.1" 200 OK

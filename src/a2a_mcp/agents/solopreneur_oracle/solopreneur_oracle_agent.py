@@ -282,7 +282,7 @@ class SolopreneurOracleAgent(BaseAgent):
                 from a2a_mcp.agents.solopreneur_oracle.base_solopreneur_agent import create_a2a_request
                 
                 payload = create_a2a_request(
-                    method="message/stream",
+                    method="message/send",
                     message=query,
                     metadata={"domain": domain, "oracle_request": True}
                 )
@@ -297,117 +297,75 @@ class SolopreneurOracleAgent(BaseAgent):
                 async with aiohttp.ClientSession(timeout=timeout) as session:
                     async with session.post(url, json=payload) as response:
                         if response.status == 200:
-                            content_type = response.headers.get('Content-Type', '')
+                            # Handle regular JSON response from message/send
+                            result = await response.json()
+                            logger.info(f"Received response from {domain} agent")
                             
-                            # Handle SSE stream response
-                            if 'text/event-stream' in content_type:
-                                final_content = None
-                                task_id = None
-                                context_id = None
-                                accumulated_content = []
+                            # Extract analysis data from the JSON response
+                            if 'result' in result:
+                                response_data = result['result']
                                 
-                                async for line in response.content:
-                                    if line:
-                                        line_str = line.decode('utf-8').strip()
-                                        if line_str.startswith('data: '):
-                                            data = line_str[6:]  # Remove 'data: ' prefix
-                                            try:
-                                                event = json.loads(data)
+                                # Check if it's a task response with artifacts
+                                if response_data.get('kind') == 'task':
+                                    # Look for artifacts in the response
+                                    artifacts = response_data.get('artifacts', [])
+                                    if artifacts:
+                                        # Extract analysis data from the first artifact
+                                        artifact = artifacts[0]
+                                        parts = artifact.get('parts', [])
+                                        
+                                        for part in parts:
+                                            # Handle data parts (structured analysis)
+                                            if part.get('kind') == 'data' and 'data' in part:
+                                                analysis_data = part['data']
+                                                return {
+                                                    "domain": domain.replace('_', ' ').title(),
+                                                    "analysis": analysis_data,
+                                                    "confidence": 0.85,
+                                                    "source": f"Domain Agent (Port {port})"
+                                                }
+                                            # Handle text parts (text analysis)
+                                            elif part.get('kind') == 'text' and 'text' in part:
+                                                text_content = part['text']
+                                                # Try to parse as JSON if it looks structured
+                                                try:
+                                                    if text_content.strip().startswith('{'):
+                                                        analysis_data = json.loads(text_content)
+                                                        return {
+                                                            "domain": domain.replace('_', ' ').title(),
+                                                            "analysis": analysis_data,
+                                                            "confidence": 0.85,
+                                                            "source": f"Domain Agent (Port {port})"
+                                                        }
+                                                except json.JSONDecodeError:
+                                                    pass
                                                 
-                                                # Extract task information
-                                                if 'result' in event and isinstance(event['result'], dict):
-                                                    result = event['result']
-                                                    
-                                                    # Get task ID and context ID from initial response
-                                                    if result.get('kind') == 'task':
-                                                        task_id = result.get('id')
-                                                        context_id = result.get('contextId')
-                                                        logger.info(f"Task created for {domain}: {task_id}")
-                                                    
-                                                    # Handle streaming response messages
-                                                    elif result.get('kind') == 'streaming-response':
-                                                        message = result.get('message', {})
-                                                        parts = message.get('parts', [])
-                                                        
-                                                        for part in parts:
-                                                            if part.get('kind') == 'text':
-                                                                text = part.get('text', '')
-                                                                if text:
-                                                                    accumulated_content.append(text)
-                                                        
-                                                        # Check if this is the final message
-                                                        if result.get('final', False):
-                                                            final_content = '\n'.join(accumulated_content)
-                                                            logger.info(f"Received final content from {domain} agent")
-                                                    
-                                                    # Handle artifact updates (alternative response format)
-                                                    elif result.get('kind') == 'artifact-update':
-                                                        artifact = result.get('artifact', {})
-                                                        parts = artifact.get('parts', [])
-                                                        
-                                                        for part in parts:
-                                                            if part.get('kind') == 'text':
-                                                                text = part.get('text', '')
-                                                                if text:
-                                                                    if result.get('append', False):
-                                                                        accumulated_content.append(text)
-                                                                    else:
-                                                                        accumulated_content = [text]
-                                                        
-                                                        # Check if this is the last chunk
-                                                        if result.get('lastChunk', False):
-                                                            final_content = '\n'.join(accumulated_content)
-                                                            logger.info(f"Received final artifact from {domain} agent")
-                                                    
-                                                    # Check for status update indicating completion
-                                                    elif result.get('kind') == 'status-update':
-                                                        status = result.get('status', {})
-                                                        state = status.get('state', '')
-                                                        if result.get('final', False) or state in ['completed', 'failed']:
-                                                            logger.info(f"Task {task_id} {state} for {domain}")
-                                                            if not final_content and accumulated_content:
-                                                                final_content = '\n'.join(accumulated_content)
-                                                        
-                                            except json.JSONDecodeError as e:
-                                                logger.warning(f"Failed to parse SSE data: {data[:100]}... Error: {e}")
+                                                # Return as text analysis
+                                                return {
+                                                    "domain": domain.replace('_', ' ').title(),
+                                                    "analysis": text_content,
+                                                    "confidence": 0.85,
+                                                    "source": f"Domain Agent (Port {port})"
+                                                }
                                 
-                                if final_content:
-                                    # Try to parse as JSON if it looks like JSON
-                                    try:
-                                        if final_content.strip().startswith('{'):
-                                            analysis_data = json.loads(final_content)
-                                            return {
-                                                "domain": domain.replace('_', ' ').title(),
-                                                "analysis": analysis_data,
-                                                "confidence": 0.85,
-                                                "source": f"Domain Agent (Port {port})"
-                                            }
-                                    except json.JSONDecodeError:
-                                        pass
-                                    
-                                    # Return as text if not JSON
+                                # If no artifacts, try to extract any analysis content directly
+                                if 'analysis' in response_data or 'content' in response_data:
+                                    analysis_content = response_data.get('analysis') or response_data.get('content')
                                     return {
                                         "domain": domain.replace('_', ' ').title(),
-                                        "analysis": final_content,
+                                        "analysis": analysis_content,
                                         "confidence": 0.85,
                                         "source": f"Domain Agent (Port {port})"
                                     }
-                                else:
-                                    logger.warning(f"No valid response content from {domain} agent")
-                                    if attempt < max_retries - 1:
-                                        await asyncio.sleep(retry_delay)
-                                        retry_delay *= 2
-                                        continue
-                                    return await self._get_fallback_analysis(domain, query)
-                            else:
-                                # Handle regular JSON response
-                                result = await response.json()
-                                logger.warning(f"Unexpected non-SSE response from {domain} agent: {result}")
-                                if attempt < max_retries - 1:
-                                    await asyncio.sleep(retry_delay)
-                                    retry_delay *= 2
-                                    continue
-                                return await self._get_fallback_analysis(domain, query)
+                            
+                            # If we can't extract specific analysis, use the whole response
+                            logger.warning(f"Using full response as analysis for {domain} agent")
+                            return {
+                                "domain": domain.replace('_', ' ').title(),
+                                "analysis": result,
+                                "confidence": 0.75,
+                                "source": f"Domain Agent (Port {port})"
+                            }
                         else:
                             error_text = await response.text()
                             logger.error(f"HTTP {response.status} from {domain} agent: {error_text}")
