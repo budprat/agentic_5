@@ -69,7 +69,9 @@
       "mcp__ide__getDiagnostics",
       "mcp__ide__executeCode",
       "Bash(env)",
-      "Bash(./run_solopreneur_agents.sh:*)"
+      "Bash(./run_solopreneur_agents.sh:*)",
+      "Bash(./stop_solopreneur_agents.sh:*)",
+      "Bash(./check_solopreneur_status.sh:*)"
     ],
     "deny": []
   },

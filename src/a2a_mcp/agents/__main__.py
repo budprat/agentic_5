@@ -13,7 +13,7 @@ import uvicorn
 
 from a2a.server.apps import A2AStarletteApplication
 from a2a.server.request_handlers import DefaultRequestHandler
-from a2a.server.tasks import InMemoryTaskStore, PushNotificationSender
+from a2a.server.tasks import InMemoryTaskStore
 from a2a.types import AgentCard
 from a2a_mcp.common import prompts
 from a2a_mcp.common.agent_executor import GenericAgentExecutor
@@ -159,6 +159,13 @@ def get_agent(agent_card: AgentCard):
         raise e
 
 
+# Simple no-op push notifier implementation
+class NoOpPushNotifier:
+    """A no-operation push notifier that does nothing."""
+    async def send_notification(self, *args, **kwargs):
+        pass
+
+
 @click.command()
 @click.option('--host', 'host', default='localhost')
 @click.option('--port', 'port', default=10101)
@@ -175,8 +182,7 @@ def main(host, port, agent_card):
         client = httpx.AsyncClient()
         request_handler = DefaultRequestHandler(
             agent_executor=GenericAgentExecutor(agent=get_agent(agent_card)),
-            task_store=InMemoryTaskStore(),
-            push_notifier=PushNotificationSender(client),
+            task_store=InMemoryTaskStore()
         )
 
         server = A2AStarletteApplication(
