@@ -8,3 +8,14 @@ INFO:     Started server process [279693]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://localhost:10901 (Press CTRL+C to quit)
+No valid response content from technical_intelligence agent
+No valid response content from personal_optimization agent
+No valid response content from technical_intelligence agent
+No valid response content from personal_optimization agent
+No valid response content from technical_intelligence agent
+No valid response content from personal_optimization agent
+No valid response content from integration_synthesis agent
+No valid response content from integration_synthesis agent
+No valid response content from integration_synthesis agent
+Quality issues detected: ['confidence_adequate', 'technical_feasibility_met']
+INFO:     127.0.0.1:59070 - "POST / HTTP/1.1" 200 OK

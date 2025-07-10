@@ -70,3 +70,33 @@ INFO:     Uvicorn running on http://localhost:10100 (Press CTRL+C to quit)
    Transport: sse
    Tools: find_agent, query_places_data, query_travel_data
 INFO:     127.0.0.1:56370 - "GET /.well-known/ai-plugin.json HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:44568 - "GET /sse HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44580 - "POST /messages/?session_id=61b098a8790b40a98c24e5f2d805c84d HTTP/1.1" 202 Accepted
+INFO:     127.0.0.1:44580 - "POST /messages/?session_id=61b098a8790b40a98c24e5f2d805c84d HTTP/1.1" 202 Accepted
+INFO:     127.0.0.1:44580 - "POST /messages/?session_id=61b098a8790b40a98c24e5f2d805c84d HTTP/1.1" 202 Accepted
+[07/10/25 10:51:48] INFO     Processing request of type            server.py:619
+                             ListToolsRequest                                   
+INFO:     127.0.0.1:44594 - "GET /sse HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44596 - "POST /messages/?session_id=65403a5955b24954afe8c191fe478016 HTTP/1.1" 202 Accepted
+INFO:     127.0.0.1:44596 - "POST /messages/?session_id=65403a5955b24954afe8c191fe478016 HTTP/1.1" 202 Accepted
+INFO:     127.0.0.1:44596 - "POST /messages/?session_id=65403a5955b24954afe8c191fe478016 HTTP/1.1" 202 Accepted
+[07/10/25 10:51:52] INFO     Processing request of type            server.py:619
+                             ListToolsRequest                                   
+INFO:     127.0.0.1:46304 - "GET /sse HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46312 - "POST /messages/?session_id=de0a79454d6d45ccaa4d8756e0ae277b HTTP/1.1" 202 Accepted
+INFO:     127.0.0.1:46312 - "POST /messages/?session_id=de0a79454d6d45ccaa4d8756e0ae277b HTTP/1.1" 202 Accepted
+INFO:     127.0.0.1:46312 - "POST /messages/?session_id=de0a79454d6d45ccaa4d8756e0ae277b HTTP/1.1" 202 Accepted
+[07/10/25 10:51:57] INFO     Processing request of type            server.py:619
+                             ListToolsRequest                                   
+INFO:     127.0.0.1:46326 - "GET /sse HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46332 - "POST /messages/?session_id=8f0d7930a3ab449ba620b437c14d7e72 HTTP/1.1" 202 Accepted
+INFO:     127.0.0.1:46332 - "POST /messages/?session_id=8f0d7930a3ab449ba620b437c14d7e72 HTTP/1.1" 202 Accepted
+INFO:     127.0.0.1:46332 - "POST /messages/?session_id=8f0d7930a3ab449ba620b437c14d7e72 HTTP/1.1" 202 Accepted
+[07/10/25 10:52:01] INFO     Processing request of type            server.py:619
+                             ListToolsRequest                                   
+INFO:     127.0.0.1:44510 - "GET /sse HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44522 - "POST /messages/?session_id=0db23ae58f6642218b57bb443bab88dc HTTP/1.1" 202 Accepted
+INFO:     127.0.0.1:44522 - "POST /messages/?session_id=0db23ae58f6642218b57bb443bab88dc HTTP/1.1" 202 Accepted
+INFO:     127.0.0.1:44522 - "POST /messages/?session_id=0db23ae58f6642218b57bb443bab88dc HTTP/1.1" 202 Accepted
+[07/10/25 10:52:05] INFO     Processing request of type            server.py:619
+                             ListToolsRequest                                   
