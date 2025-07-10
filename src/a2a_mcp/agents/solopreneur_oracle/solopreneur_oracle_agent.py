@@ -13,8 +13,8 @@ from a2a_mcp.common.parallel_workflow import (
     ParallelWorkflowNode,
     Status
 )
-import google.generativeai as genai
-from google.generativeai import types
+from google import genai
+from google.genai import types as genai_types
 import os
 import aiohttp
 
@@ -283,8 +283,12 @@ class SolopreneurOracleAgent(BaseAgent):
                 metadata={"domain": domain, "oracle_request": True}
             )
             
-            # Set timeout for domain agent calls
-            timeout = aiohttp.ClientTimeout(total=45, connect=10)
+            # Set comprehensive timeout configuration (following nexus pattern)
+            timeout = aiohttp.ClientTimeout(
+                total=60,      # Total request timeout increased for complex analyses
+                connect=10,    # Connection timeout
+                sock_read=30   # Socket read timeout for streaming responses
+            )
             
             async with aiohttp.ClientSession(timeout=timeout) as session:
                 try:
@@ -462,13 +466,14 @@ class SolopreneurOracleAgent(BaseAgent):
             }
 
     async def generate_synthesis(self, query: str) -> str:
-        """Generate comprehensive synthesis using Gemini."""
-        # Configure API key
-        api_key = os.getenv('GOOGLE_API_KEY')
-        if not api_key:
-            raise ValueError("GOOGLE_API_KEY environment variable not set")
-        
-        genai.configure(api_key=api_key)
+        """Generate comprehensive synthesis using modern Gemini client with timeout configuration."""
+        # Configure client with proper timeout settings (following nexus pattern)
+        http_options = genai_types.HttpOptions(
+            async_client_args={
+                'timeout': aiohttp.ClientTimeout(total=180, connect=30)  # 3 minute total timeout
+            }
+        )
+        client = genai.Client(http_options=http_options)
         
         prompt = SOLOPRENEUR_SYNTHESIS_PROMPT.format(
             original_query=query,
@@ -479,19 +484,21 @@ class SolopreneurOracleAgent(BaseAgent):
             personal_threshold=self.quality_thresholds["personal_sustainability_threshold"]
         )
         
-        # Retry logic for API overload
+        # Enhanced retry logic for API overload (following nexus pattern)
         max_retries = 3
         base_delay = 2.0
         
         for attempt in range(max_retries):
             try:
-                response = genai.generate_text(
-                    model=os.getenv('GEMINI_MODEL', 'gemini-pro'),
-                    prompt=prompt,
-                    temperature=0.1,
-                    max_output_tokens=2048
+                response = client.models.generate_content(
+                    model=os.getenv('GEMINI_MODEL', 'gemini-2.0-flash-001'),
+                    contents=prompt,
+                    config={
+                        "temperature": 0.1,  # Low temperature for consistent synthesis
+                        "response_mime_type": "application/json"
+                    }
                 )
-                return response.result
+                return response.text
                 
             except Exception as e:
                 error_msg = str(e)
@@ -501,6 +508,7 @@ class SolopreneurOracleAgent(BaseAgent):
                     await asyncio.sleep(wait_time)
                     continue
                 else:
+                    # Re-raise the exception if it's not an overload error or we've exhausted retries
                     raise e
 
     def check_quality_thresholds(self, synthesis: Dict) -> Dict[str, Any]:
