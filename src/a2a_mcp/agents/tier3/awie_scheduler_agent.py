@@ -74,7 +74,7 @@ class AWIESchedulerAgent(StandardizedAgentBase):
         )
         
         # Store tier and port as instance variables
-        self.port = 10961  # Tier 3 agent port
+        self.port = 10980  # Tier 3 agent port (moved to avoid conflict with Context-Driven Orchestrator)
         self.tier = "tier3"
         
         # Initialize SERP API
@@ -92,7 +92,7 @@ class AWIESchedulerAgent(StandardizedAgentBase):
             "vector databases",
             "LangChain tutorial",
             "Claude AI API",
-            "machine learning 2024",
+            "machine learning 2025",
             "AI tools comparison",
             "prompt engineering",
             "AI automation",
@@ -149,21 +149,28 @@ class AWIESchedulerAgent(StandardizedAgentBase):
         """Get real search trends using SERP API."""
         
         if not self.serp_api_key:
+            logger.info("🔄 Using mock SERP data - GOOGLE_TRENDS_API_KEY not available")
             return self._get_mock_serp_data()
+        
+        logger.info(f"🌐 Fetching SERP data for {len(keywords)} keywords from Google Trends API")
         
         trend_data = []
         
-        for keyword in keywords[:5]:  # Limit API calls
+        for i, keyword in enumerate(keywords[:5], 1):  # Limit API calls
             try:
+                logger.info(f"📊 SERP API Call {i}/{min(5, len(keywords))}: '{keyword}'")
                 search_data = await self._query_serp_api(keyword)
                 if search_data:
                     trend_data.append(search_data)
+                    logger.info(f"✅ SERP data retrieved for '{keyword}': {search_data.search_volume:,} searches/month, {search_data.competition_level} competition")
+                else:
+                    logger.warning(f"⚠️ No SERP data returned for '{keyword}'")
                     
                 # Rate limiting
                 await asyncio.sleep(0.5)
                 
             except Exception as e:
-                logger.warning(f"SERP API error for '{keyword}': {e}")
+                logger.error(f"❌ SERP API error for '{keyword}': {e}")
                 continue
         
         return trend_data
@@ -335,8 +342,10 @@ class AWIESchedulerAgent(StandardizedAgentBase):
         request_lower = request.lower()
         relevant_keywords = []
         
-        # Map request terms to search keywords
+        # Enhanced keyword mapping with Claude-specific terms
         keyword_mapping = {
+            "claude": ["Claude AI 2025", "Anthropic Claude", "Claude coding assistant", "Claude API integration"],
+            "code": ["AI coding tools 2025", "programming assistants", "code generation AI", "developer tools"],
             "rag": ["RAG retrieval augmented generation", "vector search RAG"],
             "vector": ["vector databases", "vector search"],
             "agent": ["AI agents framework", "LangChain agents"],
@@ -349,9 +358,14 @@ class AWIESchedulerAgent(StandardizedAgentBase):
             if term in request_lower:
                 relevant_keywords.extend(keywords)
         
-        # Default AI keywords if none matched
+        # Smart defaults based on request content instead of generic fallback
         if not relevant_keywords:
-            relevant_keywords = ["AI tools 2024", "machine learning tutorial"]
+            if "claude" in request_lower:
+                relevant_keywords = ["Claude AI 2025", "Anthropic Claude"]
+            elif "code" in request_lower or "coding" in request_lower:
+                relevant_keywords = ["AI coding tools 2025", "programming assistants"]
+            else:
+                relevant_keywords = ["AI tools 2025", "machine learning tutorial 2025"]
         
         return relevant_keywords[:5]  # Limit for API efficiency
     

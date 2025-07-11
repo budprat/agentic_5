@@ -101,7 +101,7 @@ Coordinate with specialized AWIE modules (ports 10960-10979) for complete intell
         self.awie_modules = {
             # Revolutionary Core Agents
             "autonomous_task_generator": 10960,
-            "awie_scheduler_agent": 10961,  # TIER 3 SERP-enhanced scheduler
+            "awie_scheduler_agent": 10980,  # TIER 3 SERP-enhanced scheduler
             "goal_decomposition_engine": 10962,
             "flow_state_guardian": 10963,
             "interruption_intelligence": 10964,
@@ -171,15 +171,15 @@ Coordinate with specialized AWIE modules (ports 10960-10979) for complete intell
             scheduler_result = await self.awie_scheduler.schedule_enhanced_workflow(request)
             
             if scheduler_result["success"]:
+                # Generate detailed SERP intelligence section
+                serp_details = self._generate_detailed_serp_analysis(scheduler_result)
+                
                 # Enhanced workflow with SERP intelligence
                 enhanced_response = f"""🧠 AWIE Oracle + SERP Intelligence
 
 {scheduler_result["scheduling_summary"]}
 
-📊 MARKET INTELLIGENCE INTEGRATION:
-• Search Volume: {sum(scheduler_result["market_intelligence"]["search_volume_trends"].values()):,} monthly searches
-• High-Opportunity Keywords: {len(scheduler_result["market_intelligence"]["content_opportunities"])}
-• Content Gaps: {len(scheduler_result["market_intelligence"]["competitive_gaps"])}
+{serp_details}
 
 🎯 AUTONOMOUS WORKFLOW:
 • Original: {scheduler_result["original_request"]}
@@ -585,3 +585,75 @@ You just focus on execution - AWIE handles everything else.
                 "seamless_experience"
             ]
         }
+
+    def _generate_detailed_serp_analysis(self, scheduler_result: Dict[str, Any]) -> str:
+        """Generate detailed, user-readable SERP analysis from scheduler results."""
+        
+        market_intel = scheduler_result.get("market_intelligence", {})
+        serp_data = scheduler_result.get("serp_data", [])
+        
+        # Start with summary metrics
+        total_volume = sum(market_intel.get("search_volume_trends", {}).values())
+        opportunities = market_intel.get("content_opportunities", [])
+        gaps = market_intel.get("competitive_gaps", [])
+        
+        analysis = f"""📊 COMPREHENSIVE SERP INTELLIGENCE ANALYSIS:
+
+🔍 SEARCH VOLUME ANALYSIS:
+• Total Monthly Searches: {total_volume:,}
+• Keywords Analyzed: {len(serp_data)}
+• Market Opportunity Score: {"High" if total_volume > 5000 else "Medium" if total_volume > 1000 else "Low"}
+"""
+        
+        # Detailed keyword breakdown
+        if serp_data:
+            analysis += "\n📈 KEYWORD PERFORMANCE BREAKDOWN:\n"
+            for i, data in enumerate(serp_data, 1):
+                if hasattr(data, 'keyword'):
+                    competition_emoji = "🔴" if data.competition_level == "high" else "🟡" if data.competition_level == "medium" else "🟢"
+                    trend_emoji = "📈" if data.trend_direction == "rising" else "📊" if data.trend_direction == "stable" else "📉"
+                    
+                    analysis += f"""
+{i}. "{data.keyword}"
+   • Monthly Searches: {data.search_volume:,}
+   • Competition: {competition_emoji} {data.competition_level.title()}
+   • Trend: {trend_emoji} {data.trend_direction.title()}
+   • Opportunity Score: {getattr(data, 'opportunity_score', 'N/A')}/10
+   • Related Terms: {', '.join(getattr(data, 'related_searches', [])[:3])}{"..." if len(getattr(data, 'related_searches', [])) > 3 else ""}"""
+        
+        # Market opportunities
+        if opportunities:
+            analysis += f"\n\n🎯 CONTENT OPPORTUNITIES ({len(opportunities)}):\n"
+            for i, opp in enumerate(opportunities[:3], 1):
+                analysis += f"{i}. {opp}\n"
+        
+        # Competitive gaps
+        if gaps:
+            analysis += f"\n⚡ COMPETITIVE GAPS ({len(gaps)}):\n"
+            for i, gap in enumerate(gaps[:3], 1):
+                analysis += f"{i}. {gap}\n"
+        
+        # Search volume trends breakdown
+        volume_trends = market_intel.get("search_volume_trends", {})
+        if volume_trends:
+            analysis += "\n📊 SEARCH VOLUME BY KEYWORD:\n"
+            sorted_keywords = sorted(volume_trends.items(), key=lambda x: x[1], reverse=True)
+            for keyword, volume in sorted_keywords[:5]:
+                percentage = (volume / total_volume * 100) if total_volume > 0 else 0
+                analysis += f"• {keyword}: {volume:,} searches ({percentage:.1f}%)\n"
+        
+        # Strategic recommendations
+        analysis += f"""
+🧠 STRATEGIC RECOMMENDATIONS:
+• Market Focus: {"High-volume keywords" if total_volume > 5000 else "Long-tail opportunities"}
+• Competition Strategy: {"Differentiation required" if any(getattr(d, 'competition_level', '') == 'high' for d in serp_data) else "Direct competition viable"}
+• Content Timing: {"Immediate action" if any(getattr(d, 'trend_direction', '') == 'rising' for d in serp_data) else "Steady approach"}
+• SEO Priority: {"High - significant search volume" if total_volume > 3000 else "Medium - moderate volume"}
+
+📋 MARKET INTELLIGENCE SUMMARY:
+• Data Source: Google Trends API via SERP
+• Keywords Analyzed: {len(serp_data)} from {scheduler_result.get('original_request', 'request')}
+• Update Frequency: Real-time
+• Competitive Intelligence: {"Included" if serp_data else "Limited"}"""
+        
+        return analysis

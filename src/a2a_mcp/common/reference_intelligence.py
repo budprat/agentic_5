@@ -358,8 +358,8 @@ class ReferenceIntelligenceService:
             for result in web_results[:self.config["limits"]["max_papers_per_source"]]:
                 if self._is_web_result_relevant(result, query):
                     # Extract year from publication date
-                    pub_date = result.get("publication_date", "2024")
-                    year = pub_date if isinstance(pub_date, (int, str)) else "2024"
+                    pub_date = result.get("publication_date", "2025")
+                    year = pub_date if isinstance(pub_date, (int, str)) else "2025"
                     
                     papers.append({
                         "title": result.get("title", "No title"),
@@ -489,21 +489,21 @@ class ReferenceIntelligenceService:
                     "url": "https://unesco.org/themes/ict-education/ai-education",
                     "snippet": "UNESCO's comprehensive analysis of AI applications in education, covering personalized learning, automated assessment, and teacher support systems. Includes global case studies and implementation guidelines.",
                     "domain": "unesco.org",
-                    "publication_date": "2024"
+                    "publication_date": "2025"
                 },
                 {
                     "title": "Machine Learning for Educational Equity: Addressing Bias in AI Systems",
                     "url": "https://educationaltechnology.org/ml-equity-bias",
                     "snippet": "Research on bias mitigation in educational AI systems, focusing on socioeconomic, gender, and cultural disparities. Presents frameworks for fair AI in developing countries.",
                     "domain": "educationaltechnology.org", 
-                    "publication_date": "2024"
+                    "publication_date": "2025"
                 },
                 {
                     "title": "EdTech in India: AI-Powered Solutions for Rural Education",
                     "url": "https://indianeducationreview.com/ai-rural-education",
                     "snippet": "Analysis of AI implementations in Indian education system, addressing connectivity challenges, local language support, and teacher training programs.",
                     "domain": "indianeducationreview.com",
-                    "publication_date": "2024"
+                    "publication_date": "2025"
                 }
             ])
         
@@ -515,14 +515,14 @@ class ReferenceIntelligenceService:
                     "url": "https://nature.com/articles/quantum-climate-science",
                     "snippet": "Comprehensive review of quantum computing applications for climate modeling, carbon capture optimization, and renewable energy materials discovery. Published in Nature Climate Change.",
                     "domain": "nature.com",
-                    "publication_date": "2024"
+                    "publication_date": "2025"
                 },
                 {
                     "title": "NIST Quantum Computing Standards and Applications",
                     "url": "https://nist.gov/quantum-computing-applications",
                     "snippet": "National Institute of Standards and Technology report on quantum computing applications, including climate science, optimization problems, and current hardware limitations.",
                     "domain": "nist.gov",
-                    "publication_date": "2024"
+                    "publication_date": "2025"
                 }
             ])
         
@@ -534,14 +534,14 @@ class ReferenceIntelligenceService:
                     "url": "https://ipcc.ch/report/climate-technology-solutions",
                     "snippet": "IPCC assessment of technology solutions for climate change mitigation, including AI, quantum computing, and materials science applications for carbon capture and renewable energy.",
                     "domain": "ipcc.ch",
-                    "publication_date": "2024"
+                    "publication_date": "2025"
                 },
                 {
                     "title": "Carbon Capture Technology: AI and Optimization Approaches",
                     "url": "https://iea.org/reports/carbon-capture-ai-optimization",
                     "snippet": "International Energy Agency report on AI-driven optimization of carbon capture technologies, including machine learning for materials discovery and process optimization.",
                     "domain": "iea.org",
-                    "publication_date": "2024"
+                    "publication_date": "2025"
                 }
             ])
         
@@ -553,14 +553,14 @@ class ReferenceIntelligenceService:
                     "url": "https://edtech-ethics.org/privacy-guidelines",
                     "snippet": "Comprehensive guidelines for implementing AI in education while maintaining student privacy, GDPR compliance, and bias mitigation. Includes case studies from European implementations.",
                     "domain": "edtech-ethics.org",
-                    "publication_date": "2024"
+                    "publication_date": "2025"
                 },
                 {
                     "title": "India's Personal Data Protection Bill: AI and Education Implications",
                     "url": "https://lawreview.in/pdpb-ai-education",
                     "snippet": "Legal analysis of India's PDPB implications for AI in education, covering data localization requirements, consent mechanisms, and cross-border data transfer restrictions.",
                     "domain": "lawreview.in",
-                    "publication_date": "2024"
+                    "publication_date": "2025"
                 }
             ])
         
@@ -568,18 +568,18 @@ class ReferenceIntelligenceService:
         if not results:
             results.extend([
                 {
-                    "title": "Emerging Technologies Research Trends 2024",
-                    "url": "https://technologyreview.mit.edu/emerging-trends-2024",
+                    "title": "Emerging Technologies Research Trends 2025",
+                    "url": "https://technologyreview.mit.edu/emerging-trends-2025",
                     "snippet": "MIT Technology Review's analysis of emerging technology trends, including AI applications, quantum computing developments, and their societal implications.",
                     "domain": "technologyreview.mit.edu",
-                    "publication_date": "2024"
+                    "publication_date": "2025"
                 },
                 {
                     "title": "Research Methods in Technology Innovation",
                     "url": "https://researchgate.net/technology-innovation-methods", 
                     "snippet": "Academic overview of research methodologies for technology innovation studies, covering interdisciplinary approaches and evaluation frameworks.",
                     "domain": "researchgate.net",
-                    "publication_date": "2024"
+                    "publication_date": "2025"
                 }
             ])
         
@@ -796,7 +796,7 @@ class ReferenceIntelligenceService:
                     elif isinstance(year, int):
                         years.append(year)
                     elif isinstance(year, str) and year != "Unknown":
-                        # Try to extract year from string format like "2024-01-01"
+                        # Try to extract year from string format like "2025-01-01"
                         year_part = year.split('-')[0]
                         if year_part.isdigit():
                             years.append(int(year_part))
