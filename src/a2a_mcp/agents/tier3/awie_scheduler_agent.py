@@ -146,11 +146,17 @@ class AWIESchedulerAgent(StandardizedAgentBase):
             }
     
     async def _get_serp_trends(self, keywords: List[str]) -> List[SerpTrendData]:
-        """Get real search trends using SERP API."""
+        """Get real search trends using SERP API with Google Trends integration."""
         
         if not self.serp_api_key:
             logger.info("🔄 Using mock SERP data - GOOGLE_TRENDS_API_KEY not available")
             return self._get_mock_serp_data()
+        
+        # Check if this is a trends-related request
+        if any(keyword in ["trending topics 2025", "viral content analysis", "social media trends", "market trending"] 
+               for keyword in keywords):
+            logger.info("🔥 Detected trends request - fetching real-time trending data")
+            return await self._get_real_trending_topics()
         
         logger.info(f"🌐 Fetching SERP data for {len(keywords)} keywords from Google Trends API")
         
@@ -174,6 +180,132 @@ class AWIESchedulerAgent(StandardizedAgentBase):
                 continue
         
         return trend_data
+    
+    async def _get_real_trending_topics(self) -> List[SerpTrendData]:
+        """Get real-time trending topics using Google Trends API via SERP."""
+        
+        trend_data = []
+        
+        try:
+            # Get real-time trending topics
+            logger.info("🔥 Fetching real-time trending topics from Google Trends API")
+            
+            # Use Google Trends Trending Now API (Realtime)
+            params = {
+                "engine": "google_trends_trending_now",
+                "frequency": "realtime",
+                "geo": "US",
+                "hl": "en",
+                "api_key": self.serp_api_key
+            }
+            
+            response = requests.get(self.serp_base_url, params=params, timeout=15)
+            response.raise_for_status()
+            
+            data = response.json()
+            
+            # Extract trending topics from realtime_searches
+            trending_topics = data.get("realtime_searches", [])
+            
+            if trending_topics:
+                logger.info(f"📈 Found {len(trending_topics)} trending topics")
+                
+                for i, topic_data in enumerate(trending_topics[:5]):  # Limit to top 5
+                    topic_title = topic_data.get("query", "")
+                    traffic = topic_data.get("formattedTraffic", "")
+                    
+                    if topic_title:
+                        # Convert trending topic to SerpTrendData format
+                        trend_item = SerpTrendData(
+                            keyword=topic_title,
+                            search_volume=self._parse_traffic_volume(traffic),
+                            trend_direction="rising",  # Trending topics are rising by definition
+                            competition_level="high",  # Trending topics typically have high competition
+                            related_searches=topic_data.get("relatedQueries", [])[:3],
+                            top_results_count=10,
+                            opportunity_score=0.85,  # High opportunity for trending topics
+                            timing_urgency="urgent"  # Trending topics need immediate action
+                        )
+                        
+                        trend_data.append(trend_item)
+                        logger.info(f"🚀 Trending topic {i+1}: '{topic_title}' - {traffic} searches")
+            
+            else:
+                logger.warning("⚠️ No trending topics found, falling back to related trends")
+                # Fallback to trending analysis keywords
+                trend_data = await self._get_trending_keywords_fallback()
+                
+        except Exception as e:
+            logger.error(f"❌ Google Trends API error: {e}")
+            # Fallback to mock trending data
+            trend_data = self._get_mock_trending_data()
+        
+        return trend_data
+    
+    def _parse_traffic_volume(self, traffic: str) -> int:
+        """Parse traffic volume from formatted string (e.g., '100K+', '2M+')."""
+        if not traffic:
+            return 5000
+            
+        traffic = traffic.upper().replace("+", "").replace(",", "")
+        
+        try:
+            if "K" in traffic:
+                return int(float(traffic.replace("K", "")) * 1000)
+            elif "M" in traffic:
+                return int(float(traffic.replace("M", "")) * 1000000)
+            else:
+                return int(traffic) if traffic.isdigit() else 5000
+        except:
+            return 5000
+    
+    async def _get_trending_keywords_fallback(self) -> List[SerpTrendData]:
+        """Fallback trending keywords when real API fails."""
+        
+        trending_keywords = [
+            "AI breakthrough 2025",
+            "viral social media trends", 
+            "emerging technology trends",
+            "content marketing trends",
+            "digital transformation 2025"
+        ]
+        
+        trend_data = []
+        
+        for keyword in trending_keywords:
+            search_data = await self._query_serp_api(keyword)
+            if search_data:
+                # Mark as trending with high urgency
+                search_data.timing_urgency = "urgent"
+                search_data.trend_direction = "rising"
+                trend_data.append(search_data)
+        
+        return trend_data
+    
+    def _get_mock_trending_data(self) -> List[SerpTrendData]:
+        """Mock trending data for testing."""
+        return [
+            SerpTrendData(
+                keyword="AI breakthrough 2025",
+                search_volume=25000,
+                trend_direction="rising",
+                competition_level="high",
+                related_searches=["artificial intelligence", "AI news", "tech breakthrough"],
+                top_results_count=12,
+                opportunity_score=0.9,
+                timing_urgency="urgent"
+            ),
+            SerpTrendData(
+                keyword="viral social media trends",
+                search_volume=18000,
+                trend_direction="rising",
+                competition_level="medium",
+                related_searches=["viral content", "social trends", "trending hashtags"],
+                top_results_count=10,
+                opportunity_score=0.85,
+                timing_urgency="urgent"
+            )
+        ]
     
     async def _query_serp_api(self, keyword: str) -> Optional[SerpTrendData]:
         """Query SERP API for keyword data."""
@@ -342,10 +474,14 @@ class AWIESchedulerAgent(StandardizedAgentBase):
         request_lower = request.lower()
         relevant_keywords = []
         
-        # Enhanced keyword mapping with Claude-specific terms
+        # Enhanced keyword mapping with Claude-specific terms and trends analysis
         keyword_mapping = {
             "claude": ["Claude AI 2025", "Anthropic Claude", "Claude coding assistant", "Claude API integration"],
             "code": ["AI coding tools 2025", "programming assistants", "code generation AI", "developer tools"],
+            "trends": ["trending topics 2025", "viral content analysis", "social media trends", "market trending"],
+            "trending": ["trending topics 2025", "viral content analysis", "social media trends", "market trending"],
+            "schedule": ["content scheduling tools", "social media scheduling", "automated posting", "schedule optimization"],
+            "scheduling": ["content scheduling tools", "social media scheduling", "automated posting", "schedule optimization"],
             "rag": ["RAG retrieval augmented generation", "vector search RAG"],
             "vector": ["vector databases", "vector search"],
             "agent": ["AI agents framework", "LangChain agents"],
@@ -431,13 +567,76 @@ class AWIESchedulerAgent(StandardizedAgentBase):
         
         # Determine workflow type
         workflow_type = "research"
-        if "content" in request.lower() or "write" in request.lower():
+        if "trends" in request.lower() or "trending" in request.lower():
+            workflow_type = "trends_analysis"
+        elif "content" in request.lower() or "write" in request.lower():
             workflow_type = "content"
         elif "organize" in request.lower():
             workflow_type = "organizing"
         
         # Create optimized workflow with SERP intelligence
-        if workflow_type == "research":
+        if workflow_type == "trends_analysis":
+            return {
+                "type": "trends_analysis_with_serp",
+                "total_duration": 160,
+                "energy_requirement": "high",
+                "serp_optimized": True,
+                "trending_focused": True,
+                "tasks": [
+                    {
+                        "name": "real_time_trend_discovery",
+                        "duration": 20,
+                        "description": "Discover current trending topics using Google Trends API",
+                        "automation": [
+                            f"fetch_trending_topics_realtime()",
+                            f"analyze_viral_potential({list(intelligence['search_volume_trends'].keys())})",
+                            "identify_trend_momentum()"
+                        ]
+                    },
+                    {
+                        "name": "trend_opportunity_analysis", 
+                        "duration": 35,
+                        "description": "Analyze trending opportunities for content creation",
+                        "automation": [
+                            f"analyze_trending_competition({intelligence['content_opportunities']})",
+                            "calculate_viral_timing_windows()",
+                            "identify_trending_keywords_gaps()"
+                        ]
+                    },
+                    {
+                        "name": "viral_content_strategy",
+                        "duration": 60,
+                        "description": "Develop strategy to capitalize on trending topics",
+                        "automation": [
+                            "create_viral_content_angles()",
+                            "optimize_for_trending_platforms()",
+                            "design_trend_engagement_hooks()"
+                        ]
+                    },
+                    {
+                        "name": "trend_timed_scheduling",
+                        "duration": 25,
+                        "description": "Schedule content for optimal trend engagement",
+                        "automation": [
+                            "calculate_optimal_trend_timing()",
+                            "setup_viral_monitoring_alerts()",
+                            "prepare_trending_amplification_strategy()"
+                        ]
+                    },
+                    {
+                        "name": "trend_performance_optimization",
+                        "duration": 20,
+                        "description": "Optimize for maximum trending performance",
+                        "automation": [
+                            "setup_trending_metrics_tracking()",
+                            "configure_viral_engagement_monitoring()",
+                            "prepare_trend_follow_up_content()"
+                        ]
+                    }
+                ]
+            }
+        
+        elif workflow_type == "research":
             return {
                 "type": "research_with_serp",
                 "total_duration": 200,

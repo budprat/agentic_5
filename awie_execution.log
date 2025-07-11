@@ -1,44 +1,37 @@
-2025-07-11 06:00:52,565 - __main__ - INFO - ======================================================================
-2025-07-11 06:00:52,565 - __main__ - INFO - 🧠 AWIE EXECUTION DEMONSTRATION WITH FULL LOGGING
-2025-07-11 06:00:52,566 - __main__ - INFO - ======================================================================
-2025-07-11 06:00:52,566 - __main__ - INFO - 📝 Processing request: claude code
-2025-07-11 06:00:52,566 - __main__ - INFO - --------------------------------------------------
-2025-07-11 06:00:52,566 - __main__ - INFO - 🚀 Step 1: Importing AWIE Oracle...
-2025-07-11 06:01:06,976 - google_adk.google.adk.models.registry - INFO - Updating LLM class for gemini-.* from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
-2025-07-11 06:01:06,977 - google_adk.google.adk.models.registry - INFO - Updating LLM class for projects\/.+\/locations\/.+\/endpoints\/.+ from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
-2025-07-11 06:01:06,977 - google_adk.google.adk.models.registry - INFO - Updating LLM class for projects\/.+\/locations\/.+\/publishers\/google\/models\/gemini.+ from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
-2025-07-11 06:01:06,978 - google_adk.google.adk.models.registry - INFO - Updating LLM class for gemini-.* from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
-2025-07-11 06:01:06,978 - google_adk.google.adk.models.registry - INFO - Updating LLM class for projects\/.+\/locations\/.+\/endpoints\/.+ from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
-2025-07-11 06:01:06,978 - google_adk.google.adk.models.registry - INFO - Updating LLM class for projects\/.+\/locations\/.+\/publishers\/google\/models\/gemini.+ from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
-2025-07-11 06:01:10,406 - __main__ - INFO - 🚀 Step 2: Initializing AWIE Oracle...
-2025-07-11 06:01:10,407 - a2a_mcp.agents.solopreneur_oracle.base_solopreneur_agent - WARNING - GOOGLE_CLOUD_PROJECT contains spaces but is not quoted
-2025-07-11 06:01:10,407 - a2a_mcp.common.quality_framework - INFO - Quality framework initialized for domain generic with 2 thresholds
-2025-07-11 06:01:10,408 - a2a_mcp.agents.solopreneur_oracle.base_solopreneur_agent - INFO - Init Autonomous Workflow Intelligence Oracle
-2025-07-11 06:01:10,408 - a2a_mcp.common.quality_framework - INFO - Quality framework initialized for domain generic with 2 thresholds
-2025-07-11 06:01:10,409 - a2a_mcp.agents.tier3.awie_scheduler_agent - INFO - SERP API initialized with key: ...16d4
-2025-07-11 06:01:10,409 - a2a_mcp.agents.solopreneur_oracle.autonomous_workflow_intelligence_oracle - INFO - Autonomous Workflow Intelligence Oracle initialized - AI Chief of Staff ready
-2025-07-11 06:01:10,410 - __main__ - INFO - ✅ AWIE Oracle initialized successfully
-2025-07-11 06:01:10,410 - __main__ - INFO - 🚀 Step 3: Processing request through Oracle...
-2025-07-11 06:01:10,410 - __main__ - INFO -    Context ID: demo_ca4c74eb
-2025-07-11 06:01:10,411 - __main__ - INFO -    Task ID: task_ca4c74eb
-2025-07-11 06:01:10,411 - a2a_mcp.agents.solopreneur_oracle.autonomous_workflow_intelligence_oracle - INFO - Processing manual task request: claude code
-2025-07-11 06:01:10,411 - a2a_mcp.agents.tier3.awie_scheduler_agent - INFO - Scheduling enhanced workflow for: claude code
-2025-07-11 06:01:10,412 - a2a_mcp.agents.tier3.awie_scheduler_agent - INFO - 🌐 Fetching SERP data for 5 keywords from Google Trends API
-2025-07-11 06:01:10,412 - a2a_mcp.agents.tier3.awie_scheduler_agent - INFO - 📊 SERP API Call 1/5: 'Claude AI 2025'
-2025-07-11 06:01:10,602 - a2a_mcp.agents.tier3.awie_scheduler_agent - INFO - ✅ SERP data retrieved for 'Claude AI 2025': 1,400 searches/month, low competition
-2025-07-11 06:01:11,104 - a2a_mcp.agents.tier3.awie_scheduler_agent - INFO - 📊 SERP API Call 2/5: 'Anthropic Claude'
-2025-07-11 06:01:11,359 - a2a_mcp.agents.tier3.awie_scheduler_agent - INFO - ✅ SERP data retrieved for 'Anthropic Claude': 1,200 searches/month, medium competition
-2025-07-11 06:01:11,866 - a2a_mcp.agents.tier3.awie_scheduler_agent - INFO - 📊 SERP API Call 3/5: 'Claude coding assistant'
-2025-07-11 06:01:12,051 - a2a_mcp.agents.tier3.awie_scheduler_agent - INFO - ✅ SERP data retrieved for 'Claude coding assistant': 1,400 searches/month, medium competition
-2025-07-11 06:01:12,552 - a2a_mcp.agents.tier3.awie_scheduler_agent - INFO - 📊 SERP API Call 4/5: 'Claude API integration'
-2025-07-11 06:01:12,764 - a2a_mcp.agents.tier3.awie_scheduler_agent - INFO - ✅ SERP data retrieved for 'Claude API integration': 1,650 searches/month, low competition
-2025-07-11 06:01:13,266 - a2a_mcp.agents.tier3.awie_scheduler_agent - INFO - 📊 SERP API Call 5/5: 'AI coding tools 2025'
-2025-07-11 06:01:13,455 - a2a_mcp.agents.tier3.awie_scheduler_agent - INFO - ✅ SERP data retrieved for 'AI coding tools 2025': 1,800 searches/month, low competition
-2025-07-11 06:01:13,959 - a2a_mcp.agents.tier3.awie_scheduler_agent - INFO - Calendar event created: serp_market_analysis - claude code at 2025-07-11 09:00
-2025-07-11 06:01:13,959 - a2a_mcp.agents.tier3.awie_scheduler_agent - INFO - Calendar event created: opportunity_focused_research - claude code at 2025-07-11 09:30
-2025-07-11 06:01:13,959 - a2a_mcp.agents.tier3.awie_scheduler_agent - INFO - Calendar event created: serp_optimized_synthesis - claude code at 2025-07-11 11:35
-2025-07-11 06:01:13,959 - a2a_mcp.agents.tier3.awie_scheduler_agent - INFO - Calendar event created: market_timed_documentation - claude code at 2025-07-11 12:15
-2025-07-11 06:01:13,960 - a2a_mcp.agents.solopreneur_oracle.autonomous_workflow_intelligence_oracle - INFO - AWIE + SERP workflow created: 4 tasks
-2025-07-11 06:01:13,960 - __main__ - INFO - 🚀 Step 4: Processing complete, analyzing results...
-2025-07-11 06:01:13,960 - __main__ - INFO - ✅ AWIE Oracle generated response successfully
-2025-07-11 06:01:13,960 - __main__ - INFO - 📊 Response length: 2588 characters
+2025-07-11 06:13:27,054 - __main__ - INFO - ======================================================================
+2025-07-11 06:13:27,054 - __main__ - INFO - 🧠 AWIE EXECUTION DEMONSTRATION WITH FULL LOGGING
+2025-07-11 06:13:27,054 - __main__ - INFO - ======================================================================
+2025-07-11 06:13:27,055 - __main__ - INFO - 📝 Processing request: trends scheduling
+2025-07-11 06:13:27,055 - __main__ - INFO - --------------------------------------------------
+2025-07-11 06:13:27,055 - __main__ - INFO - 🚀 Step 1: Importing AWIE Oracle...
+2025-07-11 06:13:38,282 - google_adk.google.adk.models.registry - INFO - Updating LLM class for gemini-.* from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
+2025-07-11 06:13:38,284 - google_adk.google.adk.models.registry - INFO - Updating LLM class for projects\/.+\/locations\/.+\/endpoints\/.+ from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
+2025-07-11 06:13:38,284 - google_adk.google.adk.models.registry - INFO - Updating LLM class for projects\/.+\/locations\/.+\/publishers\/google\/models\/gemini.+ from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
+2025-07-11 06:13:38,284 - google_adk.google.adk.models.registry - INFO - Updating LLM class for gemini-.* from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
+2025-07-11 06:13:38,284 - google_adk.google.adk.models.registry - INFO - Updating LLM class for projects\/.+\/locations\/.+\/endpoints\/.+ from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
+2025-07-11 06:13:38,284 - google_adk.google.adk.models.registry - INFO - Updating LLM class for projects\/.+\/locations\/.+\/publishers\/google\/models\/gemini.+ from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
+2025-07-11 06:13:40,251 - __main__ - INFO - 🚀 Step 2: Initializing AWIE Oracle...
+2025-07-11 06:13:40,253 - a2a_mcp.agents.solopreneur_oracle.base_solopreneur_agent - WARNING - GOOGLE_CLOUD_PROJECT contains spaces but is not quoted
+2025-07-11 06:13:40,254 - a2a_mcp.common.quality_framework - INFO - Quality framework initialized for domain generic with 2 thresholds
+2025-07-11 06:13:40,254 - a2a_mcp.agents.solopreneur_oracle.base_solopreneur_agent - INFO - Init Autonomous Workflow Intelligence Oracle
+2025-07-11 06:13:40,256 - a2a_mcp.common.quality_framework - INFO - Quality framework initialized for domain generic with 2 thresholds
+2025-07-11 06:13:40,257 - a2a_mcp.agents.tier3.awie_scheduler_agent - INFO - SERP API initialized with key: ...16d4
+2025-07-11 06:13:40,257 - a2a_mcp.agents.solopreneur_oracle.autonomous_workflow_intelligence_oracle - INFO - Autonomous Workflow Intelligence Oracle initialized - AI Chief of Staff ready
+2025-07-11 06:13:40,257 - __main__ - INFO - ✅ AWIE Oracle initialized successfully
+2025-07-11 06:13:40,257 - __main__ - INFO - 🚀 Step 3: Processing request through Oracle...
+2025-07-11 06:13:40,257 - __main__ - INFO -    Context ID: demo_30a4fc27
+2025-07-11 06:13:40,257 - __main__ - INFO -    Task ID: task_30a4fc27
+2025-07-11 06:13:40,257 - a2a_mcp.agents.solopreneur_oracle.autonomous_workflow_intelligence_oracle - INFO - Processing manual task request: trends scheduling
+2025-07-11 06:13:40,258 - a2a_mcp.agents.tier3.awie_scheduler_agent - INFO - Scheduling enhanced workflow for: trends scheduling
+2025-07-11 06:13:40,258 - a2a_mcp.agents.tier3.awie_scheduler_agent - INFO - 🔥 Detected trends request - fetching real-time trending data
+2025-07-11 06:13:40,258 - a2a_mcp.agents.tier3.awie_scheduler_agent - INFO - 🔥 Fetching real-time trending topics from Google Trends API
+2025-07-11 06:13:40,404 - a2a_mcp.agents.tier3.awie_scheduler_agent - ERROR - ❌ Google Trends API error: 400 Client Error: Bad Request for url: https://serpapi.com/search.json?engine=google_trends_trending_now&frequency=realtime&geo=US&hl=en&api_key=0e95fb5bbd2272a360fe24cbc0ac2d53b193a78f69994b2675d45f49031c16d4
+2025-07-11 06:13:40,405 - a2a_mcp.agents.tier3.awie_scheduler_agent - INFO - Calendar event created: real_time_trend_discovery - trends scheduling at 2025-07-11 09:00
+2025-07-11 06:13:40,407 - a2a_mcp.agents.tier3.awie_scheduler_agent - INFO - Calendar event created: trend_opportunity_analysis - trends scheduling at 2025-07-11 09:25
+2025-07-11 06:13:40,408 - a2a_mcp.agents.tier3.awie_scheduler_agent - INFO - Calendar event created: viral_content_strategy - trends scheduling at 2025-07-11 10:05
+2025-07-11 06:13:40,408 - a2a_mcp.agents.tier3.awie_scheduler_agent - INFO - Calendar event created: trend_timed_scheduling - trends scheduling at 2025-07-11 11:10
+2025-07-11 06:13:40,408 - a2a_mcp.agents.tier3.awie_scheduler_agent - INFO - Calendar event created: trend_performance_optimization - trends scheduling at 2025-07-11 11:40
+2025-07-11 06:13:40,409 - a2a_mcp.agents.solopreneur_oracle.autonomous_workflow_intelligence_oracle - INFO - AWIE + SERP workflow created: 5 tasks
+2025-07-11 06:13:40,410 - __main__ - INFO - 🚀 Step 4: Processing complete, analyzing results...
+2025-07-11 06:13:40,411 - __main__ - INFO - ✅ AWIE Oracle generated response successfully
+2025-07-11 06:13:40,411 - __main__ - INFO - 📊 Response length: 2695 characters
