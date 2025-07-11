@@ -1,0 +1,91 @@
+{
+    "mcpServers": {
+      "supabase": {
+        "type": "stdio",
+        "command": "npx",
+        "args": [
+          "-y",
+          "@supabase/mcp-server-supabase@latest",
+          "--access-token",
+          "sbp_dfe45896d0f28f95526bd572ea38f4e57ed4bb81",
+          "--project-ref",
+          "dnxvahzralrdinyyyjnq"
+        ],
+        "env": {}
+      },
+      "snowflake": {
+        "command": "python",
+        "args": [
+          "/home/user/a2a/a2a-mcp/snowflake_mcp.py"
+        ]
+      },
+      "sequential-thinking": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ]
+      },
+      "brightdata": {
+        "type": "stdio",
+        "command": "npx",
+        "args": [
+          "@brightdata/mcp"
+        ],
+        "env": {
+          "API_TOKEN": "9e9ece35cc8225d8b9e866772aea59acb0f9c810904b4616a513be83dc0d7a28",
+          "WEB_UNLOCKER_ZONE": "mcp_unlocker"
+        }
+      },
+      "brave": {
+        "type": "stdio",
+        "command": "npx",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-brave-search"
+        ],
+        "env": {
+          "BRAVE_API_KEY": "BSAfplnUisGxu7pbme27uQna7IwR6Bo"
+        }
+      },
+      "puppeteer": {
+        "type": "stdio",
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-puppeteer"]
+      },
+      "context7": {
+        "type": "stdio",
+        "command": "npx",
+        "args": ["-y", "@upstash/context7-mcp"]
+      },
+      "upstash": {
+        "type": "stdio",
+        "command": "npx",
+        "args": ["-y", "@upstash/mcp-server", "run", "p.budhwar@gmail.com", "d5eaf3f0-0132-4e26-8514-24321570357c"]
+      },
+      "firecrawl": {
+        "type": "stdio",
+        "command": "npx",
+        "args": ["-y", "firecrawl-mcp"],
+        "env": {
+          "FIRECRAWL_API_KEY": "fc-ad179b387b9a42538d0caab119377440",
+          "FIRECRAWL_RETRY_MAX_ATTEMPTS": "5",
+          "FIRECRAWL_RETRY_INITIAL_DELAY": "2000",
+          "FIRECRAWL_RETRY_MAX_DELAY": "30000",
+          "FIRECRAWL_RETRY_BACKOFF_FACTOR": "3",
+          "FIRECRAWL_CREDIT_WARNING_THRESHOLD": "2000",
+          "FIRECRAWL_CREDIT_CRITICAL_THRESHOLD": "500"
+        }
+      },
+      "notionAI": {
+        "type": "stdio",
+        "command": "npx",
+        "args": ["-y", "@notionhq/notion-mcp-server"],
+        "env": {
+          "OPENAPI_MCP_HEADERS": "{\"Authorization\": \"Bearer ntn_l63236074871J60aDLenmf16GzxzkVu10F9lgiCU16e4Wn\", \"Notion-Version\": \"2022-06-28\" }"
+        }
+      }
+    }
+   }  
+ 
+ 

@@ -1,5 +1,5 @@
 {
-  "name": "MasterOracle",
+  "name": "MasterOrchestrator",
   "type": "orchestrator",
   "tier": 1,
   "port": 10001,
