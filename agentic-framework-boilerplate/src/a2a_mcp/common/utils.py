@@ -3,15 +3,42 @@
 
 import logging
 import os
-from typing import Optional, Dict, Any
+import uuid
+import asyncio
+from typing import Optional, Dict, Any, TypeVar, Callable
 from pathlib import Path
 import json
 import yaml
+from datetime import datetime, timezone
+from functools import wraps
+import time
 
 from a2a_mcp.common.types import ServerConfig
 
 
 logger = logging.getLogger(__name__)
+
+
+def generate_id(prefix: str = "") -> str:
+    """Generate a unique ID with optional prefix.
+    
+    Args:
+        prefix: Optional prefix for the ID
+        
+    Returns:
+        Unique ID string
+    """
+    unique_id = str(uuid.uuid4())
+    return f"{prefix}-{unique_id}" if prefix else unique_id
+
+
+def utc_now() -> datetime:
+    """Get current UTC datetime.
+    
+    Returns:
+        Current datetime in UTC timezone
+    """
+    return datetime.now(timezone.utc)
 
 
 def config_logging(level: Optional[str] = None):
