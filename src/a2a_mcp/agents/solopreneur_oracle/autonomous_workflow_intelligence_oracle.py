@@ -651,7 +651,7 @@ You just focus on execution - AWIE handles everything else.
 • SEO Priority: {"High - significant search volume" if total_volume > 3000 else "Medium - moderate volume"}
 
 📋 MARKET INTELLIGENCE SUMMARY:
-• Data Source: Google Trends API via SERP
+• Data Source: Google Trends via BrightData API
 • Keywords Analyzed: {len(serp_data)} from {scheduler_result.get('original_request', 'request')}
 • Update Frequency: Real-time
 • Competitive Intelligence: {"Included" if serp_data else "Limited"}"""

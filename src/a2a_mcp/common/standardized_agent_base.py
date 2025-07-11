@@ -4,6 +4,7 @@
 import logging
 import asyncio
 import json
+import os
 from abc import ABC, abstractmethod
 from collections.abc import AsyncIterable
 from typing import Dict, Any, Optional, List
@@ -142,7 +143,7 @@ class StandardizedAgentBase(BaseAgent, ABC):
             self.agent = Agent(
                 name=self.agent_name,
                 instruction=f"You are {self.agent_name}. Provide helpful responses based on your knowledge.",
-                model='gemini-2.0-flash',
+                model=os.getenv('GEMINI_MODEL', 'gemini-2.0-flash'),
                 generate_content_config=generate_content_config,
                 tools=[],
             )
@@ -285,7 +286,7 @@ class StandardizedAgentBase(BaseAgent, ABC):
 
     def get_model_name(self) -> str:
         """Get model name. Override in subclasses."""
-        return 'gemini-2.0-flash'
+        return os.getenv('GEMINI_MODEL', 'gemini-2.0-flash')
 
     async def communicate_with_agent(
         self, target_agent_port: int, message: str, metadata: Optional[Dict] = None

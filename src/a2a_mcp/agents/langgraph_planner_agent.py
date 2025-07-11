@@ -1,6 +1,7 @@
 # type: ignore
 
 import logging
+import os
 
 from typing import Any, AsyncIterable, Dict, Literal
 
@@ -46,7 +47,7 @@ class LangraphPlannerAgent(BaseAgent):
         )
 
         self.model = ChatGoogleGenerativeAI(
-            model='gemini-2.0-flash', temperature=0.0
+            model=os.getenv('GEMINI_MODEL', 'gemini-2.0-flash'), temperature=0.0
         )
 
         self.graph = create_react_agent(

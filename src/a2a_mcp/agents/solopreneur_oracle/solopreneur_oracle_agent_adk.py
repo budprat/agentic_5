@@ -205,7 +205,7 @@ class SolopreneurOracleAgent(StandardizedAgentBase):
         
         # Initialize LangGraph task planner (following langgraph_planner_agent.py pattern)
         self.task_planner = create_react_agent(
-            ChatGoogleGenerativeAI(model='gemini-2.0-flash', temperature=0.0),
+            ChatGoogleGenerativeAI(model=os.getenv('GEMINI_MODEL', 'gemini-2.0-flash'), temperature=0.0),
             checkpointer=memory,
             prompt=SOLOPRENEUR_PLANNING_INSTRUCTIONS,
             response_format=SolopreneurTaskFormat,
@@ -507,7 +507,7 @@ class SolopreneurOracleAgent(StandardizedAgentBase):
                             "security_considerations": ["authentication", "rate limiting", "data encryption"]
                         },
                         "ai_integration": {
-                            "recommended_models": ["gemini-2.0-flash", "claude-3-opus"],
+                            "recommended_models": [os.getenv('GEMINI_MODEL', 'gemini-2.0-flash'), "claude-3-opus"],
                             "integration_patterns": ["ADK agents", "MCP tools", "streaming responses"],
                             "optimization_strategies": ["caching", "batch processing", "parallel execution"]
                         }

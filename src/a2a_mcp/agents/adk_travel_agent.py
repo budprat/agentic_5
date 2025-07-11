@@ -2,6 +2,7 @@
 
 import json
 import logging
+import os
 import re
 
 from collections.abc import AsyncIterable
@@ -51,7 +52,7 @@ class TravelAgent(BaseAgent):
         self.agent = Agent(
             name=self.agent_name,
             instruction=self.instructions,
-            model='gemini-2.0-flash',
+            model=os.getenv('GEMINI_MODEL', 'gemini-2.0-flash'),
             disallow_transfer_to_parent=True,
             disallow_transfer_to_peers=True,
             generate_content_config=generate_content_config,
