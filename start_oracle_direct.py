@@ -14,7 +14,7 @@ from a2a.types import AgentCard
 import uvicorn
 
 # Set environment
-os.environ['GOOGLE_API_KEY'] = 'AIzaSyBGUGI7fZQT06Hl49OKcTMS5BgPEqC8fvY'
+os.environ['GOOGLE_API_KEY'] = 'key'
 
 # Load agent card
 with open('agent_cards/solopreneur_oracle_agent.json', 'r') as f:

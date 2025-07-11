@@ -13,7 +13,7 @@ This document provides a comprehensive step-by-step workflow to fully test the S
 cd /home/user/solopreneur
 
 # 2. Set required environment variables
-export GOOGLE_API_KEY=AIzaSyBGUGI7fZQT06Hl49OKcTMS5BgPEqC8fvY
+export GOOGLE_API_KEY="Key"
 
 # 3. Verify Python environment
 source .venv/bin/activate  # or ensure venv is active
