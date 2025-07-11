@@ -7,8 +7,9 @@ import asyncio
 from datetime import datetime
 
 from a2a_mcp.common.base_agent import BaseAgent
-from a2a_mcp.common.a2a_protocol import A2AProtocol, MessageType
-from a2a_mcp.common.quality_framework import QualityReport, QualityMetric
+from a2a_mcp.common.a2a_protocol import A2AProtocolClient
+from a2a_mcp.core.protocol import MessageType
+from a2a_mcp.common.quality_framework import QualityResult, QualityThreshold
 
 
 class TestExampleAgent:
@@ -94,25 +95,15 @@ class TestExampleAgent:
         """Test agent quality validation"""
         # Mock quality framework
         with patch.object(example_agent, 'validate_quality', new_callable=AsyncMock) as mock_validate:
-            # Set up mock to return a quality report
-            mock_report = QualityReport(
-                agent_id="test-example-001",
+            # Set up mock to return a quality result
+            mock_report = QualityResult(
                 passed=True,
-                metrics=[
-                    QualityMetric(
-                        name="response_time",
-                        value=0.05,
-                        threshold=0.1,
-                        passed=True
-                    ),
-                    QualityMetric(
-                        name="accuracy",
-                        value=0.98,
-                        threshold=0.95,
-                        passed=True
-                    )
-                ],
-                issues=[]
+                score=0.98,
+                message="All quality checks passed",
+                details={
+                    "response_time": 0.05,
+                    "accuracy": 0.98
+                }
             )
             mock_validate.return_value = mock_report
             
@@ -121,8 +112,8 @@ class TestExampleAgent:
             
             # Verify report
             assert report.passed is True
-            assert len(report.metrics) == 2
-            assert all(m.passed for m in report.metrics)
+            assert report.score == 0.98
+            assert "response_time" in report.details
 
 
 class TestAgentCommunication:
@@ -131,7 +122,7 @@ class TestAgentCommunication:
     @pytest.fixture
     def protocol(self):
         """Create A2A protocol instance"""
-        return A2AProtocol()
+        return A2AProtocolClient()
     
     @pytest.mark.asyncio
     async def test_agent_message_routing(self, protocol):
