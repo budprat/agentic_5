@@ -9,12 +9,12 @@ from collections.abc import AsyncIterable
 from typing import Dict, Any, Optional, List
 from datetime import datetime
 
-from a2a_mcp.common.base_agent import BaseAgent
-from a2a_mcp.common.utils import get_mcp_server_config, init_api_key
-from a2a_mcp.common.quality_framework import QualityThresholdFramework
-from a2a_mcp.common.a2a_protocol import A2AProtocolClient
+from .base_agent import BaseAgent
+from .utils import get_mcp_server_config, init_api_key
+from .quality_framework import QualityThresholdFramework
+from .a2a_protocol import A2AProtocolClient
 from google.adk.agents import Agent
-from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, SseServerParams
+from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, SseConnectionParams
 from google.genai import types as genai_types
 
 logger = logging.getLogger(__name__)
@@ -86,7 +86,7 @@ class StandardizedAgentBase(BaseAgent, ABC):
                 logger.info(f'Loading MCP tools from server: {config.url}')
                 
                 self.tools = await MCPToolset(
-                    connection_params=SseServerParams(url=config.url)
+                    connection_params=SseConnectionParams(url=config.url)
                 ).get_tools()
                 
                 logger.info(f'Loaded {len(self.tools)} MCP tools')

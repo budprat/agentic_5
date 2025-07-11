@@ -1,0 +1,33 @@
+2025-07-11 05:22:52,602 - __main__ - INFO - ======================================================================
+2025-07-11 05:22:52,602 - __main__ - INFO - 🧠 AWIE EXECUTION DEMONSTRATION WITH FULL LOGGING
+2025-07-11 05:22:52,602 - __main__ - INFO - ======================================================================
+2025-07-11 05:22:52,603 - __main__ - INFO - 📝 Processing request: create AI content strategy
+2025-07-11 05:22:52,603 - __main__ - INFO - --------------------------------------------------
+2025-07-11 05:22:52,603 - __main__ - INFO - 🚀 Step 1: Importing AWIE Oracle...
+2025-07-11 05:23:02,693 - google_adk.google.adk.models.registry - INFO - Updating LLM class for gemini-.* from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
+2025-07-11 05:23:02,694 - google_adk.google.adk.models.registry - INFO - Updating LLM class for projects\/.+\/locations\/.+\/endpoints\/.+ from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
+2025-07-11 05:23:02,695 - google_adk.google.adk.models.registry - INFO - Updating LLM class for projects\/.+\/locations\/.+\/publishers\/google\/models\/gemini.+ from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
+2025-07-11 05:23:02,697 - google_adk.google.adk.models.registry - INFO - Updating LLM class for gemini-.* from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
+2025-07-11 05:23:02,697 - google_adk.google.adk.models.registry - INFO - Updating LLM class for projects\/.+\/locations\/.+\/endpoints\/.+ from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
+2025-07-11 05:23:02,698 - google_adk.google.adk.models.registry - INFO - Updating LLM class for projects\/.+\/locations\/.+\/publishers\/google\/models\/gemini.+ from <class 'google.adk.models.google_llm.Gemini'> to <class 'google.adk.models.google_llm.Gemini'>
+2025-07-11 05:23:04,649 - __main__ - INFO - 🚀 Step 2: Initializing AWIE Oracle...
+2025-07-11 05:23:04,650 - a2a_mcp.agents.solopreneur_oracle.base_solopreneur_agent - WARNING - GOOGLE_CLOUD_PROJECT contains spaces but is not quoted
+2025-07-11 05:23:04,654 - a2a_mcp.common.quality_framework - INFO - Quality framework initialized for domain generic with 2 thresholds
+2025-07-11 05:23:04,654 - a2a_mcp.agents.solopreneur_oracle.base_solopreneur_agent - INFO - Init Autonomous Workflow Intelligence Oracle
+2025-07-11 05:23:04,658 - a2a_mcp.common.quality_framework - INFO - Quality framework initialized for domain generic with 2 thresholds
+2025-07-11 05:23:04,663 - a2a_mcp.agents.tier3.awie_scheduler_agent - INFO - SERP API initialized with key: ...16d4
+2025-07-11 05:23:04,663 - a2a_mcp.agents.solopreneur_oracle.autonomous_workflow_intelligence_oracle - INFO - Autonomous Workflow Intelligence Oracle initialized - AI Chief of Staff ready
+2025-07-11 05:23:04,663 - __main__ - INFO - ✅ AWIE Oracle initialized successfully
+2025-07-11 05:23:04,666 - __main__ - INFO - 🚀 Step 3: Processing request through Oracle...
+2025-07-11 05:23:04,666 - __main__ - INFO -    Context ID: demo_bb1b0727
+2025-07-11 05:23:04,666 - __main__ - INFO -    Task ID: task_bb1b0727
+2025-07-11 05:23:04,666 - a2a_mcp.agents.solopreneur_oracle.autonomous_workflow_intelligence_oracle - INFO - Processing manual task request: create AI content strategy
+2025-07-11 05:23:04,666 - a2a_mcp.agents.tier3.awie_scheduler_agent - INFO - Scheduling enhanced workflow for: create AI content strategy
+2025-07-11 05:23:05,789 - a2a_mcp.agents.tier3.awie_scheduler_agent - INFO - Calendar event created: serp_content_strategy - create AI content strategy at 2025-07-11 09:00
+2025-07-11 05:23:05,790 - a2a_mcp.agents.tier3.awie_scheduler_agent - INFO - Calendar event created: seo_optimized_creation - create AI content strategy at 2025-07-11 09:35
+2025-07-11 05:23:05,808 - a2a_mcp.agents.tier3.awie_scheduler_agent - INFO - Calendar event created: serp_optimization - create AI content strategy at 2025-07-11 11:20
+2025-07-11 05:23:05,815 - a2a_mcp.agents.tier3.awie_scheduler_agent - INFO - Calendar event created: market_timed_distribution - create AI content strategy at 2025-07-11 12:00
+2025-07-11 05:23:05,826 - a2a_mcp.agents.solopreneur_oracle.autonomous_workflow_intelligence_oracle - INFO - AWIE + SERP workflow created: 4 tasks
+2025-07-11 05:23:05,831 - __main__ - INFO - 🚀 Step 4: Processing complete, analyzing results...
+2025-07-11 05:23:05,836 - __main__ - INFO - ✅ AWIE Oracle generated response successfully
+2025-07-11 05:23:05,840 - __main__ - INFO - 📊 Response length: 1644 characters

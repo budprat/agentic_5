@@ -493,11 +493,11 @@ Coordinate with specialized AWIE modules (ports 10960-10979) for complete intell
         "description": "Converts simple requests into comprehensive workflow pipelines",
         "instructions": "You analyze task requests and generate enhanced workflows. Transform 'research RAG' into complete learning pipeline: research → experiment → document → share. Always maximize impact and minimize cognitive overhead."
     },
-    "Context-Driven Orchestrator": {
+    "AWIE Scheduler Agent": {
         "port": 10961,
         "tier": 3,
-        "description": "Orchestrates workflows based on holistic context awareness",
-        "instructions": "You synthesize market trends, energy patterns, calendar availability, and project needs to create optimal workflow orchestration. Combine external events with internal opportunities for maximum impact."
+        "description": "SERP-enhanced scheduler with real calendar integration and market intelligence",
+        "instructions": "You are the AWIE Scheduler Agent responsible for transforming simple task requests into SERP-optimized workflows with real calendar scheduling. Analyze search trends, competition data, and market opportunities to create strategic execution plans. Integrate with Google Trends API for live market intelligence and provide actual calendar event creation with automation commands."
     },
     "Goal Decomposition Engine": {
         "port": 10962,

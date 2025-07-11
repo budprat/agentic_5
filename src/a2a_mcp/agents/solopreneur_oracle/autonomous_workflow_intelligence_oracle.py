@@ -15,6 +15,13 @@ from .base_solopreneur_agent import UnifiedSolopreneurAgent
 from a2a_mcp.common.a2a_protocol import A2AProtocolClient, A2A_AGENT_PORTS
 from a2a_mcp.common.quality_framework import QualityDomain
 
+# Import Tier 3 AWIE Scheduler Agent
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent.parent.parent))
+
+from a2a_mcp.agents.tier3.awie_scheduler_agent import AWIESchedulerAgent
+
 logger = logging.getLogger(__name__)
 
 @dataclass
@@ -94,7 +101,7 @@ Coordinate with specialized AWIE modules (ports 10960-10979) for complete intell
         self.awie_modules = {
             # Revolutionary Core Agents
             "autonomous_task_generator": 10960,
-            "context_driven_orchestrator": 10961, 
+            "awie_scheduler_agent": 10961,  # TIER 3 SERP-enhanced scheduler
             "goal_decomposition_engine": 10962,
             "flow_state_guardian": 10963,
             "interruption_intelligence": 10964,
@@ -116,6 +123,9 @@ Coordinate with specialized AWIE modules (ports 10960-10979) for complete intell
             "meta_learning_engine": 10978,
             "integration_coordinator": 10979
         }
+        
+        # Initialize AWIE Scheduler Agent (Tier 3)
+        self.awie_scheduler = AWIESchedulerAgent()
         
         logger.info("Autonomous Workflow Intelligence Oracle initialized - AI Chief of Staff ready")
     
@@ -151,40 +161,93 @@ Coordinate with specialized AWIE modules (ports 10960-10979) for complete intell
     
     async def _process_manual_task_request(self, request: str, context_id: str, task_id: str) -> Dict[str, Any]:
         """
-        Revolutionary manual task processing with intelligent enhancement.
-        Transforms simple requests into comprehensive workflow pipelines.
+        Revolutionary manual task processing with SERP-enhanced scheduling.
+        Uses Tier 3 AWIE Scheduler Agent for real workflow execution.
         """
         logger.info(f"Processing manual task request: {request}")
         
-        # Step 1: Analyze task intent and type
-        task_analysis = await self._analyze_task_intent(request)
+        try:
+            # Call AWIE Scheduler Agent (Tier 3) for SERP-enhanced workflow
+            scheduler_result = await self.awie_scheduler.schedule_enhanced_workflow(request)
+            
+            if scheduler_result["success"]:
+                # Enhanced workflow with SERP intelligence
+                enhanced_response = f"""🧠 AWIE Oracle + SERP Intelligence
+
+{scheduler_result["scheduling_summary"]}
+
+📊 MARKET INTELLIGENCE INTEGRATION:
+• Search Volume: {sum(scheduler_result["market_intelligence"]["search_volume_trends"].values()):,} monthly searches
+• High-Opportunity Keywords: {len(scheduler_result["market_intelligence"]["content_opportunities"])}
+• Content Gaps: {len(scheduler_result["market_intelligence"]["competitive_gaps"])}
+
+🎯 AUTONOMOUS WORKFLOW:
+• Original: {scheduler_result["original_request"]}
+• Enhanced: {scheduler_result["enhanced_request"]}
+• Tasks Scheduled: {len(scheduler_result["workflow"]["tasks"])}
+• Calendar Events: Created with automation
+
+✨ AWIE ADVANTAGE:
+This isn't just task scheduling - it's strategic workflow intelligence.
+Your request has been transformed into a market-optimized execution plan.
+
+🚀 READY FOR EXECUTION"""
+                
+                logger.info(f"AWIE + SERP workflow created: {len(scheduler_result['workflow']['tasks'])} tasks")
+                return {"content": enhanced_response}
+            
+            else:
+                # Fallback to basic enhancement
+                return await self._process_basic_enhancement(request)
+                
+        except Exception as e:
+            logger.error(f"AWIE Scheduler error: {e}")
+            # Fallback to basic enhancement
+            return await self._process_basic_enhancement(request)
+    
+    async def _process_basic_enhancement(self, request: str) -> Dict[str, Any]:
+        """Fallback basic enhancement when SERP scheduling fails."""
         
-        # Step 2: Gather contextual intelligence
-        context_intelligence = await self._gather_context_intelligence(request)
+        # Basic task analysis
+        task_type = "research"
+        if any(word in request.lower() for word in ["content", "write", "create"]):
+            task_type = "content_creation"
+        elif any(word in request.lower() for word in ["organize", "sort", "clean"]):
+            task_type = "organizing"
         
-        # Step 3: Generate enhanced workflow
-        enhanced_workflow = await self._generate_enhanced_workflow(task_analysis, context_intelligence)
+        # Basic pipeline generation
+        if task_type == "research":
+            pipeline = [
+                {"step": "context_prep", "duration": 15, "desc": "Pre-load relevant resources"},
+                {"step": "deep_research", "duration": 120, "desc": "Focused research session"},
+                {"step": "synthesis", "duration": 45, "desc": "Synthesize key insights"},
+                {"step": "documentation", "duration": 30, "desc": "Document findings"}
+            ]
+        elif task_type == "content_creation":
+            pipeline = [
+                {"step": "research_review", "duration": 30, "desc": "Review recent notes"},
+                {"step": "content_creation", "duration": 90, "desc": "Create primary content"},
+                {"step": "optimization", "duration": 30, "desc": "Polish and optimize"}
+            ]
+        else:
+            pipeline = [
+                {"step": "systematic_execution", "duration": 60, "desc": "Execute with structure"},
+                {"step": "optimization", "duration": 20, "desc": "Optimize outcomes"}
+            ]
         
-        # Step 4: Optimize timing and scheduling
-        optimal_schedule = await self._optimize_timing(enhanced_workflow)
+        total_time = sum(step["duration"] for step in pipeline)
         
-        # Step 5: Prepare supporting ecosystem
-        supporting_resources = await self._prepare_supporting_resources(enhanced_workflow)
-        
-        # Step 6: Create comprehensive task pipeline
-        task_pipeline = TaskRequest(
-            original_request=request,
-            task_type=task_analysis["type"],
-            enhanced_workflow=enhanced_workflow,
-            optimal_timing=optimal_schedule,
-            supporting_resources=supporting_resources,
-            success_metrics=self._generate_success_metrics(enhanced_workflow)
-        )
-        
-        # Step 7: Format revolutionary response
-        response = self._format_enhanced_response(task_pipeline)
-        
-        logger.info(f"AWIE enhanced task pipeline created: {len(enhanced_workflow.get('pipeline', []))} steps")
+        response = f"""🧠 AWIE Basic Enhancement: {request}
+
+🔄 Task Type: {task_type.replace('_', ' ').title()}
+⚡ Enhanced Workflow ({len(pipeline)} steps, {total_time} minutes):
+
+{chr(10).join(f'   {i+1}. {step["desc"]} ({step["duration"]}min)' for i, step in enumerate(pipeline))}
+
+🎯 Enhancement: Structured approach vs ad-hoc execution
+✨ Result: {len(pipeline)}x more systematic productivity
+
+💡 Note: SERP integration temporarily unavailable - basic enhancement provided."""
         
         return {"content": response}
     
