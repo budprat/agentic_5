@@ -1,0 +1,57 @@
+{
+  "name": "ServiceAgent",
+  "type": "executor",
+  "tier": 3,
+  "port": 10010,
+  "description": "Service-level agent responsible for executing specific tasks, tool operations, and direct service delivery",
+  "version": "1.0.0",
+  "capabilities": [
+    "task_execution",
+    "tool_operation",
+    "data_processing",
+    "api_integration",
+    "file_handling",
+    "computation",
+    "service_delivery",
+    "status_reporting"
+  ],
+  "required_tools": [
+    "file_system",
+    "api_client",
+    "data_processor",
+    "computation_engine",
+    "service_endpoints"
+  ],
+  "configuration": {
+    "model": "gpt-3.5-turbo",
+    "temperature": 0.3,
+    "max_tokens": 2000,
+    "execution": {
+      "timeout": 300,
+      "retry_attempts": 3,
+      "error_handling": "graceful",
+      "logging_level": "info"
+    }
+  },
+  "metadata": {
+    "author": "Framework Team",
+    "created": "2024-01-01",
+    "tags": ["tier3", "executor", "service", "tool"]
+  },
+  "interaction_patterns": {
+    "input_format": "task_specification",
+    "output_format": "execution_result",
+    "communication_style": "concise",
+    "execution_patterns": {
+      "mode": "synchronous",
+      "validation": "pre_post",
+      "status_updates": "progressive"
+    }
+  },
+  "hierarchy": {
+    "tier": 3,
+    "manages": [],
+    "reports_to": ["tier1", "tier2"],
+    "coordination_scope": "task"
+  }
+}

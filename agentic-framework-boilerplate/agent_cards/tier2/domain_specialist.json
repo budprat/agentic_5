@@ -1,0 +1,57 @@
+{
+  "name": "DomainSpecialist",
+  "type": "specialist",
+  "tier": 2,
+  "port": 10002,
+  "description": "Domain-specific expertise agent providing specialized knowledge and advanced problem-solving within defined domains",
+  "version": "1.0.0",
+  "capabilities": [
+    "domain_expertise",
+    "specialized_analysis",
+    "pattern_matching",
+    "knowledge_synthesis",
+    "expert_reasoning",
+    "recommendation_generation",
+    "quality_assurance",
+    "technical_validation"
+  ],
+  "required_tools": [
+    "domain_knowledge_base",
+    "specialized_algorithms",
+    "validation_framework",
+    "expert_system",
+    "analysis_toolkit"
+  ],
+  "configuration": {
+    "model": "gpt-4",
+    "temperature": 0.4,
+    "max_tokens": 3000,
+    "specialization": {
+      "domains": ["software_engineering", "data_science", "business_analysis", "cybersecurity"],
+      "expertise_depth": "advanced",
+      "learning_mode": "continuous",
+      "knowledge_update_frequency": "daily"
+    }
+  },
+  "metadata": {
+    "author": "Framework Team",
+    "created": "2024-01-01",
+    "tags": ["tier2", "specialist", "domain", "expertise"]
+  },
+  "interaction_patterns": {
+    "input_format": "domain_specific_query",
+    "output_format": "expert_analysis",
+    "communication_style": "technical",
+    "collaboration_patterns": {
+      "peer_consultation": "enabled",
+      "knowledge_sharing": "bidirectional",
+      "expertise_validation": "peer_review"
+    }
+  },
+  "hierarchy": {
+    "tier": 2,
+    "manages": ["tier3"],
+    "reports_to": ["tier1"],
+    "coordination_scope": "domain"
+  }
+}

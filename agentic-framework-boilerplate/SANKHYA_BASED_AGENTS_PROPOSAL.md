@@ -10,7 +10,7 @@ Based on the analysis of 2,402 text chunks from "Secret Of Sankhya: Acme Of Scie
 #### 1.1 **Kapila Wisdom Agent** (Port 10801)
 **Purpose**: Expert on Maharishi Kapila's teachings and Sankhya axioms
 **Capabilities**:
-- Answer questions about Sankhya's principles
+- Answer questions about Sankhya (principles)
 - Provide axiomatic reasoning based on Sankhya methodology
 - Connect Sankhya concepts to modern consciousness studies
 

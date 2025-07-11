@@ -1,0 +1,31 @@
+{
+  "name": "ExampleAgent",
+  "type": "general",
+  "description": "A general-purpose example agent demonstrating the agent card structure",
+  "version": "1.0.0",
+  "capabilities": [
+    "task_planning",
+    "information_retrieval",
+    "basic_reasoning"
+  ],
+  "required_tools": [
+    "search",
+    "calculate",
+    "summarize"
+  ],
+  "configuration": {
+    "model": "gpt-4",
+    "temperature": 0.7,
+    "max_tokens": 2000
+  },
+  "metadata": {
+    "author": "Framework Team",
+    "created": "2024-01-01",
+    "tags": ["example", "general", "demo"]
+  },
+  "interaction_patterns": {
+    "input_format": "natural_language",
+    "output_format": "structured_json",
+    "communication_style": "professional"
+  }
+}

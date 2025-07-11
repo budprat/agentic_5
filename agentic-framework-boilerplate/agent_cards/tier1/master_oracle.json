@@ -1,0 +1,57 @@
+{
+  "name": "MasterOracle",
+  "type": "orchestrator",
+  "tier": 1,
+  "port": 10001,
+  "description": "Master orchestrator agent responsible for high-level coordination, strategic planning, and delegation across the agent hierarchy",
+  "version": "1.0.0",
+  "capabilities": [
+    "strategic_planning",
+    "task_decomposition",
+    "agent_coordination",
+    "resource_allocation",
+    "decision_making",
+    "system_optimization",
+    "conflict_resolution",
+    "performance_monitoring"
+  ],
+  "required_tools": [
+    "agent_registry",
+    "task_queue",
+    "performance_metrics",
+    "communication_hub",
+    "resource_manager"
+  ],
+  "configuration": {
+    "model": "gpt-4",
+    "temperature": 0.5,
+    "max_tokens": 4000,
+    "orchestration": {
+      "max_concurrent_agents": 10,
+      "delegation_strategy": "capability_based",
+      "monitoring_interval": 30,
+      "optimization_threshold": 0.8
+    }
+  },
+  "metadata": {
+    "author": "Framework Team",
+    "created": "2024-01-01",
+    "tags": ["tier1", "orchestrator", "master", "coordination"]
+  },
+  "interaction_patterns": {
+    "input_format": "structured_request",
+    "output_format": "orchestration_plan",
+    "communication_style": "directive",
+    "delegation_patterns": {
+      "tier2_interaction": "capability_matching",
+      "tier3_interaction": "task_specific",
+      "escalation_handling": "automated"
+    }
+  },
+  "hierarchy": {
+    "tier": 1,
+    "manages": ["tier2", "tier3"],
+    "reports_to": null,
+    "coordination_scope": "global"
+  }
+}

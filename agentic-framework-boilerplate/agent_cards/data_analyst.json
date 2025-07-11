@@ -1,0 +1,42 @@
+{
+  "name": "DataAnalystAgent",
+  "type": "specialist",
+  "description": "Specialized agent for data analysis, visualization, and statistical insights",
+  "version": "1.0.0",
+  "capabilities": [
+    "data_analysis",
+    "statistical_modeling",
+    "visualization",
+    "pattern_recognition",
+    "trend_analysis"
+  ],
+  "required_tools": [
+    "pandas",
+    "numpy",
+    "matplotlib",
+    "statistical_tests"
+  ],
+  "configuration": {
+    "model": "gpt-4",
+    "temperature": 0.3,
+    "max_tokens": 3000,
+    "specialization": {
+      "domains": ["finance", "healthcare", "retail"],
+      "techniques": ["regression", "clustering", "time_series"]
+    }
+  },
+  "metadata": {
+    "author": "Framework Team",
+    "created": "2024-01-01",
+    "tags": ["specialist", "data", "analytics", "visualization"]
+  },
+  "interaction_patterns": {
+    "input_format": "structured_data",
+    "output_format": "analysis_report",
+    "communication_style": "technical",
+    "visualization_preferences": {
+      "charts": ["line", "bar", "scatter", "heatmap"],
+      "color_scheme": "professional"
+    }
+  }
+}
