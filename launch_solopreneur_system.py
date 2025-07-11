@@ -251,15 +251,12 @@ class SolopreneurSystemLauncher:
                 ]
             },
             "tier3": {
-                "name": "Intelligence Modules",
+                "name": "Intelligence Modules (Limited: AWIE, scheduler, trends only)",
                 "port_ranges": [
-                    {"start": 10910, "end": 10919, "category": "Technical Intelligence"},
-                    {"start": 10920, "end": 10929, "category": "Knowledge Systems"},
-                    {"start": 10930, "end": 10939, "category": "Personal Systems"},
-                    {"start": 10940, "end": 10949, "category": "Learning Systems"},
-                    {"start": 10950, "end": 10959, "category": "Integration Layer"},
-                    {"start": 10960, "end": 10979, "category": "AWIE Modules"},
-                    {"ports": [10980], "category": "AWIE Scheduler"}
+                    {"ports": [10910], "category": "AI Research Analyzer"},  # trends
+                    {"ports": [10935], "category": "Recovery Scheduler"},     # scheduler
+                    {"ports": [10944], "category": "Spaced Repetition Scheduler"},  # scheduler
+                    {"ports": [10980], "category": "AWIE Scheduler"}         # awie
                 ]
             }
         }
@@ -382,6 +379,21 @@ class SolopreneurSystemLauncher:
     
     def find_agent_card(self, port: int, category: str = "") -> Optional[str]:
         """Find agent card file for a given port"""
+        # Special handling for specific tier 3 agents we want to run
+        specific_mappings = {
+            10910: "agent_cards/tier3/ai_research_analyzer.json",     # trends
+            10935: "agent_cards/tier3/recovery_scheduler.json",      # scheduler
+            10944: "agent_cards/tier3/spaced_repetition_scheduler.json",  # scheduler
+            10980: None  # AWIE Scheduler - uses direct class import
+        }
+        
+        if port in specific_mappings:
+            card_file = specific_mappings[port]
+            if card_file and Path(card_file).exists():
+                return card_file
+            elif port == 10980:
+                return "awie_direct"  # Special marker for AWIE
+        
         # Look for card with matching port in URL
         for card_file in Path("agent_cards").rglob("*.json"):
             try:
@@ -391,22 +403,6 @@ class SolopreneurSystemLauncher:
                         return str(card_file)
             except:
                 continue
-        
-        # If not found, try to match by category/name patterns
-        category_patterns = {
-            "Technical Intelligence": "technical",
-            "Knowledge Systems": "knowledge", 
-            "Personal Systems": "personal",
-            "Learning Systems": "learning",
-            "Integration Layer": "integration",
-            "AWIE": "awie"
-        }
-        
-        if category in category_patterns:
-            pattern = category_patterns[category]
-            for card_file in Path("agent_cards").rglob("*.json"):
-                if pattern in card_file.name.lower():
-                    return str(card_file)
         
         return None
     
@@ -467,9 +463,14 @@ class SolopreneurSystemLauncher:
                 for port in ports:
                     card_file = self.find_agent_card(port, category)
                     if card_file:
-                        # Create meaningful agent name from card file
-                        agent_name = self.get_agent_name_from_card(card_file, port, category)
-                        success = await self.start_single_agent(agent_name, port, card_file)
+                        # Create meaningful agent name from card file or category
+                        if card_file == "awie_direct":
+                            agent_name = "AWIE Scheduler Agent"
+                            success = await self.start_awie_scheduler_agent(agent_name, port)
+                        else:
+                            agent_name = self.get_agent_name_from_card(card_file, port, category)
+                            success = await self.start_single_agent(agent_name, port, card_file)
+                        
                         if success:
                             started_count += 1
                     else:
@@ -482,6 +483,10 @@ class SolopreneurSystemLauncher:
     
     async def start_single_agent(self, name: str, port: int, card_file: str) -> bool:
         """Start a single agent with error handling"""
+        # Special handling for AWIE Scheduler Agent
+        if "AWIE Scheduler" in name and port == 10980:
+            return await self.start_awie_scheduler_agent(name, port)
+        
         if not Path(card_file).exists():
             logger.warning(f"⚠️ Agent card not found: {card_file}")
             return False
@@ -523,6 +528,56 @@ class SolopreneurSystemLauncher:
             logger.error(f"❌ Failed to start {name}: {e}")
             return False
     
+    async def start_awie_scheduler_agent(self, name: str, port: int) -> bool:
+        """Start AWIE Scheduler Agent using direct class import"""
+        try:
+            process = subprocess.Popen([
+                sys.executable, "-c", f"""
+import asyncio
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path.cwd() / 'src'))
+
+async def run_agent():
+    try:
+        from a2a_mcp.agents.tier3.awie_scheduler_agent import AWIESchedulerAgent
+        agent = AWIESchedulerAgent()
+        print(f'✅ {name} started on port {port}')
+        while True:
+            await asyncio.sleep(10)
+    except Exception as e:
+        print(f'❌ Agent {name} failed: {{e}}')
+
+asyncio.run(run_agent())
+"""
+            ], 
+            stdout=open(log_dir / f"{name.lower().replace(' ', '_')}.log", 'w'),
+            stderr=subprocess.STDOUT,
+            preexec_fn=os.setsid,
+            cwd=str(Path.cwd())
+            )
+            
+            # Quick health check
+            await asyncio.sleep(2)
+            if process.poll() is not None:
+                logger.warning(f"⚠️ AWIE Scheduler Agent failed to start")
+                return False
+            
+            # Add to process manager
+            agent_id = name.lower().replace(' ', '_').replace('-', '_')
+            self.process_manager.add_process(agent_id, process, {
+                "type": "awie_agent",
+                "port": port,
+                "name": name
+            })
+            
+            logger.debug(f"✅ Started AWIE Scheduler Agent on port {port}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"❌ Failed to start AWIE Scheduler Agent: {e}")
+            return False
+    
     async def start_all_services(self) -> bool:
         """Start all services in the correct order"""
         logger.info("🚀 STARTING COMPLETE SOLOPRENEUR ORACLE SYSTEM")
@@ -555,6 +610,7 @@ class SolopreneurSystemLauncher:
         if tier1_count >= 1 and tier2_count >= 3:  # Minimum viable system
             logger.info("🎉 SOLOPRENEUR ORACLE SYSTEM OPERATIONAL!")
             logger.info(f"📊 Total Agents Running: {total_agents}")
+            logger.info(f"📊 Tier 3 Limited Mode: AWIE, scheduler, and trends agents only ({tier3_count} agents)")
             logger.info("=" * 60)
             self.startup_success = True
             return True

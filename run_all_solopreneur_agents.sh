@@ -1,8 +1,8 @@
 #!/bin/bash
-# Startup script for complete 56-agent Solopreneur Oracle system
+# Startup script for limited Solopreneur Oracle system (Tier 3: AWIE, scheduler, trends only)
 
-echo "🚀 Starting AI Solopreneur Oracle System (56 agents)..."
-echo "=================================================="
+echo "🚀 Starting AI Solopreneur Oracle System (LIMITED Tier 3: AWIE, scheduler, trends only)..."
+echo "===================================================================================="
 
 # Source configuration if exists
 if [ -f solopreneur_config.env ]; then
@@ -58,36 +58,41 @@ for card in agent_cards/tier2/*.json; do
 done
 
 echo ""
-echo "⚡ TIER 3: Starting Intelligence Modules..."
-echo "  Technical Intelligence (10910-10919)..."
-for port in {10910..10919}; do
-    card=$(find agent_cards/tier3 -name "*.json" -exec grep -l "\"url\": \"http://localhost:$port" {} \; 2>/dev/null | head -1)
-    [ -f "$card" ] && start_agent "$card" "$port" 3
-done
+echo "⚡ TIER 3: Starting LIMITED Intelligence Modules (AWIE, scheduler, trends only)..."
 
-echo "  Knowledge Systems (10920-10929)..."
-for port in {10920..10929}; do
-    card=$(find agent_cards/tier3 -name "*.json" -exec grep -l "\"url\": \"http://localhost:$port" {} \; 2>/dev/null | head -1)
-    [ -f "$card" ] && start_agent "$card" "$port" 3
-done
+# AI Research Analyzer (trends) - Port 10910  
+echo "  Starting AI Research Analyzer (trends)..."
+start_agent "agent_cards/tier3/ai_research_analyzer.json" 10910 3
 
-echo "  Personal Systems (10930-10939)..."
-for port in {10930..10939}; do
-    card=$(find agent_cards/tier3 -name "*.json" -exec grep -l "\"url\": \"http://localhost:$port" {} \; 2>/dev/null | head -1)
-    [ -f "$card" ] && start_agent "$card" "$port" 3
-done
+# Recovery Scheduler - Port 10935
+echo "  Starting Recovery Scheduler..."
+start_agent "agent_cards/tier3/recovery_scheduler.json" 10935 3
 
-echo "  Learning Systems (10940-10949)..."
-for port in {10940..10949}; do
-    card=$(find agent_cards/tier3 -name "*.json" -exec grep -l "\"url\": \"http://localhost:$port" {} \; 2>/dev/null | head -1)
-    [ -f "$card" ] && start_agent "$card" "$port" 3
-done
+# Spaced Repetition Scheduler - Port 10944
+echo "  Starting Spaced Repetition Scheduler..."
+start_agent "agent_cards/tier3/spaced_repetition_scheduler.json" 10944 3
 
-echo "  Integration Layer (10950-10959)..."
-for port in {10950..10959}; do
-    card=$(find agent_cards/tier3 -name "*.json" -exec grep -l "\"url\": \"http://localhost:$port" {} \; 2>/dev/null | head -1)
-    [ -f "$card" ] && start_agent "$card" "$port" 3
-done
+# AWIE Scheduler Agent - Port 10980 (requires special handling)
+echo "  Starting AWIE Scheduler Agent..."
+python -c "
+import asyncio
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path.cwd() / 'src'))
+
+async def run_awie():
+    try:
+        from a2a_mcp.agents.tier3.awie_scheduler_agent import AWIESchedulerAgent
+        agent = AWIESchedulerAgent()
+        print('✅ AWIE Scheduler Agent started on port 10980')
+        while True:
+            await asyncio.sleep(10)
+    except Exception as e:
+        print(f'❌ AWIE Scheduler failed: {e}')
+
+asyncio.run(run_awie())
+" > logs/awie_scheduler.log 2>&1 &
+echo $! >> .agent_pids
 
 # Wait for all agents to start
 sleep 5

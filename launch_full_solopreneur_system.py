@@ -227,13 +227,15 @@ asyncio.run(run_agent())
         return success_count > 0
 
     async def start_tier3_agents(self):
-        """Start Tier 3 specialized agents"""
-        logger.info("⚡ Starting Tier 3 Agents...")
+        """Start only AWIE, scheduler, and trends Tier 3 specialized agents"""
+        logger.info("⚡ Starting limited Tier 3 Agents (AWIE, scheduler, trends only)...")
         
-        # Start AWIE Scheduler and Context-Driven Orchestrator
+        # Only start specific tier 3 agents: awie, scheduler, and trends
         tier3_agents = [
             ("AWIE Scheduler Agent", 10980),
-            ("Context-Driven Orchestrator", 10961),
+            ("Recovery Scheduler", 10935),
+            ("Spaced Repetition Scheduler", 10944),
+            ("AI Research Analyzer", 10910),  # trends analyzer
         ]
         
         success_count = 0
@@ -242,15 +244,15 @@ asyncio.run(run_agent())
             try:
                 logger.info(f"🚀 Starting {agent_name} on port {port}...")
                 
+                # Find appropriate agent card
+                card_file = None
                 if "AWIE Scheduler" in agent_name:
+                    # AWIE Scheduler uses direct class import
                     agent_class = "AWIESchedulerAgent"
                     import_path = "a2a_mcp.agents.tier3.awie_scheduler_agent"
-                else:
-                    agent_class = "ContextDrivenOrchestrator" 
-                    import_path = "a2a_mcp.agents.tier3.context_driven_orchestrator"
-                
-                process = subprocess.Popen([
-                    sys.executable, "-c", f"""
+                    
+                    process = subprocess.Popen([
+                        sys.executable, "-c", f"""
 import asyncio
 import sys
 from pathlib import Path
@@ -268,7 +270,25 @@ async def run_agent():
 
 asyncio.run(run_agent())
 """
-                ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                else:
+                    # Other agents use agent cards
+                    if "Recovery Scheduler" in agent_name:
+                        card_file = "agent_cards/tier3/recovery_scheduler.json"
+                    elif "Spaced Repetition" in agent_name:
+                        card_file = "agent_cards/tier3/spaced_repetition_scheduler.json"
+                    elif "AI Research" in agent_name:
+                        card_file = "agent_cards/tier3/ai_research_analyzer.json"
+                    
+                    if card_file and Path(card_file).exists():
+                        process = subprocess.Popen([
+                            sys.executable, "src/a2a_mcp/agents/__main__.py",
+                            "--agent-card", card_file,
+                            "--port", str(port)
+                        ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    else:
+                        logger.warning(f"⚠️ Agent card not found for {agent_name}")
+                        continue
                 
                 self.processes.append(process)
                 await asyncio.sleep(2)
