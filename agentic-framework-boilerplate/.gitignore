@@ -87,6 +87,7 @@ mcp_server.log*
 oracle_*.log
 agent_*.log
 *.log.*.gz
+.mcp.json
 
 # Generated files
 *.pyc
