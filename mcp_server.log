@@ -1,4 +1,4 @@
-[07/11/25 07:20:57] INFO     Loading agent cards from card repo:    server.py:76
+[07/11/25 07:29:18] INFO     Loading agent cards from card repo:    server.py:76
                              agent_cards                                        
                     INFO     Reading file: car_rental_agent.json    server.py:83
                     INFO     Reading file: oracle_prime_agent.json  server.py:83
@@ -21,7 +21,7 @@
                              nt.json                                            
                     INFO     Reading file: nexus_planner_agent.json server.py:83
                     INFO     Reading file: planner_agent.json       server.py:83
-                    INFO     Reading file:                          server.py:83
+[07/11/25 07:29:19] INFO     Reading file:                          server.py:83
                              cross_domain_analysis_supervisor_agent             
                              .json                                              
                     INFO     Reading file:                          server.py:83
@@ -58,13 +58,20 @@
                     INFO     Finished loading agent cards. Found   server.py:100
                              31 cards.                                          
                     INFO     Generating Embeddings for agent cards server.py:116
-[07/11/25 07:21:04] INFO     Agent cards MCP Server at            server.py:1185
+[07/11/25 07:29:25] INFO     Agent cards MCP Server at            server.py:1185
                              localhost:10100 and transport sse                  
-INFO:     Started server process [96219]
+INFO:     Started server process [104895]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://localhost:10100 (Press CTRL+C to quit)
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [96219]
+🚀 Starting Solopreneur MCP Server...
+   Host: localhost
+   Port: 10100
+   Transport: sse
+   Tools: find_agent, query_places_data, query_travel_data
+          query_solopreneur_metrics, analyze_energy_patterns
+          track_learning_progress, search_relevant_research
+          query_knowledge_graph, monitor_technical_trends
+          optimize_task_schedule, analyze_workflow_patterns
+INFO:     127.0.0.1:42186 - "GET /health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:42198 - "GET /health HTTP/1.1" 404 Not Found
