@@ -39,8 +39,8 @@ echo "=" * 50
 start_service "MCP Server" "start_mcp_server.py" "logs/mcp_server_background.log"
 sleep 3
 
-# Start Main System Launcher
-start_service "Solopreneur System" "launch_solopreneur_system.py" "logs/system_launcher_background.log"
+# Start Main System Launcher  
+start_service "Solopreneur System" "start_solopreneur_background.py" "logs/system_launcher_background.log"
 sleep 5
 
 echo ""

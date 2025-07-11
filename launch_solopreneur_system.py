@@ -174,14 +174,19 @@ class ProcessManager:
                     preexec_fn=os.setsid
                 )
             elif config['type'] == 'agent':
+                # Use python module execution for consistency
+                agent_name = config.get('name', f"agent_port_{config['port']}")
+                log_name = agent_name.lower().replace(' ', '_').replace('-', '_')
+                
                 return subprocess.Popen([
-                    "uv", "run", "src/a2a_mcp/agents/",
+                    sys.executable, "src/a2a_mcp/agents/__main__.py",
                     "--agent-card", config['card_file'],
                     "--port", str(config['port'])
                 ], 
-                stdout=open(log_dir / f"agent_{config['port']}.log", 'a'),
+                stdout=open(log_dir / f"{log_name}.log", 'a'),
                 stderr=subprocess.STDOUT,
-                preexec_fn=os.setsid
+                preexec_fn=os.setsid,
+                cwd=str(Path.cwd())
                 )
         except Exception as e:
             logger.error(f"Failed to start {name}: {e}")
@@ -405,6 +410,27 @@ class SolopreneurSystemLauncher:
         
         return None
     
+    def get_agent_name_from_card(self, card_file: str, port: int, category: str) -> str:
+        """Extract meaningful agent name from card file"""
+        try:
+            with open(card_file) as f:
+                data = json.load(f)
+                agent_name = data.get('name', '')
+                if agent_name:
+                    return agent_name
+        except:
+            pass
+        
+        # Fallback to meaningful name based on file or category
+        card_name = Path(card_file).stem
+        if card_name and card_name != 'agent':
+            # Clean up the card name
+            cleaned = card_name.replace('_', ' ').replace('-', ' ').title()
+            return cleaned
+        
+        # Final fallback
+        return f"{category} Agent {port}"
+    
     async def start_agent_tier(self, tier_name: str) -> int:
         """Start all agents in a specific tier"""
         tier_config = self.agent_tiers.get(tier_name, {})
@@ -441,9 +467,9 @@ class SolopreneurSystemLauncher:
                 for port in ports:
                     card_file = self.find_agent_card(port, category)
                     if card_file:
-                        success = await self.start_single_agent(
-                            f"{category} Agent {port}", port, card_file
-                        )
+                        # Create meaningful agent name from card file
+                        agent_name = self.get_agent_name_from_card(card_file, port, category)
+                        success = await self.start_single_agent(agent_name, port, card_file)
                         if success:
                             started_count += 1
                     else:
@@ -461,14 +487,16 @@ class SolopreneurSystemLauncher:
             return False
         
         try:
+            # Use direct execution of __main__.py
             process = subprocess.Popen([
-                "uv", "run", "src/a2a_mcp/agents/",
+                sys.executable, "src/a2a_mcp/agents/__main__.py",
                 "--agent-card", card_file,
                 "--port", str(port)
             ], 
-            stdout=open(log_dir / f"agent_{port}.log", 'w'),
+            stdout=open(log_dir / f"{name.lower().replace(' ', '_')}.log", 'w'),
             stderr=subprocess.STDOUT,
-            preexec_fn=os.setsid
+            preexec_fn=os.setsid,
+            cwd=str(Path.cwd())
             )
             
             # Quick health check
@@ -477,8 +505,11 @@ class SolopreneurSystemLauncher:
                 logger.warning(f"⚠️ Agent {name} failed to start")
                 return False
             
+            # Create clean agent identifier
+            agent_id = name.lower().replace(' ', '_').replace('-', '_')
+            
             # Add to process manager
-            self.process_manager.add_process(f"agent_{port}", process, {
+            self.process_manager.add_process(agent_id, process, {
                 "type": "agent",
                 "port": port,
                 "card_file": card_file,

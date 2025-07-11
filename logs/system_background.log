@@ -1,0 +1,79 @@
+2025-07-11 07:48:27,187 - [32mINFO[0m - 🚀 STARTING COMPLETE SOLOPRENEUR ORACLE SYSTEM
+2025-07-11 07:48:27,187 - [32mINFO[0m - ============================================================
+2025-07-11 07:48:27,187 - [32mINFO[0m - 🔍 Validating environment...
+2025-07-11 07:48:27,215 - [32mINFO[0m - ✅ Environment validation passed
+2025-07-11 07:48:27,215 - [32mINFO[0m - 🧹 Cleaning up existing processes...
+2025-07-11 07:48:29,369 - [32mINFO[0m - ✅ Port cleanup completed
+2025-07-11 07:48:29,370 - [32mINFO[0m - 📡 Starting MCP Server...
+2025-07-11 07:48:39,449 - [33mWARNING[0m - ⚠️ MCP Server health check failed, but process is running
+2025-07-11 07:48:39,450 - [32mINFO[0m - ✅ Added process mcp_server (PID: 124251)
+2025-07-11 07:48:39,450 - [32mINFO[0m - ✅ MCP Server started successfully
+2025-07-11 07:48:39,450 - [32mINFO[0m - 🚀 Starting Oracle Master...
+2025-07-11 07:48:40,464 - [32mINFO[0m - ✅ Added process solopreneuroracle_master (PID: 124476)
+2025-07-11 07:48:42,467 - [32mINFO[0m - 📊 Oracle Master: 1 agents started
+2025-07-11 07:48:42,468 - [32mINFO[0m - 🚀 Starting Domain Specialists...
+2025-07-11 07:48:42,468 - [33mWARNING[0m - ⚠️ Agent card not found: agent_cards/tier2/technical_intelligence_agent.json
+2025-07-11 07:48:44,471 - [33mWARNING[0m - ⚠️ Agent card not found: agent_cards/tier2/knowledge_management_agent.json
+2025-07-11 07:48:46,473 - [33mWARNING[0m - ⚠️ Agent card not found: agent_cards/tier2/personal_optimization_agent.json
+2025-07-11 07:48:48,477 - [33mWARNING[0m - ⚠️ Agent card not found: agent_cards/tier2/learning_enhancement_agent.json
+2025-07-11 07:48:50,482 - [33mWARNING[0m - ⚠️ Agent card not found: agent_cards/tier2/integration_synthesis_agent.json
+2025-07-11 07:48:52,488 - [33mWARNING[0m - ⚠️ Agent card not found: agent_cards/tier2/autonomous_workflow_intelligence_oracle.json
+2025-07-11 07:48:54,492 - [32mINFO[0m - 📊 Domain Specialists: 0 agents started
+2025-07-11 07:48:54,492 - [32mINFO[0m - 🚀 Starting Intelligence Modules...
+2025-07-11 07:48:54,493 - [32mINFO[0m -   Starting Technical Intelligence (10910-10919)...
+2025-07-11 07:48:55,514 - [32mINFO[0m - ✅ Added process ai_research_analyzer (PID: 124864)
+2025-07-11 07:48:57,564 - [32mINFO[0m - ✅ Added process code_architecture_evaluator (PID: 124942)
+2025-07-11 07:48:59,630 - [32mINFO[0m - ✅ Added process tech_stack_optimizer (PID: 125025)
+2025-07-11 07:49:01,685 - [32mINFO[0m - ✅ Added process implementation_risk_assessor (PID: 125064)
+2025-07-11 07:49:03,750 - [32mINFO[0m - ✅ Added process framework_compatibility_checker (PID: 125113)
+2025-07-11 07:49:05,808 - [32mINFO[0m - ✅ Added process performance_bottleneck_detector (PID: 125125)
+2025-07-11 07:49:07,903 - [32mINFO[0m - ✅ Added process security_vulnerability_scanner (PID: 125187)
+2025-07-11 07:49:09,984 - [32mINFO[0m - ✅ Added process technical_debt_analyzer (PID: 125205)
+2025-07-11 07:49:12,078 - [32mINFO[0m - ✅ Added process api_design_reviewer (PID: 125248)
+2025-07-11 07:49:14,204 - [32mINFO[0m - ✅ Added process algorithm_efficiency_optimizer (PID: 125305)
+2025-07-11 07:49:15,218 - [32mINFO[0m -   Starting Knowledge Systems (10920-10929)...
+2025-07-11 07:49:16,375 - [32mINFO[0m - ✅ Added process neo4j_graph_manager (PID: 125320)
+2025-07-11 07:49:18,532 - [32mINFO[0m - ✅ Added process vector_database_interface (PID: 125370)
+2025-07-11 07:49:20,669 - [32mINFO[0m - ✅ Added process knowledge_correlator (PID: 125407)
+2025-07-11 07:49:22,787 - [32mINFO[0m - ✅ Added process insight_synthesizer (PID: 125446)
+2025-07-11 07:49:24,935 - [32mINFO[0m - ✅ Added process pattern_recognition_engine (PID: 125499)
+2025-07-11 07:49:27,118 - [32mINFO[0m - ✅ Added process information_retrieval_optimizer (PID: 125526)
+2025-07-11 07:49:29,297 - [32mINFO[0m - ✅ Added process semantic_search_engine (PID: 125570)
+2025-07-11 07:49:31,515 - [32mINFO[0m - ✅ Added process knowledge_gap_identifier (PID: 125604)
+2025-07-11 07:49:33,702 - [32mINFO[0m - ✅ Added process citation_network_analyzer (PID: 125638)
+2025-07-11 07:49:35,975 - [32mINFO[0m - ✅ Added process concept_map_builder (PID: 125694)
+2025-07-11 07:49:36,987 - [32mINFO[0m -   Starting Personal Systems (10930-10939)...
+2025-07-11 07:49:38,148 - [32mINFO[0m - ✅ Added process circadian_optimizer (PID: 125733)
+2025-07-11 07:49:40,403 - [32mINFO[0m - ✅ Added process focus_state_monitor (PID: 125779)
+2025-07-11 07:49:42,746 - [32mINFO[0m - ✅ Added process energy_pattern_analyzer (PID: 125818)
+2025-07-11 07:49:45,024 - [32mINFO[0m - ✅ Added process cognitive_load_manager (PID: 125848)
+2025-07-11 07:49:47,363 - [32mINFO[0m - ✅ Added process stress_detection_system (PID: 125897)
+2025-07-11 07:49:49,603 - [32mINFO[0m - ✅ Added process recovery_scheduler (PID: 125930)
+2025-07-11 07:49:51,906 - [32mINFO[0m - ✅ Added process environment_optimizer (PID: 125990)
+2025-07-11 07:49:54,174 - [32mINFO[0m - ✅ Added process nutrition_timing_advisor (PID: 126035)
+2025-07-11 07:49:56,451 - [32mINFO[0m - ✅ Added process exercise_integration_planner (PID: 126080)
+2025-07-11 07:49:58,819 - [32mINFO[0m - ✅ Added process sleep_quality_analyzer (PID: 126132)
+2025-07-11 07:49:59,838 - [32mINFO[0m -   Starting Learning Systems (10940-10949)...
+2025-07-11 07:50:01,207 - [32mINFO[0m - ✅ Added process skill_gap_analyzer (PID: 126173)
+2025-07-11 07:50:03,570 - [32mINFO[0m - ✅ Added process learning_efficiency_optimizer (PID: 126234)
+2025-07-11 07:50:05,878 - [32mINFO[0m - ✅ Added process progress_tracker (PID: 126268)
+2025-07-11 07:50:08,284 - [32mINFO[0m - ✅ Added process knowledge_retention_enhancer (PID: 126325)
+2025-07-11 07:50:10,617 - [32mINFO[0m - ✅ Added process spaced_repetition_scheduler (PID: 126357)
+2025-07-11 07:50:13,063 - [32mINFO[0m - ✅ Added process learning_path_generator (PID: 126420)
+2025-07-11 07:50:15,445 - [32mINFO[0m - ✅ Added process skill_transfer_identifier (PID: 126448)
+2025-07-11 07:50:17,857 - [32mINFO[0m - ✅ Added process practice_session_designer (PID: 126488)
+2025-07-11 07:50:20,314 - [32mINFO[0m - ✅ Added process competency_assessment_engine (PID: 126538)
+2025-07-11 07:50:22,833 - [32mINFO[0m - ✅ Added process learning_resource_curator (PID: 126567)
+2025-07-11 07:50:23,850 - [32mINFO[0m -   Starting Integration Layer (10950-10959)...
+2025-07-11 07:50:25,445 - [32mINFO[0m - ✅ Added process cross_domain_synthesizer (PID: 126663)
+2025-07-11 07:50:28,029 - [32mINFO[0m - ✅ Added process workflow_coordinator (PID: 126712)
+2025-07-11 07:50:30,407 - [32mINFO[0m - ✅ Added process quality_validator (PID: 126777)
+2025-07-11 07:50:33,001 - [32mINFO[0m - ✅ Added process performance_monitor (PID: 126826)
+2025-07-11 07:50:35,622 - [32mINFO[0m - ✅ Added process risk_mitigation_planner (PID: 126921)
+2025-07-11 07:50:38,173 - [32mINFO[0m - ✅ Added process opportunity_detector (PID: 126989)
+2025-07-11 07:50:40,754 - [32mINFO[0m - ✅ Added process decision_support_system (PID: 127056)
+2025-07-11 07:50:43,497 - [32mINFO[0m - ✅ Added process priority_optimization_engine (PID: 127105)
+2025-07-11 07:50:46,233 - [32mINFO[0m - ✅ Added process context_awareness_manager (PID: 127152)
+2025-07-11 07:50:48,994 - [32mINFO[0m - ✅ Added process predictive_analytics_engine (PID: 127180)
+2025-07-11 07:50:50,039 - [32mINFO[0m -   Starting AWIE Modules (10960-10979)...
+2025-07-11 09:29:14,017 - [32mINFO[0m -   Starting AWIE Scheduler (10980-10980)...

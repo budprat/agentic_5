@@ -38,7 +38,8 @@ start_agent() {
     local tier=$3
     
     echo "  Starting: $(basename $card_file .json) (Port $port, Tier $tier)..."
-    uv run src/a2a_mcp/agents/ --agent-card $card_file --port $port > logs/agent_$port.log 2>&1 &
+    # Use direct execution of __main__.py
+    python src/a2a_mcp/agents/__main__.py --agent-card $card_file --port $port > logs/agent_$port.log 2>&1 &
     echo $! >> .agent_pids
 }
 
