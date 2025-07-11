@@ -11,7 +11,7 @@ from typing import Dict, Any, Optional, List
 from datetime import datetime
 
 from .base_agent import BaseAgent
-from .utils import get_mcp_server_config, init_api_key
+from .utils import get_mcp_server_config
 from .quality_framework import QualityThresholdFramework
 from .a2a_protocol import A2AProtocolClient
 from google.adk.agents import Agent
@@ -57,7 +57,7 @@ class StandardizedAgentBase(BaseAgent, ABC):
             mcp_tools_enabled: Whether to load and use MCP tools
             a2a_enabled: Whether to enable agent-to-agent communication
         """
-        init_api_key()
+        # Initialize API key if needed (handled by deployment)
         
         super().__init__(
             agent_name=agent_name,

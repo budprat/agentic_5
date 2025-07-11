@@ -21,6 +21,9 @@ def test_imports():
         'a2a_mcp.agents.example_domain.master_oracle',
         'a2a_mcp.agents.example_domain.domain_specialist',
         'a2a_mcp.agents.example_domain.service_agent',
+        'a2a_mcp.agents.examples.search_agent',
+        'a2a_mcp.agents.examples.summarization_agent',
+        'a2a_mcp.agents.examples.data_validation_agent',
     ]
     
     failed = []
@@ -40,15 +43,19 @@ async def test_agent_creation():
     print("\nTesting agent creation...")
     
     try:
-        from a2a_mcp.agents.example_domain.master_oracle import MasterOracle
-        from a2a_mcp.agents.example_domain.domain_specialist import DomainSpecialist
+        from a2a_mcp.agents.example_domain.master_oracle import MasterOracleAgent
+        from a2a_mcp.agents.example_domain.domain_specialist import ResearchSpecialistAgent
         from a2a_mcp.agents.example_domain.service_agent import ServiceAgent
+        from a2a_mcp.agents.examples import SearchAgent, SummarizationAgent, DataValidationAgent
         
         # Create instances
         agents = [
-            MasterOracle(),
-            DomainSpecialist(),
-            ServiceAgent()
+            MasterOracleAgent(),
+            ResearchSpecialistAgent(),
+            ServiceAgent(),
+            SearchAgent(),
+            SummarizationAgent(),
+            DataValidationAgent()
         ]
         
         for agent in agents:
@@ -93,10 +100,10 @@ async def test_quality_framework():
     print("\nTesting quality framework...")
     
     try:
-        from a2a_mcp.common.quality_framework import QualityFramework
+        from a2a_mcp.common.quality_framework import QualityThresholdFramework
         
         # Create framework instance
-        qf = QualityFramework()
+        qf = QualityThresholdFramework()
         print("✓ Created quality framework")
         
         # Test validation
@@ -109,6 +116,34 @@ async def test_quality_framework():
         return True
     except Exception as e:
         print(f"✗ Quality framework test failed: {e}")
+        traceback.print_exc()
+        return False
+
+
+async def test_example_agents():
+    """Test example agent functionality"""
+    print("\nTesting example agents...")
+    
+    try:
+        from a2a_mcp.agents.examples import DataValidationAgent
+        
+        agent = DataValidationAgent()
+        
+        # Test with valid JSON
+        json_data = '{"id": "123", "type": "test", "data": {"key": "value"}}'
+        results = []
+        async for result in agent._execute_agent_logic(f"Validate: {json_data}"):
+            results.append(result)
+        
+        if results and results[0]["is_task_complete"]:
+            print("✓ Data validation agent processed valid JSON")
+        else:
+            print("✗ Data validation agent failed to process JSON")
+            return False
+        
+        return True
+    except Exception as e:
+        print(f"✗ Example agent test failed: {e}")
         traceback.print_exc()
         return False
 
@@ -128,6 +163,7 @@ async def run_tests():
     results.append(await test_agent_creation())
     results.append(await test_protocol_basics())
     results.append(await test_quality_framework())
+    results.append(await test_example_agents())
     
     # Summary
     print("\n" + "=" * 50)

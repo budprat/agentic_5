@@ -73,7 +73,8 @@ agentic-framework-boilerplate/
 │   └── a2a_mcp/
 │       ├── common/          # Shared utilities and base classes
 │       ├── agents/          # Agent implementations
-│       │   └── example_domain/  # Example domain agents
+│       │   ├── example_domain/  # Domain-specific example agents
+│       │   └── examples/        # Simple example agents
 │       ├── clients/         # Client implementations
 │       └── mcp/            # MCP server and integration
 ├── tests/                   # Test suite
@@ -189,6 +190,20 @@ result = await self.mcp_client.call_tool(
 - [Architecture Overview](docs/ARCHITECTURE.md)
 - [Quick Start Guide](docs/QUICK_START.md)
 - [API Reference](docs/README.md)
+
+## 📦 Example Agents
+
+The framework includes several example agents to help you get started:
+
+### Simple Examples (`src/a2a_mcp/agents/examples/`)
+- **SearchAgent**: Demonstrates web search capabilities using MCP tools
+- **SummarizationAgent**: Shows text processing with quality validation
+- **DataValidationAgent**: Illustrates data validation with custom rules
+
+### Domain Examples (`src/a2a_mcp/agents/example_domain/`)
+- **MasterOracleAgent**: Tier 1 orchestrator showing A2A coordination
+- **ResearchSpecialistAgent**: Tier 2 domain expert with quality checks
+- **ServiceAgent**: Tier 3 service agent with tool integration
 
 ## 🛑 Stopping the System
 

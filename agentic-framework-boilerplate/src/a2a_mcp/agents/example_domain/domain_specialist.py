@@ -6,15 +6,14 @@ Domain Specialist Agent - Research & Analysis Expert
 A tier 2 agent that specializes in research, documentation lookup, and web analysis
 """
 
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, List, Optional, AsyncIterable
 import json
 import logging
 from datetime import datetime
+import asyncio
 
-from ...core.base_agent import StandardizedAgentBase
-from ...core.communication import Message, MessageType
-from ...utils.mcp_client import MCPToolClient
-from ...core.exceptions import AgentExecutionError
+from a2a_mcp.common.standardized_agent_base import StandardizedAgentBase
+from a2a_mcp.common.a2a_protocol import A2AProtocolClient
 
 logger = logging.getLogger(__name__)
 
@@ -30,8 +29,34 @@ class ResearchSpecialistAgent(StandardizedAgentBase):
     - Structured output formatting for research results
     """
     
-    def __init__(self, agent_id: str, config: Dict[str, Any]):
-        super().__init__(agent_id, config)
+    def __init__(self, agent_id: str = "research_specialist", config: Optional[Dict[str, Any]] = None):
+        config = config or {}
+        
+        # Define research specialist instructions
+        instructions = """
+        You are a Research Specialist agent with deep expertise in conducting thorough research and analysis.
+        Your capabilities include:
+        1. Searching technical documentation and APIs
+        2. Conducting web research on various topics
+        3. Finding code examples and implementations
+        4. Performing comparative analysis between options
+        
+        Use your MCP tools effectively to gather comprehensive information.
+        Present findings in a clear, structured format with proper citations.
+        Maintain objectivity and highlight both pros and cons when relevant.
+        """
+        
+        super().__init__(
+            agent_name=agent_id,
+            description="Research Specialist - Expert in documentation, web research, and comparative analysis",
+            instructions=instructions,
+            quality_config={
+                "min_confidence_score": 0.7,
+                "require_sources": True,
+                "max_response_length": 10000
+            },
+            mcp_tools_enabled=True
+        )
         
         # Domain-specific configuration
         self.research_config = config.get('research_config', {})
@@ -39,59 +64,114 @@ class ResearchSpecialistAgent(StandardizedAgentBase):
         self.preferred_sources = self.research_config.get('preferred_sources', [])
         self.documentation_apis = self.research_config.get('documentation_apis', {})
         
-        # Initialize MCP tool client
-        self.mcp_client = MCPToolClient()
-        
         # Track research session state
         self.current_research_topic = None
         self.research_history = []
         self.cached_results = {}
         
-        logger.info(f"ResearchSpecialistAgent {agent_id} initialized with config: {self.research_config}")
+        logger.info(f"ResearchSpecialistAgent {agent_id} initialized")
     
-    async def execute_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Execute research-specific tasks using appropriate MCP tools.
+    def _analyze_query(self, query: str) -> str:
+        """Analyze query to determine research type."""
+        query_lower = query.lower()
         
-        Supported task types:
-        - documentation_search: Search technical documentation
-        - web_research: General web research on a topic
-        - code_example_search: Find code examples and implementations
-        - api_reference_lookup: Look up API references
-        - comparative_analysis: Compare multiple solutions/approaches
-        """
-        task_type = task.get('type', 'general_research')
-        query = task.get('query', '')
+        if any(word in query_lower for word in ['documentation', 'docs', 'api docs']):
+            return 'documentation_search'
+        elif any(word in query_lower for word in ['code', 'example', 'implementation', 'snippet']):
+            return 'code_example_search'
+        elif any(word in query_lower for word in ['api', 'reference', 'method', 'function']):
+            return 'api_reference_lookup'
+        elif any(word in query_lower for word in ['compare', 'versus', 'vs', 'comparison', 'differences']):
+            return 'comparative_analysis'
+        elif any(word in query_lower for word in ['research', 'find', 'search', 'information']):
+            return 'web_research'
+        else:
+            return 'general_research'
+    
+    def _extract_comparison_options(self, query: str) -> List[str]:
+        """Extract comparison options from query."""
+        # Simple extraction - in production, use NLP
+        options = []
         
-        logger.info(f"Executing research task: {task_type} with query: {query}")
+        # Look for patterns like "X vs Y" or "compare X and Y"
+        import re
+        vs_pattern = r'(\w+)\s+(?:vs\.?|versus)\s+(\w+)'
+        compare_pattern = r'compare\s+(\w+)\s+and\s+(\w+)'
+        
+        vs_match = re.search(vs_pattern, query, re.IGNORECASE)
+        if vs_match:
+            options.extend([vs_match.group(1), vs_match.group(2)])
+        
+        compare_match = re.search(compare_pattern, query, re.IGNORECASE)
+        if compare_match:
+            options.extend([compare_match.group(1), compare_match.group(2)])
+        
+        # Remove duplicates
+        return list(set(options)) if options else ['option1', 'option2']
+    
+    async def _execute_agent_logic(
+        self, query: str, context_id: str, task_id: str
+    ) -> AsyncIterable[Dict[str, Any]]:
+        """
+        Execute research-specific logic based on query analysis.
+        """
+        # Analyze query to determine research type
+        research_type = self._analyze_query(query)
+        
+        # Update current topic
+        self.current_research_topic = query
+        
+        # Yield initial status
+        yield {
+            "is_task_complete": False,
+            "require_user_input": False,
+            "content": f"Analyzing research request: {research_type}..."
+        }
         
         try:
-            if task_type == 'documentation_search':
-                return await self._search_documentation(query, task.get('sources', []))
+            # Initialize agent if needed (for MCP tools)
+            if not self.agent:
+                await self.init_agent()
             
-            elif task_type == 'web_research':
-                return await self._conduct_web_research(query, task.get('depth', 'standard'))
-            
-            elif task_type == 'code_example_search':
-                return await self._find_code_examples(query, task.get('language', 'any'))
-            
-            elif task_type == 'api_reference_lookup':
-                return await self._lookup_api_reference(query, task.get('library', None))
-            
-            elif task_type == 'comparative_analysis':
-                return await self._perform_comparative_analysis(
-                    query, 
-                    task.get('options', []),
-                    task.get('criteria', [])
-                )
-            
+            # Execute research based on type
+            if research_type == 'documentation_search':
+                result = await self._search_documentation(query, [])
+            elif research_type == 'web_research':
+                result = await self._conduct_web_research(query, 'standard')
+            elif research_type == 'code_example_search':
+                result = await self._find_code_examples(query, 'any')
+            elif research_type == 'api_reference_lookup':
+                result = await self._lookup_api_reference(query, None)
+            elif research_type == 'comparative_analysis':
+                # Extract options from query
+                options = self._extract_comparison_options(query)
+                result = await self._perform_comparative_analysis(query, options, [])
             else:
                 # Default to general research
-                return await self._general_research(query, task)
-                
+                result = await self._general_research(query, {})
+            
+            # Cache the result
+            cache_key = f"{research_type}_{query[:50]}"
+            self.cached_results[cache_key] = result
+            
+            # Yield final result
+            yield {
+                "is_task_complete": True,
+                "require_user_input": False,
+                "content": result
+            }
+            
         except Exception as e:
-            logger.error(f"Error executing research task: {str(e)}")
-            raise AgentExecutionError(f"Research task failed: {str(e)}")
+            logger.error(f"Research error: {str(e)}")
+            yield {
+                "is_task_complete": True,
+                "require_user_input": False,
+                "content": {
+                    "error": f"Research task failed: {str(e)}",
+                    "research_type": research_type,
+                    "query": query
+                }
+            }
     
     async def _search_documentation(self, query: str, sources: List[str]) -> Dict[str, Any]:
         """Search technical documentation using appropriate MCP tools."""
@@ -100,23 +180,36 @@ class ResearchSpecialistAgent(StandardizedAgentBase):
         # Use context7 for library documentation if available
         if 'libraries' in sources or not sources:
             try:
-                # First resolve library names to IDs
-                library_results = await self.mcp_client.call_tool(
-                    'mcp__context7__resolve-library-id',
-                    {'libraryName': query}
-                )
+                # Use the agent's tools to resolve library names
+                if self.agent and self.tools:
+                    # Find the context7 resolve tool
+                    resolve_tool = next((t for t in self.tools if t.name == 'mcp__context7__resolve-library-id'), None)
+                    if resolve_tool:
+                        library_results = await self.agent.run_tool(
+                            resolve_tool,
+                            {'libraryName': query}
+                        )
+                    else:
+                        library_results = None
+                else:
+                    library_results = None
                 
                 if library_results and library_results.get('libraries'):
                     # Get documentation for the top match
                     library_id = library_results['libraries'][0]['id']
-                    docs = await self.mcp_client.call_tool(
-                        'mcp__context7__get-library-docs',
-                        {
-                            'context7CompatibleLibraryID': library_id,
-                            'tokens': 5000,
-                            'topic': query
-                        }
-                    )
+                    # Use the get-library-docs tool
+                    docs_tool = next((t for t in self.tools if t.name == 'mcp__context7__get-library-docs'), None)
+                    if docs_tool:
+                        docs = await self.agent.run_tool(
+                            docs_tool,
+                            {
+                                'context7CompatibleLibraryID': library_id,
+                                'tokens': 5000,
+                                'topic': query
+                            }
+                        )
+                    else:
+                        docs = None
                     results.append({
                         'source': 'context7',
                         'library': library_id,
@@ -128,22 +221,27 @@ class ResearchSpecialistAgent(StandardizedAgentBase):
         # Use Supabase docs search if configured
         if 'supabase' in sources or 'supabase' in self.documentation_apis:
             try:
-                supabase_results = await self.mcp_client.call_tool(
-                    'mcp__supabase__search_docs',
-                    {
-                        'graphql_query': f"""
-                        query {{
-                            searchDocs(query: "{query}", limit: 3) {{
-                                nodes {{
-                                    title
-                                    href
-                                    content
+                # Use Supabase docs search tool
+                supabase_tool = next((t for t in self.tools if t.name == 'mcp__supabase__search_docs'), None)
+                if supabase_tool:
+                    supabase_results = await self.agent.run_tool(
+                        supabase_tool,
+                        {
+                            'graphql_query': f"""
+                            query {{
+                                searchDocs(query: "{query}", limit: 3) {{
+                                    nodes {{
+                                        title
+                                        href
+                                        content
+                                    }}
                                 }}
                             }}
-                        }}
-                        """
-                    }
-                )
+                            """
+                        }
+                    )
+                else:
+                    supabase_results = None
                 if supabase_results:
                     results.append({
                         'source': 'supabase_docs',
@@ -170,27 +268,37 @@ class ResearchSpecialistAgent(StandardizedAgentBase):
         
         # Perform web search
         try:
-            search_results = await self.mcp_client.call_tool(
-                'mcp__brave__brave_web_search',
-                {
-                    'query': query,
-                    'count': self.max_search_results
-                }
-            )
+            # Use Brave web search tool
+            brave_tool = next((t for t in self.tools if t.name == 'mcp__brave__brave_web_search'), None)
+            if brave_tool:
+                search_results = await self.agent.run_tool(
+                    brave_tool,
+                    {
+                        'query': query,
+                        'count': self.max_search_results
+                    }
+                )
+            else:
+                search_results = None
             research_results['search_results'] = search_results
             
             # For deep research, scrape top results
             if depth == 'deep' and search_results.get('results'):
                 for result in search_results['results'][:3]:  # Top 3 results
                     try:
-                        scraped = await self.mcp_client.call_tool(
-                            'mcp__firecrawl__firecrawl_scrape',
-                            {
-                                'url': result['url'],
-                                'formats': ['markdown'],
-                                'onlyMainContent': True
-                            }
-                        )
+                        # Use Firecrawl scrape tool
+                        scrape_tool = next((t for t in self.tools if t.name == 'mcp__firecrawl__firecrawl_scrape'), None)
+                        if scrape_tool:
+                            scraped = await self.agent.run_tool(
+                                scrape_tool,
+                                {
+                                    'url': result['url'],
+                                    'formats': ['markdown'],
+                                    'onlyMainContent': True
+                                }
+                            )
+                        else:
+                            scraped = None
                         research_results['scraped_content'].append({
                             'url': result['url'],
                             'title': result.get('title', ''),
@@ -203,14 +311,16 @@ class ResearchSpecialistAgent(StandardizedAgentBase):
             logger.error(f"Web search failed: {str(e)}")
             # Fallback to firecrawl search
             try:
-                search_results = await self.mcp_client.call_tool(
-                    'mcp__firecrawl__firecrawl_search',
-                    {
-                        'query': query,
-                        'limit': self.max_search_results
-                    }
-                )
-                research_results['search_results'] = search_results
+                firecrawl_search_tool = next((t for t in self.tools if t.name == 'mcp__firecrawl__firecrawl_search'), None)
+                if firecrawl_search_tool:
+                    search_results = await self.agent.run_tool(
+                        firecrawl_search_tool,
+                        {
+                            'query': query,
+                            'limit': self.max_search_results
+                        }
+                    )
+                    research_results['search_results'] = search_results
             except Exception as e2:
                 logger.error(f"Fallback search also failed: {str(e2)}")
         
@@ -234,13 +344,17 @@ class ResearchSpecialistAgent(StandardizedAgentBase):
         
         try:
             # Use web search for GitHub
-            search_results = await self.mcp_client.call_tool(
-                'mcp__brave__brave_web_search',
-                {
-                    'query': f"site:github.com {github_query} example",
-                    'count': 5
-                }
-            )
+            brave_tool = next((t for t in self.tools if t.name == 'mcp__brave__brave_web_search'), None)
+            if brave_tool:
+                search_results = await self.agent.run_tool(
+                    brave_tool,
+                    {
+                        'query': f"site:github.com {github_query} example",
+                        'count': 5
+                    }
+                )
+            else:
+                search_results = {'results': []}
             
             # Extract and process GitHub links
             for result in search_results.get('results', []):
@@ -269,21 +383,29 @@ class ResearchSpecialistAgent(StandardizedAgentBase):
         if library:
             # Try context7 for specific library
             try:
-                library_results = await self.mcp_client.call_tool(
-                    'mcp__context7__resolve-library-id',
-                    {'libraryName': library}
-                )
+                resolve_tool = next((t for t in self.tools if t.name == 'mcp__context7__resolve-library-id'), None)
+                if resolve_tool:
+                    library_results = await self.agent.run_tool(
+                        resolve_tool,
+                        {'libraryName': library}
+                    )
+                else:
+                    library_results = None
                 
                 if library_results and library_results.get('libraries'):
                     library_id = library_results['libraries'][0]['id']
-                    api_docs = await self.mcp_client.call_tool(
-                        'mcp__context7__get-library-docs',
-                        {
-                            'context7CompatibleLibraryID': library_id,
-                            'topic': query,
-                            'tokens': 8000
-                        }
-                    )
+                    docs_tool = next((t for t in self.tools if t.name == 'mcp__context7__get-library-docs'), None)
+                    if docs_tool:
+                        api_docs = await self.agent.run_tool(
+                            docs_tool,
+                            {
+                                'context7CompatibleLibraryID': library_id,
+                                'topic': query,
+                                'tokens': 8000
+                            }
+                        )
+                    else:
+                        api_docs = None
                     api_references.append({
                         'source': 'context7',
                         'library': library,
@@ -294,13 +416,17 @@ class ResearchSpecialistAgent(StandardizedAgentBase):
         
         # General API search
         try:
-            api_search = await self.mcp_client.call_tool(
-                'mcp__brave__brave_web_search',
-                {
-                    'query': f"{query} API reference documentation",
-                    'count': 3
-                }
-            )
+            brave_tool = next((t for t in self.tools if t.name == 'mcp__brave__brave_web_search'), None)
+            if brave_tool:
+                api_search = await self.agent.run_tool(
+                    brave_tool,
+                    {
+                        'query': f"{query} API reference documentation",
+                        'count': 3
+                    }
+                )
+            else:
+                api_search = {'results': []}
             for result in api_search.get('results', []):
                 api_references.append({
                     'source': 'web',
@@ -489,57 +615,13 @@ class ResearchSpecialistAgent(StandardizedAgentBase):
         
         return recommendations
     
-    async def process_message(self, message: Message) -> Optional[Message]:
-        """Process incoming messages and route to appropriate research methods."""
-        
-        if message.type == MessageType.TASK_REQUEST:
-            # Extract task from message
-            task = message.content.get('task', {})
-            
-            # Check if this is a research task we can handle
-            research_keywords = [
-                'research', 'search', 'find', 'lookup', 'compare', 
-                'analyze', 'documentation', 'example', 'reference'
-            ]
-            
-            task_description = str(task.get('description', '')).lower()
-            if any(keyword in task_description for keyword in research_keywords):
-                try:
-                    # Execute the research task
-                    result = await self.execute_task(task)
-                    
-                    # Cache results for potential follow-ups
-                    cache_key = f"{task.get('type', 'general')}_{task.get('query', '')}"
-                    self.cached_results[cache_key] = result
-                    
-                    # Return success message
-                    return Message(
-                        type=MessageType.TASK_RESULT,
-                        sender=self.agent_id,
-                        recipient=message.sender,
-                        content={
-                            'status': 'success',
-                            'result': result,
-                            'task_id': task.get('id')
-                        }
-                    )
-                except Exception as e:
-                    logger.error(f"Research task failed: {str(e)}")
-                    return Message(
-                        type=MessageType.ERROR,
-                        sender=self.agent_id,
-                        recipient=message.sender,
-                        content={
-                            'error': str(e),
-                            'task_id': task.get('id')
-                        }
-                    )
-            else:
-                # Not a research task, pass to parent
-                return await super().process_message(message)
-        
-        # Handle other message types
-        return await super().process_message(message)
+    def get_agent_temperature(self) -> float:
+        """Use moderate temperature for research tasks."""
+        return 0.5
+    
+    def get_response_mime_type(self) -> str:
+        """Return structured JSON for research results."""
+        return "application/json"
     
     def get_capabilities(self) -> Dict[str, Any]:
         """Return the research capabilities of this agent."""

@@ -7,23 +7,24 @@ Tier 3 agent focused on web data extraction using MCP tools.
 Demonstrates the tool-focused agent pattern for service-level operations.
 """
 
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, AsyncIterable
 from datetime import datetime
 import json
+import asyncio
 
-from ...core.agent_interface import Agent, Message, AgentResponse
-from ...core.mcp_client import MCPClient
-from ...utils.logging import get_logger
+from a2a_mcp.common.standardized_agent_base import StandardizedAgentBase
+from a2a_mcp.common.a2a_protocol import A2AProtocolClient
+import logging
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
-class ServiceAgent(Agent):
+class ServiceAgent(StandardizedAgentBase):
     """
     Service-level agent for web data extraction and processing.
     
     This tier 3 agent demonstrates:
-    - Tool-focused operations using MCP clients
+    - Tool-focused operations using MCP tools
     - Service-level error handling and retries
     - Simple data extraction and formatting
     - Basic validation and response formatting
@@ -31,276 +32,322 @@ class ServiceAgent(Agent):
     
     def __init__(self, agent_id: str = "service_agent"):
         """Initialize the service agent with MCP client configuration."""
-        super().__init__(
-            agent_id=agent_id,
-            tier=3,
-            quality_domain="service",
-            capabilities=[
-                "web_scraping",
-                "data_extraction",
-                "content_parsing",
-                "basic_search"
-            ]
-        )
+        # Define service agent instructions
+        instructions = """
+        You are a Service Agent specialized in web data extraction and processing.
+        Your capabilities include:
+        1. Scraping content from URLs
+        2. Searching the web for information
+        3. Extracting structured data from web pages
         
-        # Initialize MCP clients for web operations
-        self.mcp_clients = {
-            "firecrawl": MCPClient("firecrawl"),
-            "brightdata": MCPClient("brightdata")
-        }
+        Focus on reliability and proper error handling.
+        Present extracted data in a clean, structured format.
+        """
+        
+        super().__init__(
+            agent_name=agent_id,
+            description="Service Agent - Web scraping and data extraction specialist",
+            instructions=instructions,
+            quality_config={
+                "min_confidence_score": 0.6,
+                "require_sources": False,
+                "max_response_length": 20000
+            },
+            mcp_tools_enabled=True
+        )
         
         # Service-level configuration
         self.max_retries = 2
         self.timeout_seconds = 30
+        self.operation_cache = {}
+    
+    def _parse_query(self, query: str) -> tuple[str, Dict[str, Any]]:
+        """Parse query to extract operation and parameters."""
+        query_lower = query.lower()
+        params = {}
         
-    async def process(self, message: Message) -> AgentResponse:
-        """
-        Process incoming messages for web data extraction tasks.
+        # Check for URL patterns
+        import re
+        url_pattern = r'https?://[^\s]+'
+        urls = re.findall(url_pattern, query)
         
-        Supports operations:
-        - scrape_url: Extract content from a single URL
-        - search_web: Search and extract results
-        - extract_data: Extract structured data from URLs
+        if urls and 'scrape' in query_lower:
+            return 'scrape_url', {'url': urls[0]}
+        elif urls and 'extract' in query_lower:
+            return 'extract_data', {'urls': urls}
+        elif 'search' in query_lower or 'find' in query_lower:
+            # Remove command words to get search query
+            search_query = re.sub(r'\b(search|find|web)\b', '', query, flags=re.IGNORECASE).strip()
+            return 'search_web', {'query': search_query}
+        else:
+            return 'search_web', {'query': query}
+        
+    async def _execute_agent_logic(
+        self, query: str, context_id: str, task_id: str
+    ) -> AsyncIterable[Dict[str, Any]]:
         """
+        Process web data extraction requests.
+        """
+        # Parse query to determine operation
+        operation, params = self._parse_query(query)
+        
+        # Yield initial status
+        yield {
+            "is_task_complete": False,
+            "require_user_input": False,
+            "content": f"Processing {operation} request..."
+        }
+        
         try:
-            operation = message.metadata.get("operation", "scrape_url")
+            # Initialize agent if needed
+            if not self.agent:
+                await self.init_agent()
             
+            # Execute operation
             if operation == "scrape_url":
-                return await self._scrape_url(message)
+                result = await self._scrape_url(params.get('url', ''))
             elif operation == "search_web":
-                return await self._search_web(message)
+                result = await self._search_web(params.get('query', query))
             elif operation == "extract_data":
-                return await self._extract_structured_data(message)
+                result = await self._extract_structured_data(params.get('urls', []))
             else:
-                return self._create_error_response(
-                    f"Unknown operation: {operation}",
-                    message
-                )
-                
+                # Default to web search
+                result = await self._search_web(query)
+            
+            # Cache result
+            cache_key = f"{operation}_{task_id}"
+            self.operation_cache[cache_key] = result
+            
+            # Yield final result
+            yield {
+                "is_task_complete": True,
+                "require_user_input": False,
+                "content": result
+            }
+            
         except Exception as e:
             logger.error(f"Service agent error: {str(e)}")
-            return self._create_error_response(str(e), message)
+            yield {
+                "is_task_complete": True,
+                "require_user_input": False,
+                "content": {
+                    "error": f"Operation failed: {str(e)}",
+                    "operation": operation,
+                    "query": query
+                }
+            }
     
-    async def _scrape_url(self, message: Message) -> AgentResponse:
+    async def _scrape_url(self, url: str) -> Dict[str, Any]:
         """Scrape content from a URL using MCP tools."""
-        url = message.metadata.get("url")
         if not url:
-            return self._create_error_response("URL is required", message)
+            return {"error": "URL is required"}
         
         # Try with firecrawl first (more powerful)
         for attempt in range(self.max_retries):
             try:
-                result = await self.mcp_clients["firecrawl"].call_tool(
-                    "firecrawl_scrape",
-                    {
-                        "url": url,
-                        "formats": ["markdown"],
-                        "onlyMainContent": True
-                    }
-                )
-                
-                if result.get("success"):
-                    return AgentResponse(
-                        agent_id=self.agent_id,
-                        status="success",
-                        data={
+                # Find firecrawl scrape tool
+                scrape_tool = next((t for t in self.tools if t.name == 'mcp__firecrawl__firecrawl_scrape'), None)
+                if scrape_tool:
+                    result = await self.agent.run_tool(
+                        scrape_tool,
+                        {
+                            "url": url,
+                            "formats": ["markdown"],
+                            "onlyMainContent": True
+                        }
+                    )
+                    
+                    if result and result.get("data"):
+                        return {
                             "url": url,
                             "content": result.get("data", {}).get("markdown", ""),
                             "title": result.get("data", {}).get("metadata", {}).get("title", ""),
-                            "scraped_at": datetime.utcnow().isoformat()
-                        },
-                        metadata={
+                            "scraped_at": datetime.utcnow().isoformat(),
                             "tool_used": "firecrawl",
                             "attempt": attempt + 1
                         }
-                    )
                     
             except Exception as e:
                 logger.warning(f"Firecrawl attempt {attempt + 1} failed: {str(e)}")
         
         # Fallback to brightdata
         try:
-            result = await self.mcp_clients["brightdata"].call_tool(
-                "scrape_as_markdown",
-                {"url": url}
-            )
-            
-            return AgentResponse(
-                agent_id=self.agent_id,
-                status="success",
-                data={
+            brightdata_tool = next((t for t in self.tools if t.name == 'mcp__brightdata__scrape_as_markdown'), None)
+            if brightdata_tool:
+                result = await self.agent.run_tool(
+                    brightdata_tool,
+                    {"url": url}
+                )
+                
+                return {
                     "url": url,
-                    "content": result.get("data", ""),
-                    "scraped_at": datetime.utcnow().isoformat()
-                },
-                metadata={
+                    "content": result.get("data", "") if result else "",
+                    "scraped_at": datetime.utcnow().isoformat(),
                     "tool_used": "brightdata",
                     "fallback": True
                 }
-            )
             
         except Exception as e:
-            return self._create_error_response(
-                f"Failed to scrape URL after {self.max_retries} attempts: {str(e)}",
-                message
-            )
-    
-    async def _search_web(self, message: Message) -> AgentResponse:
-        """Search the web and return results."""
-        query = message.content or message.metadata.get("query")
-        if not query:
-            return self._create_error_response("Search query is required", message)
+            logger.error(f"Brightdata fallback failed: {str(e)}")
         
-        limit = message.metadata.get("limit", 5)
+        return {
+            "error": f"Failed to scrape URL after {self.max_retries} attempts",
+            "url": url
+        }
+    
+    async def _search_web(self, query: str) -> Dict[str, Any]:
+        """Search the web and return results."""
+        if not query:
+            return {"error": "Search query is required"}
+        
+        limit = 5
         
         try:
             # Use firecrawl search for better results
-            result = await self.mcp_clients["firecrawl"].call_tool(
-                "firecrawl_search",
-                {
-                    "query": query,
-                    "limit": limit,
-                    "scrapeOptions": {
-                        "formats": ["markdown"],
-                        "onlyMainContent": True
+            search_tool = next((t for t in self.tools if t.name == 'mcp__firecrawl__firecrawl_search'), None)
+            if search_tool:
+                result = await self.agent.run_tool(
+                    search_tool,
+                    {
+                        "query": query,
+                        "limit": limit,
+                        "scrapeOptions": {
+                            "formats": ["markdown"],
+                            "onlyMainContent": True
+                        }
                     }
-                }
-            )
+                )
+            else:
+                result = None
             
             # Format search results
             search_results = []
-            for item in result.get("data", []):
-                search_results.append({
-                    "url": item.get("url"),
-                    "title": item.get("title"),
-                    "description": item.get("description"),
-                    "content_preview": item.get("markdown", "")[:500] + "..."
-                })
+            if result and result.get("data"):
+                for item in result.get("data", []):
+                    search_results.append({
+                        "url": item.get("url"),
+                        "title": item.get("title"),
+                        "description": item.get("description"),
+                        "content_preview": (item.get("markdown", "")[:500] + "...") if item.get("markdown") else ""
+                    })
             
-            return AgentResponse(
-                agent_id=self.agent_id,
-                status="success",
-                data={
-                    "query": query,
-                    "results": search_results,
-                    "total_results": len(search_results)
-                },
-                metadata={
-                    "tool_used": "firecrawl_search",
-                    "limit": limit
-                }
-            )
+            return {
+                "query": query,
+                "results": search_results,
+                "total_results": len(search_results),
+                "tool_used": "firecrawl_search",
+                "limit": limit
+            }
             
         except Exception as e:
             # Fallback to brightdata search
             try:
-                result = await self.mcp_clients["brightdata"].call_tool(
-                    "search_engine",
-                    {"query": query}
-                )
-                
-                return AgentResponse(
-                    agent_id=self.agent_id,
-                    status="success",
-                    data={
+                brightdata_search = next((t for t in self.tools if t.name == 'mcp__brightdata__search_engine'), None)
+                if brightdata_search:
+                    result = await self.agent.run_tool(
+                        brightdata_search,
+                        {"query": query}
+                    )
+                    
+                    return {
                         "query": query,
-                        "results": result.get("data", [])[:limit]
-                    },
-                    metadata={
+                        "results": result.get("data", [])[:limit] if result else [],
                         "tool_used": "brightdata_search",
                         "fallback": True
                     }
-                )
             except Exception as fallback_error:
-                return self._create_error_response(
-                    f"Search failed: {str(fallback_error)}",
-                    message
-                )
+                logger.error(f"Brightdata search failed: {str(fallback_error)}")
+            
+            return {
+                "error": f"Search failed",
+                "query": query
+            }
     
-    async def _extract_structured_data(self, message: Message) -> AgentResponse:
+    async def _extract_structured_data(self, urls: List[str]) -> Dict[str, Any]:
         """Extract structured data from URLs."""
-        urls = message.metadata.get("urls", [])
         if not urls:
-            return self._create_error_response("URLs are required for extraction", message)
+            return {"error": "URLs are required for extraction"}
         
-        schema = message.metadata.get("schema", {
+        schema = {
             "type": "object",
             "properties": {
                 "title": {"type": "string"},
                 "description": {"type": "string"},
                 "key_points": {"type": "array", "items": {"type": "string"}}
             }
-        })
+        }
         
-        prompt = message.metadata.get(
-            "prompt",
-            "Extract the main information from this content"
-        )
+        prompt = "Extract the main information from this content"
         
         try:
-            result = await self.mcp_clients["firecrawl"].call_tool(
-                "firecrawl_extract",
-                {
-                    "urls": urls[:5],  # Limit to 5 URLs for service tier
-                    "prompt": prompt,
-                    "schema": schema
-                }
-            )
-            
-            return AgentResponse(
-                agent_id=self.agent_id,
-                status="success",
-                data={
-                    "extracted_data": result.get("data", []),
-                    "urls_processed": len(urls[:5])
-                },
-                metadata={
+            extract_tool = next((t for t in self.tools if t.name == 'mcp__firecrawl__firecrawl_extract'), None)
+            if extract_tool:
+                result = await self.agent.run_tool(
+                    extract_tool,
+                    {
+                        "urls": urls[:5],  # Limit to 5 URLs for service tier
+                        "prompt": prompt,
+                        "schema": schema
+                    }
+                )
+                
+                return {
+                    "extracted_data": result.get("data", []) if result else [],
+                    "urls_processed": len(urls[:5]),
                     "tool_used": "firecrawl_extract",
                     "schema_used": True
                 }
-            )
+            else:
+                return {
+                    "error": "Extract tool not available",
+                    "urls": urls
+                }
             
         except Exception as e:
-            return self._create_error_response(
-                f"Data extraction failed: {str(e)}",
-                message
-            )
-    
-    def _create_error_response(self, error_message: str, original_message: Message) -> AgentResponse:
-        """Create a standardized error response."""
-        return AgentResponse(
-            agent_id=self.agent_id,
-            status="error",
-            error=error_message,
-            metadata={
-                "original_operation": original_message.metadata.get("operation"),
-                "timestamp": datetime.utcnow().isoformat()
+            return {
+                "error": f"Data extraction failed: {str(e)}",
+                "urls": urls
             }
-        )
     
-    async def validate_tools(self) -> Dict[str, bool]:
-        """Validate that required MCP tools are available."""
-        tool_status = {}
-        
-        for client_name, client in self.mcp_clients.items():
-            try:
-                # Check if client can list tools
-                tools = await client.list_tools()
-                tool_status[client_name] = len(tools) > 0
-            except Exception as e:
-                logger.error(f"Failed to validate {client_name}: {str(e)}")
-                tool_status[client_name] = False
-        
-        return tool_status
+    def get_agent_temperature(self) -> float:
+        """Use low temperature for consistent extraction."""
+        return 0.2
     
-    def get_status(self) -> Dict[str, Any]:
-        """Get current agent status."""
+    def get_response_mime_type(self) -> str:
+        """Return structured JSON for extracted data."""
+        return "application/json"
+    
+    def get_capabilities(self) -> Dict[str, Any]:
+        """Return service agent capabilities."""
         return {
-            "agent_id": self.agent_id,
-            "tier": self.tier,
-            "quality_domain": self.quality_domain,
-            "capabilities": self.capabilities,
-            "mcp_clients": list(self.mcp_clients.keys()),
+            "agent_type": "service_agent",
+            "tier": 3,
+            "capabilities": [
+                "web_scraping",
+                "data_extraction",
+                "content_parsing",
+                "basic_search"
+            ],
+            "mcp_tools_used": [
+                "firecrawl_scrape",
+                "firecrawl_search",
+                "firecrawl_extract",
+                "brightdata_scrape_as_markdown",
+                "brightdata_search_engine"
+            ],
             "max_retries": self.max_retries,
             "timeout_seconds": self.timeout_seconds
         }
+
+
+# Example usage:
+# This service agent handles basic web scraping and data extraction tasks.
+# It can be used standalone or as part of a larger agent system.
+#
+# Example queries:
+# - "Scrape the content from https://example.com"
+# - "Search the web for Python tutorial"
+# - "Extract data from https://example.com/article"
+#
+# The agent automatically uses MCP tools (Firecrawl, Brightdata) with fallback
+# mechanisms to ensure reliable data extraction.
