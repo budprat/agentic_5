@@ -5,6 +5,7 @@ import logging
 import asyncio
 import json
 import os
+import re
 from abc import ABC, abstractmethod
 from collections.abc import AsyncIterable
 from typing import Dict, Any, Optional, List
@@ -162,7 +163,7 @@ class StandardizedAgentBase(BaseAgent, ABC):
     async def stream(
         self, query: str, context_id: str, task_id: str
     ) -> AsyncIterable[Dict[str, Any]]:
-        """Standardized streaming implementation with quality validation."""
+        """Standardized streaming implementation with enhanced response intelligence."""
         logger.info(f'{self.agent_name} processing query: {query[:100]}... (session: {context_id})')
         
         if not query:
@@ -186,9 +187,27 @@ class StandardizedAgentBase(BaseAgent, ABC):
             
             # Execute agent-specific processing
             async for response_chunk in self._execute_agent_logic(query, context_id, task_id):
-                # Apply quality validation if this is a final response
+                # Enhanced response processing with intelligence
                 if response_chunk.get("is_task_complete", False):
-                    response_chunk = await self._apply_quality_validation(response_chunk, query)
+                    # Apply intelligent response formatting
+                    content = response_chunk.get("content")
+                    if content:
+                        # Format the response content
+                        formatted_content = self.format_response(content)
+                        
+                        # Detect interactive mode
+                        is_interactive = self.detect_interactive_mode(formatted_content)
+                        
+                        # Standardize response format
+                        response_chunk = self.standardize_response_format(
+                            formatted_content, 
+                            is_interactive=is_interactive,
+                            is_complete=not is_interactive
+                        )
+                    
+                    # Apply quality validation for completed tasks
+                    if response_chunk.get("is_task_complete", False):
+                        response_chunk = await self._apply_quality_validation(response_chunk, query)
                 
                 yield response_chunk
                 
@@ -215,6 +234,130 @@ class StandardizedAgentBase(BaseAgent, ABC):
             Response chunks with standardized format
         """
         pass
+
+    def format_response(self, chunk: Any) -> Any:
+        """Format and parse agent response with intelligent content detection.
+        
+        Enhanced with response intelligence from ADKServiceAgent pattern.
+        Handles multiple output formats from LLMs.
+        
+        Args:
+            chunk: Raw response from agent
+            
+        Returns:
+            Parsed response (dict, string, or original chunk)
+        """
+        if not isinstance(chunk, str):
+            return chunk
+            
+        # Patterns for extracting structured content
+        patterns = [
+            r'```\n(.*?)\n```',              # Code blocks
+            r'```json\s*(.*?)\s*```',        # JSON blocks
+            r'```tool_outputs\s*(.*?)\s*```', # Tool output blocks
+        ]
+
+        for pattern in patterns:
+            match = re.search(pattern, chunk, re.DOTALL)
+            if match:
+                content = match.group(1)
+                try:
+                    # Try to parse as JSON
+                    return json.loads(content)
+                except json.JSONDecodeError:
+                    # Return as string if not valid JSON
+                    return content
+                    
+        # Return original chunk if no patterns match
+        return chunk
+
+    def detect_interactive_mode(self, content: Any) -> bool:
+        """Detect if response requires user interaction.
+        
+        Enhanced interactive mode detection from ADKServiceAgent pattern.
+        
+        Args:
+            content: Response content to analyze
+            
+        Returns:
+            True if user input is required
+        """
+        if isinstance(content, dict):
+            # Check for explicit interactive mode signals
+            if content.get('status') == 'input_required':
+                return True
+            if content.get('require_user_input', False):
+                return True
+            # Check for question patterns
+            if 'question' in content and content.get('question'):
+                return True
+        
+        if isinstance(content, str):
+            # Look for question patterns in text
+            question_indicators = ['?', 'please provide', 'what is', 'which', 'how', 'when', 'where']
+            content_lower = content.lower()
+            return any(indicator in content_lower for indicator in question_indicators)
+        
+        return False
+
+    def standardize_response_format(
+        self, content: Any, is_interactive: bool = False, is_complete: bool = True
+    ) -> Dict[str, Any]:
+        """Standardize response format across all agent types.
+        
+        Enhanced with ADKServiceAgent response standardization patterns.
+        
+        Args:
+            content: Response content
+            is_interactive: Whether response requires user input
+            is_complete: Whether task is complete
+            
+        Returns:
+            Standardized response format
+        """
+        try:
+            if is_interactive:
+                # Interactive mode - requires user input
+                question = content.get('question', str(content)) if isinstance(content, dict) else str(content)
+                return {
+                    'response_type': 'interactive',
+                    'is_task_complete': False,
+                    'require_user_input': True,
+                    'content': question,
+                }
+            
+            # Determine response type
+            response_type = 'text'
+            if isinstance(content, dict):
+                response_type = 'data'
+            elif isinstance(content, str):
+                try:
+                    # Try to parse as JSON
+                    json.loads(content)
+                    response_type = 'data'
+                except json.JSONDecodeError:
+                    response_type = 'text'
+            
+            return {
+                'response_type': response_type,
+                'is_task_complete': is_complete,
+                'require_user_input': False,
+                'content': content,
+            }
+                
+        except Exception as e:
+            logger.error(f'Error in standardize_response_format: {e}')
+            return {
+                'response_type': 'text',
+                'is_task_complete': True,
+                'require_user_input': False,
+                'content': 'Response formatting error occurred.',
+                'error_details': {
+                    'agent': self.agent_name,
+                    'timestamp': datetime.now().isoformat(),
+                    'error': str(e)
+                }
+            }
 
     async def _apply_quality_validation(
         self, response: Dict[str, Any], original_query: str
@@ -274,16 +417,63 @@ class StandardizedAgentBase(BaseAgent, ABC):
         raise NotImplementedError("Use streaming function for standardized agents")
 
     def get_health_status(self) -> Dict[str, Any]:
-        """Get comprehensive health status for the agent."""
+        """Get comprehensive health status for the agent.
+        
+        Enhanced with dependency health monitoring from ADKServiceAgent pattern.
+        """
+        # Check dependencies health
+        dependencies_healthy = True
+        dependency_details = {}
+        
+        # Check initialization
+        if not self.initialization_complete:
+            dependencies_healthy = False
+            dependency_details["initialization"] = "incomplete"
+        else:
+            dependency_details["initialization"] = "complete"
+        
+        # Check ADK agent
+        if not self.agent:
+            dependencies_healthy = False
+            dependency_details["adk_agent"] = "not_initialized"
+        else:
+            dependency_details["adk_agent"] = "active"
+        
+        # Check MCP tools
+        if self.mcp_tools_enabled:
+            if len(self.tools) > 0:
+                dependency_details["mcp_tools"] = f"loaded_{len(self.tools)}_tools"
+            else:
+                dependencies_healthy = False
+                dependency_details["mcp_tools"] = "no_tools_loaded"
+        else:
+            dependency_details["mcp_tools"] = "disabled"
+        
+        # Check A2A protocol
+        if self.a2a_client:
+            dependency_details["a2a_protocol"] = "enabled"
+        else:
+            dependency_details["a2a_protocol"] = "disabled"
+        
+        # Check quality framework
+        dependency_details["quality_framework"] = "enabled" if self.quality_framework.is_enabled() else "disabled"
+        
         return {
             "agent_name": self.agent_name,
+            "framework_version": "2.0",
             "initialization_complete": self.initialization_complete,
-            "mcp_tools_enabled": self.mcp_tools_enabled,
-            "mcp_tools_loaded": len(self.tools),
-            "a2a_enabled": self.a2a_client is not None,
-            "quality_framework_enabled": self.quality_framework.is_enabled(),
+            "dependencies_healthy": dependencies_healthy,
+            "dependency_details": dependency_details,
             "last_context_id": self.context_id,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
+            "capabilities": {
+                "a2a_communication": self.a2a_client is not None,
+                "quality_validation": self.quality_framework.is_enabled(),
+                "mcp_tools": len(self.tools) > 0,
+                "streaming_responses": True,
+                "interactive_mode": True,
+                "response_intelligence": True
+            }
         }
 
     # Configurable methods for subclass customization

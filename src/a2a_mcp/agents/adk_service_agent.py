@@ -7,11 +7,13 @@ import re
 
 from collections.abc import AsyncIterable
 from typing import Any, Dict, List, Optional
+from datetime import datetime
 
 from a2a_mcp.common.agent_runner import AgentRunner
 from a2a_mcp.common.base_agent import BaseAgent
 from a2a_mcp.common.utils import get_mcp_server_config, init_api_key
 from a2a_mcp.common.a2a_protocol import A2AProtocolClient
+from a2a_mcp.common.quality_framework import QualityThresholdFramework, QualityDomain
 from google.adk.agents import Agent
 from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, SseServerParams
 from google.genai import types as genai_types
@@ -74,7 +76,9 @@ class ADKServiceAgent(BaseAgent):
         instructions: str,
         content_types: Optional[List[str]] = None,
         temperature: float = 0.0,
-        a2a_enabled: bool = True
+        a2a_enabled: bool = True,
+        quality_config: Optional[Dict[str, Any]] = None,
+        quality_domain: QualityDomain = QualityDomain.SERVICE
     ):
         """Initialize ADK service agent.
         
@@ -85,6 +89,8 @@ class ADKServiceAgent(BaseAgent):
             content_types: Supported content types (defaults to text)
             temperature: LLM temperature for response generation
             a2a_enabled: Enable A2A protocol for inter-agent communication
+            quality_config: Quality threshold configuration for response validation
+            quality_domain: Quality validation domain type (SERVICE, BUSINESS, ACADEMIC)
         """
         init_api_key()
 
@@ -101,12 +107,29 @@ class ADKServiceAgent(BaseAgent):
         self.agent = None
         self.runner = None
         
+        # Framework V2.0: Quality Framework Integration
+        if not quality_config:
+            quality_config = {
+                "domain": quality_domain,
+                "thresholds": self._get_default_quality_thresholds(quality_domain)
+            }
+        self.quality_framework = QualityThresholdFramework(quality_config)
+        
         # Framework V2.0: A2A Protocol Support
         self.a2a_client = A2AProtocolClient() if a2a_enabled else None
+        
+        # Agent state management
+        self.context_id = None
+        self.session_state = {}
+        self.initialization_complete = False
+        self.last_successful_operation = None
+        
         if a2a_enabled:
             logger.info(f'{self.agent_name}: A2A protocol enabled')
         else:
             logger.info(f'{self.agent_name}: A2A protocol disabled')
+        
+        logger.info(f'{self.agent_name}: Quality framework enabled for {quality_domain.value} domain')
 
     async def init_agent(self):
         """Initialize the ADK agent with MCP tools.
@@ -185,6 +208,10 @@ class ADKServiceAgent(BaseAgent):
         # Lazy initialization of ADK agent
         if not self.agent:
             await self.init_agent()
+        
+        # Manage session state
+        if self.context_id != context_id:
+            await self._reset_session_state(context_id)
             
         # Stream execution via agent runner
         async for chunk in self.runner.run_stream(
@@ -193,9 +220,9 @@ class ADKServiceAgent(BaseAgent):
             logger.info(f'Received chunk: {chunk}')
             
             if isinstance(chunk, dict) and chunk.get('type') == 'final_result':
-                # Final result - format and yield
+                # Final result - format and yield with quality validation
                 response = chunk['response']
-                yield self.get_agent_response(response)
+                yield await self.get_agent_response(response, query)
             else:
                 # Intermediate progress update
                 yield {
@@ -203,6 +230,12 @@ class ADKServiceAgent(BaseAgent):
                     'require_user_input': False,
                     'content': f'{self.agent_name}: Processing request...',
                 }
+
+    async def _reset_session_state(self, new_context_id: str):
+        """Reset session state for new context."""
+        self.context_id = new_context_id
+        self.session_state.clear()
+        logger.debug(f'{self.agent_name}: Session state reset for context: {new_context_id}')
 
     def format_response(self, chunk):
         """Format and parse agent response.

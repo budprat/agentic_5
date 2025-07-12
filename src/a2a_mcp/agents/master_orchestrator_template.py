@@ -249,22 +249,47 @@ Format responses as structured JSON with comprehensive analysis.
         return await self._run_synthesis_via_adk(synthesis_query, context_id)
     
     async def _init_task_planner(self):
-        """Initialize LangGraph task planner component."""
+        """Initialize LangGraph task planner component with enhanced error handling."""
         if self.task_planner:
             return
             
         logger.info(f"Initializing LangGraph task planner for {self.domain_name}")
         
-        self.task_planner = create_react_agent(
-            ChatGoogleGenerativeAI(model=os.getenv('GEMINI_MODEL', 'gemini-2.0-flash'), temperature=0.0),
-            checkpointer=memory,
-            prompt=self.planning_instructions,
-            response_format=DomainTaskFormat,
-            tools=[],
-        )
+        try:
+            self.task_planner = create_react_agent(
+                ChatGoogleGenerativeAI(model=os.getenv('GEMINI_MODEL', 'gemini-2.0-flash'), temperature=0.0),
+                checkpointer=memory,
+                prompt=self.planning_instructions,
+                response_format=DomainTaskFormat,
+                tools=[],
+            )
+            
+            self.runner = AgentRunner()
+            logger.info(f"LangGraph task planner initialized for {self.domain_name}")
+            
+        except Exception as e:
+            logger.error(f"Failed to initialize task planner for {self.domain_name}: {e}")
+            await self._handle_planner_initialization_failure(e)
+
+    async def _handle_planner_initialization_failure(self, error: Exception):
+        """Handle task planner initialization failure with graceful degradation."""
+        logger.warning(f"Task planner initialization failed for {self.domain_name}, using fallback mode: {error}")
         
-        self.runner = AgentRunner()
-        logger.info(f"LangGraph task planner initialized for {self.domain_name}")
+        try:
+            # Fallback: Use simpler planning approach
+            logger.info(f"Initializing fallback planner for {self.domain_name}")
+            
+            # Create minimal planner (could be enhanced with simpler LangGraph setup)
+            self.task_planner = None  # Will trigger fallback in decompose_tasks
+            self.runner = AgentRunner()
+            
+            logger.warning(f"Fallback planner initialized for {self.domain_name} (reduced functionality)")
+            
+        except Exception as fallback_error:
+            logger.error(f"Complete planner initialization failure for {self.domain_name}: {fallback_error}")
+            # Continue without planner - will use _create_fallback_task_plan
+            self.task_planner = None
+            self.runner = AgentRunner()
 
     def _get_synthesis_instructions(self) -> str:
         """Get synthesis instructions for Google ADK agent."""
@@ -294,32 +319,50 @@ Format responses as structured JSON with comprehensive analysis.
             logger.warning(f"LangGraph decomposition failed: {e}, using fallback")
         
         # Fallback plan if decomposition fails
-        return self._create_fallback_task_plan(query)
+        return await self._create_fallback_task_plan(query)
 
-    def _create_fallback_task_plan(self, query: str) -> DomainTaskFormat:
+    async def _create_fallback_task_plan(self, query: str) -> DomainTaskFormat:
         """Create fallback task plan when LangGraph fails."""
-        await self.load_context(query)
-        dependency_analysis = self.analyze_domain_dependencies(query)
-        
-        fallback_tasks = []
-        for domain_group, specialists in dependency_analysis["domain_groups"].items():
-            specialist_key = specialists[0] if specialists else domain_group
-            fallback_tasks.append({
-                "task_id": f"{specialist_key}_analysis",
-                "description": f"Comprehensive {specialist_key.replace('_', ' ')} analysis for: {query}",
-                "domain": specialist_key,
-                "priority": self._get_domain_priority(specialist_key)
-            })
-        
-        return DomainTaskFormat(
-            status='ready',
-            analysis=f"{self.domain_name} optimization analysis needed for: {query}",
-            tasks=TaskList(tasks=fallback_tasks),
-            coordination_strategy="parallel" if self.enable_parallel else "sequential",
-            domains_required=list(dependency_analysis["domain_groups"].keys()),
-            quality_requirements=self.quality_thresholds,
-            optimization_focus=[self.domain_name.lower().replace(' ', '_')]
-        )
+        try:
+            await self.load_context(query)
+            dependency_analysis = self.analyze_domain_dependencies(query)
+            
+            fallback_tasks = []
+            for domain_group, specialists in dependency_analysis["domain_groups"].items():
+                specialist_key = specialists[0] if specialists else domain_group
+                fallback_tasks.append({
+                    "task_id": f"{specialist_key}_analysis",
+                    "description": f"Comprehensive {specialist_key.replace('_', ' ')} analysis for: {query}",
+                    "domain": specialist_key,
+                    "priority": self._get_domain_priority(specialist_key)
+                })
+            
+            return DomainTaskFormat(
+                status='ready',
+                analysis=f"{self.domain_name} optimization analysis needed for: {query}",
+                tasks=TaskList(tasks=fallback_tasks),
+                coordination_strategy="parallel" if self.enable_parallel else "sequential",
+                domains_required=list(dependency_analysis["domain_groups"].keys()),
+                quality_requirements=self._get_default_quality_thresholds(QualityDomain.BUSINESS),
+                optimization_focus=[self.domain_name.lower().replace(' ', '_')]
+            )
+        except Exception as e:
+            logger.error(f"Fallback task plan creation failed: {e}")
+            # Ultra-minimal fallback
+            return DomainTaskFormat(
+                status='error',
+                analysis=f"Minimal analysis mode for {self.domain_name}: {query}",
+                tasks=TaskList(tasks=[{
+                    "task_id": "manual_analysis",
+                    "description": f"Manual {self.domain_name.lower()} analysis required",
+                    "domain": "manual",
+                    "priority": 1
+                }]),
+                coordination_strategy="sequential",
+                domains_required=["manual"],
+                quality_requirements={},
+                optimization_focus=["manual_intervention"]
+            )
     
     def _get_domain_priority(self, domain: str) -> int:
         """Get priority for domain specialist."""
@@ -440,43 +483,166 @@ Format responses as structured JSON with comprehensive analysis.
         return parallel_batches
 
     async def _execute_domain_coordination(self, task_plan: DomainTaskFormat, query: str) -> Dict[str, Any]:
-        """Execute domain coordination using Framework V2.0 A2A protocol."""
+        """Execute domain coordination using Framework V2.0 A2A protocol with health checks."""
         dependency_analysis = self.analyze_domain_dependencies(query)
         domain_groups = dependency_analysis["domain_groups"]
         execution_plan = dependency_analysis["execution_plan"]
         
         logger.info(f"Framework V2.0 coordination: {len(domain_groups)} domain groups, {len(execution_plan)} execution steps")
         
-        # Execute coordination plan
-        for step in execution_plan:
-            step_analyses = step["analyses"]
-            is_parallel = step["parallel_execution"]
-            
-            if is_parallel:
-                # Parallel execution via A2A protocol
-                tasks = []
-                for analysis_group in step_analyses:
-                    if analysis_group in domain_groups:
-                        specialist_key = analysis_group.replace("_analysis", "")
-                        tasks.append(self._fetch_domain_intelligence(specialist_key, query, task_plan))
+        # Pre-execution health checks
+        health_status = await self._check_coordination_health()
+        if not health_status["coordination_ready"]:
+            logger.warning(f"Coordination health issues detected: {health_status['issues']}")
+            # Continue with degraded service but log warnings
+        
+        # Execute coordination plan with enhanced error handling
+        try:
+            for step in execution_plan:
+                step_analyses = step["analyses"]
+                is_parallel = step["parallel_execution"]
                 
-                step_results = await asyncio.gather(*tasks, return_exceptions=True)
-                
-                # Process results
-                for i, (analysis_group, result) in enumerate(zip(step_analyses, step_results)):
-                    if not isinstance(result, Exception) and result:
+                if is_parallel:
+                    # Parallel execution via A2A protocol with error resilience
+                    tasks = []
+                    for analysis_group in step_analyses:
+                        if analysis_group in domain_groups:
+                            specialist_key = analysis_group.replace("_analysis", "")
+                            tasks.append(self._fetch_domain_intelligence_with_fallback(
+                                specialist_key, query, task_plan
+                            ))
+                    
+                    step_results = await asyncio.gather(*tasks, return_exceptions=True)
+                    
+                    # Process results with enhanced error handling
+                    for i, (analysis_group, result) in enumerate(zip(step_analyses, step_results)):
                         specialist_key = analysis_group.replace("_analysis", "")
-                        self.intelligence_data[specialist_key] = result
-            else:
-                # Sequential execution
-                for analysis_group in step_analyses:
-                    if analysis_group in domain_groups:
-                        specialist_key = analysis_group.replace("_analysis", "")
-                        analysis = await self._fetch_domain_intelligence(specialist_key, query, task_plan)
-                        if analysis:
-                            self.intelligence_data[specialist_key] = analysis
+                        
+                        if isinstance(result, Exception):
+                            logger.error(f"Specialist {specialist_key} failed: {result}")
+                            # Add fallback intelligence
+                            self.intelligence_data[specialist_key] = await self._create_fallback_intelligence(specialist_key, str(result))
+                        elif result:
+                            self.intelligence_data[specialist_key] = result
+                        else:
+                            logger.warning(f"No intelligence received from {specialist_key}")
+                            self.intelligence_data[specialist_key] = await self._create_fallback_intelligence(specialist_key, "No response")
+                else:
+                    # Sequential execution with error resilience
+                    for analysis_group in step_analyses:
+                        if analysis_group in domain_groups:
+                            specialist_key = analysis_group.replace("_analysis", "")
+                            try:
+                                analysis = await self._fetch_domain_intelligence_with_fallback(
+                                    specialist_key, query, task_plan
+                                )
+                                if analysis:
+                                    self.intelligence_data[specialist_key] = analysis
+                                else:
+                                    self.intelligence_data[specialist_key] = await self._create_fallback_intelligence(specialist_key, "No response")
+                            except Exception as e:
+                                logger.error(f"Sequential execution failed for {specialist_key}: {e}")
+                                self.intelligence_data[specialist_key] = await self._create_fallback_intelligence(specialist_key, str(e))
+        
+        except Exception as e:
+            logger.error(f"Critical coordination failure: {e}")
+            await self._handle_coordination_failure(e)
         
         return self.intelligence_data
+
+    async def _check_coordination_health(self) -> Dict[str, Any]:
+        """Check health of coordination dependencies before execution."""
+        health_status = {
+            "coordination_ready": True,
+            "issues": [],
+            "component_status": {}
+        }
+        
+        # Check A2A protocol health
+        if not self.a2a_client:
+            health_status["coordination_ready"] = False
+            health_status["issues"].append("A2A protocol not available")
+            health_status["component_status"]["a2a_protocol"] = "disabled"
+        else:
+            health_status["component_status"]["a2a_protocol"] = "enabled"
+        
+        # Check task planner health
+        if not self.task_planner:
+            health_status["issues"].append("Task planner not initialized")
+            health_status["component_status"]["task_planner"] = "not_initialized"
+        else:
+            health_status["component_status"]["task_planner"] = "active"
+        
+        # Check quality framework health
+        if not self.quality_framework.is_enabled():
+            health_status["issues"].append("Quality framework disabled")
+            health_status["component_status"]["quality_framework"] = "disabled"
+        else:
+            health_status["component_status"]["quality_framework"] = "enabled"
+        
+        # Check inherited ADK agent health
+        inherited_health = self.get_health_status()
+        if not inherited_health.get("dependencies_healthy", False):
+            health_status["coordination_ready"] = False
+            health_status["issues"].append("Inherited agent dependencies unhealthy")
+            health_status["component_status"]["inherited_agent"] = "unhealthy"
+        else:
+            health_status["component_status"]["inherited_agent"] = "healthy"
+        
+        return health_status
+
+    async def _fetch_domain_intelligence_with_fallback(self, specialist_key: str, query: str, task_plan: DomainTaskFormat) -> Dict[str, Any]:
+        """Fetch intelligence with enhanced error handling and fallback."""
+        try:
+            return await self._fetch_domain_intelligence(specialist_key, query, task_plan)
+        except Exception as e:
+            logger.error(f"Primary intelligence fetch failed for {specialist_key}: {e}")
+            return await self._create_fallback_intelligence(specialist_key, str(e))
+
+    async def _create_fallback_intelligence(self, specialist_key: str, error_reason: str) -> Dict[str, Any]:
+        """Create fallback intelligence when specialist unavailable."""
+        specialist_desc = self.domain_specialists.get(specialist_key, "domain specialist")
+        
+        return {
+            "specialist": specialist_key,
+            "domain": self.domain_name,
+            "status": "fallback_mode",
+            "error_reason": error_reason,
+            "analysis": {
+                "capability_assessment": {
+                    "relevance_score": 0.5,  # Lower score for fallback
+                    "implementation_feasibility": "unknown",
+                    "resource_requirements": ["specialist unavailable"],
+                    "recommendations": [f"Retry {specialist_desc} when available", "Use alternative approach"]
+                },
+                "optimization_insights": {
+                    "improvement_potential": 0.3,  # Conservative estimate
+                    "key_opportunities": ["manual specialist consultation"],
+                    "risk_factors": ["specialist unavailability", "incomplete analysis"]
+                }
+            },
+            "confidence": 0.3,  # Low confidence for fallback
+            "quality_warning": "This analysis is based on fallback data due to specialist unavailability"
+        }
+
+    async def _handle_coordination_failure(self, error: Exception):
+        """Handle critical coordination failures with graceful degradation."""
+        logger.error(f"Handling critical coordination failure: {error}")
+        
+        # Attempt to create minimal intelligence data
+        for specialist_key in self.domain_specialists.keys():
+            if specialist_key not in self.intelligence_data:
+                self.intelligence_data[specialist_key] = await self._create_fallback_intelligence(
+                    specialist_key, f"Coordination failure: {str(error)}"
+                )
+        
+        # Add coordination failure metadata
+        self.intelligence_data["_coordination_metadata"] = {
+            "coordination_status": "failed",
+            "failure_reason": str(error),
+            "fallback_mode": True,
+            "timestamp": datetime.now().isoformat()
+        }
 
     async def _fetch_domain_intelligence(self, specialist_key: str, query: str, task_plan: DomainTaskFormat) -> Dict[str, Any]:
         """Fetch intelligence from domain specialist."""
@@ -515,11 +681,8 @@ Format responses as structured JSON with comprehensive analysis.
             
         except Exception as e:
             logger.error(f"Error fetching {specialist_key} analysis: {e}")
-            return {
-                "specialist": specialist_key,
-                "error": str(e),
-                "analysis": {"status": "unavailable"}
-            }
+            # Use enhanced fallback intelligence
+            return await self._create_fallback_intelligence(specialist_key, str(e))
 
     async def _fetch_intelligence_fallback(self, specialist_key: str, query: str) -> Dict[str, Any]:
         """Fallback intelligence when A2A protocol unavailable."""
@@ -610,6 +773,45 @@ Format responses as structured JSON with comprehensive analysis.
         except Exception as e:
             logger.error(f"Synthesis error: {e}")
             return {"error": f"Synthesis failed: {str(e)}"}
+
+    def get_orchestration_health_status(self) -> Dict[str, Any]:
+        """Get comprehensive orchestration health status.
+        
+        Enhanced health monitoring for orchestration-specific components.
+        """
+        base_health = self.get_health_status()
+        
+        # Add orchestration-specific health checks
+        orchestration_health = {
+            "domain_specialists": len(self.domain_specialists),
+            "specialists_configured": list(self.domain_specialists.keys()),
+            "task_planner_initialized": self.task_planner is not None,
+            "langraph_available": True,  # Could check LangGraph specifically
+            "parallel_execution_enabled": self.enable_parallel,
+            "intelligence_data_size": len(self.intelligence_data),
+            "query_history_size": len(self.query_history),
+            "current_context_loaded": bool(self.context)
+        }
+        
+        # Merge with base health status
+        base_health["orchestration_details"] = orchestration_health
+        base_health["orchestration_type"] = "master_orchestrator"
+        
+        return base_health
+
+    # Configurable methods for domain customization (inherited from StandardizedAgentBase)
+    
+    def get_agent_temperature(self) -> float:
+        """Get temperature setting for orchestration planning."""
+        return 0.1  # Low temperature for consistent coordination
+    
+    def get_response_mime_type(self) -> str:
+        """Get response MIME type for orchestration results."""
+        return "application/json"  # Structured data for complex coordination
+    
+    def get_model_name(self) -> str:
+        """Get model name for orchestration tasks."""
+        return os.getenv('GEMINI_MODEL', 'gemini-2.0-flash')  # Fast model for coordination
 
     def clear_state(self):
         """Reset agent state for new analysis."""
