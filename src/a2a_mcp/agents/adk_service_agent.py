@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Optional
 from a2a_mcp.common.agent_runner import AgentRunner
 from a2a_mcp.common.base_agent import BaseAgent
 from a2a_mcp.common.utils import get_mcp_server_config, init_api_key
+from a2a_mcp.common.a2a_protocol import A2AProtocolClient
 from google.adk.agents import Agent
 from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, SseServerParams
 from google.genai import types as genai_types
@@ -20,32 +21,49 @@ logger = logging.getLogger(__name__)
 
 
 class ADKServiceAgent(BaseAgent):
-    """Generic ADK-powered service agent for any domain.
+    """Framework V2.0 Universal Service Agent Template.
     
-    This class demonstrates the production-ready pattern for integrating
-    Google ADK with A2A-MCP framework. It can be configured for any business
-    domain through the parameters.
+    The production-ready universal template for ALL service agents in Framework V2.0.
+    Provides Google ADK integration, MCP tool support, and A2A protocol communication
+    in a single, domain-agnostic class.
+    
+    Key Framework V2.0 Features:
+    - Google ADK agent integration with streaming support
+    - Automatic MCP tool discovery and loading
+    - A2A protocol for inter-agent communication
+    - Universal domain adaptation via configuration
+    - Production-ready error handling and logging
     
     Example usage:
-        # Travel domain
+        # Travel domain service agent
         travel_agent = ADKServiceAgent(
             agent_name='AirTicketingAgent',
             description='Book air tickets given criteria',
-            instructions=travel_prompts.AIRFARE_COT_INSTRUCTIONS
+            instructions=travel_prompts.AIRFARE_COT_INSTRUCTIONS,
+            a2a_enabled=True  # Enable communication with other agents
         )
         
-        # Finance domain  
+        # Finance domain service agent
         finance_agent = ADKServiceAgent(
             agent_name='TradingAgent',
             description='Execute trading strategies',
-            instructions=finance_prompts.TRADING_INSTRUCTIONS
+            instructions=finance_prompts.TRADING_INSTRUCTIONS,
+            a2a_enabled=True  # Can coordinate with finance specialists
         )
         
-        # Any domain
-        custom_agent = ADKServiceAgent(
-            agent_name='CustomAgent',
-            description='Handle domain-specific tasks',
-            instructions='Your specialized instructions here...'
+        # Healthcare domain service agent
+        healthcare_agent = ADKServiceAgent(
+            agent_name='PatientCareAgent',
+            description='Coordinate patient care workflows',
+            instructions='You are a patient care coordination specialist...',
+            a2a_enabled=True  # Can communicate with medical specialists
+        )
+        
+        # Multi-agent communication example
+        response = await finance_agent.communicate_with_agent(
+            target_agent_port=11001,
+            message="Analyze market volatility for portfolio optimization",
+            metadata={"domain": "finance", "priority": "high"}
         )
     """
 
@@ -55,7 +73,8 @@ class ADKServiceAgent(BaseAgent):
         description: str, 
         instructions: str,
         content_types: Optional[List[str]] = None,
-        temperature: float = 0.0
+        temperature: float = 0.0,
+        a2a_enabled: bool = True
     ):
         """Initialize ADK service agent.
         
@@ -65,6 +84,7 @@ class ADKServiceAgent(BaseAgent):
             instructions: Domain-specific instructions for the agent
             content_types: Supported content types (defaults to text)
             temperature: LLM temperature for response generation
+            a2a_enabled: Enable A2A protocol for inter-agent communication
         """
         init_api_key()
 
@@ -80,6 +100,13 @@ class ADKServiceAgent(BaseAgent):
         self.temperature = temperature
         self.agent = None
         self.runner = None
+        
+        # Framework V2.0: A2A Protocol Support
+        self.a2a_client = A2AProtocolClient() if a2a_enabled else None
+        if a2a_enabled:
+            logger.info(f'{self.agent_name}: A2A protocol enabled')
+        else:
+            logger.info(f'{self.agent_name}: A2A protocol disabled')
 
     async def init_agent(self):
         """Initialize the ADK agent with MCP tools.
@@ -274,3 +301,68 @@ class ADKServiceAgent(BaseAgent):
                 'require_user_input': False,
                 'content': 'Could not complete the requested task. Please try again.',
             }
+    
+    async def communicate_with_agent(
+        self, target_agent_port: int, message: str, metadata: Optional[Dict] = None
+    ) -> Dict[str, Any]:
+        """Communicate with another agent using A2A protocol.
+        
+        Framework V2.0 feature: Enables universal agent-to-agent communication
+        for building sophisticated multi-agent workflows.
+        
+        Args:
+            target_agent_port: Port number of target agent
+            message: Message to send to target agent
+            metadata: Optional metadata for routing or context
+            
+        Returns:
+            Response from target agent
+            
+        Raises:
+            RuntimeError: If A2A communication is not enabled
+            
+        Example:
+            # Service agent communicating with specialist
+            response = await service_agent.communicate_with_agent(
+                target_agent_port=11001,
+                message="Analyze market trends for Q4",
+                metadata={"domain": "finance", "urgency": "high"}
+            )
+        """
+        if not self.a2a_client:
+            raise RuntimeError(
+                f"A2A communication not enabled for {self.agent_name}. "
+                "Initialize with a2a_enabled=True to enable inter-agent communication."
+            )
+        
+        logger.info(
+            f'{self.agent_name}: Sending A2A message to port {target_agent_port}'
+        )
+        
+        try:
+            response = await self.a2a_client.send_message(
+                target_agent_port, message, metadata or {}
+            )
+            logger.info(
+                f'{self.agent_name}: Received A2A response from port {target_agent_port}'
+            )
+            return response
+        except Exception as e:
+            logger.error(
+                f'{self.agent_name}: A2A communication failed with port {target_agent_port}: {e}'
+            )
+            raise
+    
+    def get_a2a_status(self) -> Dict[str, Any]:
+        """Get A2A protocol status for this agent.
+        
+        Returns:
+            Dict containing A2A configuration and status information
+        """
+        return {
+            "agent_name": self.agent_name,
+            "a2a_enabled": self.a2a_client is not None,
+            "a2a_client_status": "active" if self.a2a_client else "disabled",
+            "communication_capability": "full" if self.a2a_client else "none",
+            "framework_version": "2.0"
+        }
