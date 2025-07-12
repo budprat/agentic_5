@@ -5,10 +5,10 @@
 **YES, you can use `adk deploy` for your agents!** This tutorial covers complete deployment to Google Cloud.
 
 ### Current Architecture Compatibility:
-- ✅ Your agents use `google.adk.agents.Agent` (confirmed in sentiment_seeker_agent.py, adk_travel_agent.py)
+- ✅ Your agents use `google.adk.agents.Agent` (confirmed in domain_specialist_agent.py, service_agent.py)
 - ✅ Google Cloud project configured: "Agents Cloud" in "asia-south2-c"
 - ✅ ADK supports `adk deploy cloud_run` command for Python agents
-- ✅ Your Market Oracle agents are ADK-compatible
+- ✅ Your A2A-MCP agents are ADK-compatible
 
 ## 🚀 Deployment Strategy Options
 
@@ -16,18 +16,18 @@
 **Deploy each specialized agent separately to Cloud Run**
 
 **Agents Ready for Deployment:**
-1. **Sentiment Seeker Agent** (Reddit/social sentiment analysis)
-2. **Fundamental Analyst Agent** (SEC filings analysis)
-3. **Technical Prophet Agent** (ML predictions)
-4. **Travel Agents** (Air/Hotel/Car booking)
-5. **Oracle Prime Agent** (Master orchestrator)
+1. **Domain Specialist Agent** (Business logic and rules enforcement)
+2. **Analytics Agent** (Data analysis and reporting)
+3. **Service Agent** (External service integrations)
+4. **Notification Agent** (Communication and alerting)
+5. **Master Orchestrator** (Workflow coordination)
 
 **Commands:**
 ```bash
 # For each agent directory
-cd src/a2a_mcp/agents/market_oracle/
-adk deploy cloud_run --agent sentiment_seeker_agent.py
-adk deploy cloud_run --agent fundamental_analyst_agent.py
+cd src/a2a_mcp/agents/tier2/
+adk deploy cloud_run --agent domain_specialist_agent.py
+adk deploy cloud_run --agent analytics_agent.py
 # etc.
 ```
 
@@ -39,21 +39,21 @@ adk deploy cloud_run --agent fundamental_analyst_agent.py
 ### 1. **Environment Variables Setup** (CRITICAL - Official ADK Requirements):
 ```bash
 # REQUIRED Google Cloud Environment Variables
-export GOOGLE_CLOUD_PROJECT="Agents Cloud"
-export GOOGLE_CLOUD_LOCATION="asia-south2-c"  
+export GOOGLE_CLOUD_PROJECT="Business Cloud"
+export GOOGLE_CLOUD_LOCATION="us-central1"  
 export GOOGLE_GENAI_USE_VERTEXAI=0  # Set to True for Vertex AI, False for standard Gemini API
 
 # OPTIONAL - For cleaner deployment commands
-export AGENT_PATH="./src/a2a_mcp/agents/market_oracle"
-export SERVICE_NAME="sentiment-seeker-agent"
-export APP_NAME="sentiment-seeker"
+export AGENT_PATH="./src/a2a_mcp/agents/tier2"
+export SERVICE_NAME="domain-specialist-agent"
+export APP_NAME="domain-specialist"
 ```
 
 ### 2. **Agent Structure Requirements** (ADK Standards):
 Your agents MUST follow this structure for `adk deploy` to work:
 
 ```
-sentiment_seeker_agent/
+domain_specialist_agent/
 ├── __init__.py              # Must contain: from . import agent
 ├── agent.py                 # Must contain: root_agent = YourAgent()
 └── requirements.txt         # Dependencies
@@ -104,10 +104,10 @@ root_agent = Agent(
 ## 🛠️ Implementation Steps
 
 ### Phase 1: Individual Agent Deployment
-1. **Create ADK deployment configs** for each Market Oracle agent
+1. **Create ADK deployment configs** for each A2A-MCP agent
 2. **Extract agent-specific environment variables**
 3. **Set up Google Cloud authentication** (`gcloud auth login`)
-4. **Deploy Sentiment Seeker first** (simplest agent to test)
+4. **Deploy Domain Specialist first** (core business logic agent to test)
 5. **Validate deployment** and test agent endpoints
 6. **Deploy remaining agents** one by one
 
@@ -141,12 +141,12 @@ root_agent = Agent(
 ### Environment Variables for Cloud Run:
 ```bash
 GOOGLE_API_KEY=
-GOOGLE_CLOUD_PROJECT=Agents
-GOOGLE_CLOUD_LOCATION=asia-south2-c
+GOOGLE_CLOUD_PROJECT=Business
+GOOGLE_CLOUD_LOCATION=us-central1
 GOOGLE_GENAI_USE_VERTEXAI=0
-SNOWFLAKE_ACCOUNT=xxx
-SUPABASE_URL=xxx
-BRIGHTDATA_API_TOKEN=xxx
+DATABASE_URL=xxx
+REDIS_URL=xxx
+API_GATEWAY_TOKEN=xxx
 # etc.
 ```
 
@@ -161,16 +161,16 @@ BRIGHTDATA_API_TOKEN=xxx
 Internet → Cloud Load Balancer → Cloud Run Services
                                       ↓
 ┌─────────────────┬─────────────────┬─────────────────┐
-│ Sentiment       │ Fundamental     │ Technical       │
-│ Seeker Agent    │ Analyst Agent   │ Prophet Agent   │
+│ Domain          │ Analytics       │ Service         │
+│ Specialist      │ Agent           │ Agent           │
 │ (Cloud Run)     │ (Cloud Run)     │ (Cloud Run)     │
 └─────────────────┴─────────────────┴─────────────────┘
                                       ↓
                           MCP Server (Cloud Run)
                                       ↓
 ┌─────────────────┬─────────────────┬─────────────────┐
-│ Snowflake       │ Supabase        │ External APIs   │
-│ (Data)          │ (Real-time)     │ (BrightData)    │
+│ Database        │ Message Queue   │ External APIs   │
+│ (Data Storage)  │ (Real-time)     │ (Integrations)  │
 └─────────────────┴─────────────────┴─────────────────┘
 ```
 
@@ -184,7 +184,7 @@ exec -l $SHELL
 
 # Authenticate with Google Cloud
 gcloud auth login
-gcloud config set project "agents-cloud"
+gcloud config set project "business-cloud"
 
 # Verify ADK installation
 adk --version
@@ -194,7 +194,7 @@ adk --version
 ```bash
 # Authenticate with Google Cloud (REQUIRED)
 gcloud auth login
-gcloud config set project "agents-cloud"
+gcloud config set project "business-cloud"
 
 # Verify ADK installation
 adk --version
@@ -203,21 +203,21 @@ adk --version
 ### Step 2: Environment Variables (Official ADK Requirements)
 ```bash
 # Set REQUIRED environment variables (per official ADK docs)
-export GOOGLE_CLOUD_PROJECT="Agents Cloud"
-export GOOGLE_CLOUD_LOCATION="asia-south2-c"  
+export GOOGLE_CLOUD_PROJECT="Business Cloud"
+export GOOGLE_CLOUD_LOCATION="us-central1"  
 export GOOGLE_GENAI_USE_VERTEXAI=0  # Important: 0 for Gemini API, True for Vertex AI
 
 # Set deployment variables for convenience
-export AGENT_PATH="./src/a2a_mcp/agents/market_oracle/sentiment_seeker_agent"
-export SERVICE_NAME="sentiment-seeker-agent"
-export APP_NAME="sentiment-seeker"
+export AGENT_PATH="./src/a2a_mcp/agents/market_oracle/domain_specialist_agent"
+export SERVICE_NAME="domain-specialist-agent"
+export APP_NAME="domain-specialist"
 ```
 
 ### Step 3: Prepare Agent Directory Structure
 ```bash
 # Create proper ADK-compliant structure for each agent
-mkdir -p deploy_agents/sentiment_seeker_agent
-cd deploy_agents/sentiment_seeker_agent
+mkdir -p deploy_agents/domain_specialist_agent
+cd deploy_agents/domain_specialist_agent
 
 # Create required files
 cat > __init__.py << 'EOF'
@@ -231,17 +231,17 @@ from google.genai import types as genai_types
 
 # This MUST be named 'root_agent' for ADK deployment
 root_agent = Agent(
-    name="Sentiment Seeker",
-    instruction="""You are Sentiment Seeker, a specialized agent for analyzing social media sentiment around stocks and investments.
+    name="Domain Specialist",
+    instruction="""You are a Domain Specialist, an agent that enforces business rules and domain logic.
 
 Your capabilities:
-1. Monitor Reddit communities (WallStreetBets, stocks, investing, StockMarket)
-2. Analyze sentiment from posts and comments
-3. Track unusual volume spikes in discussions
-4. Identify retail vs institutional sentiment divergence
-5. Detect early meme stock movements
+1. Validate business rules and constraints
+2. Process domain-specific workflows
+3. Coordinate with other tier 2 agents
+4. Apply business logic transformations
+5. Handle domain validation and error handling
 
-When analyzing a stock symbol, provide sentiment analysis and key insights.""",
+When processing requests, ensure all business rules are properly validated and applied.""",
     model='gemini-2.0-flash',
     generate_content_config=genai_types.GenerateContentConfig(temperature=0.1)
 )
@@ -260,24 +260,24 @@ EOF
 #### Minimal Deployment Command:
 ```bash
 adk deploy cloud_run \
---project="Agents Cloud" \
---region="asia-south2-c" \
-./sentiment_seeker_agent
+--project="Business Cloud" \
+--region="us-central1" \
+./domain_specialist_agent
 ```
 
 #### Full Command with All Options:
 ```bash
 adk deploy cloud_run \
---project="Agents Cloud" \
---region="asia-south2-c" \
---service_name="sentiment-seeker-agent" \
---app_name="sentiment-seeker" \
+--project="Business Cloud" \
+--region="us-central1" \
+--service_name="domain-specialist-agent" \
+--app_name="domain-specialist" \
 --with_ui \
-./sentiment_seeker_agent
+./domain_specialist_agent
 ```
 
 #### Authentication Prompt:
-When prompted: `Allow unauthenticated invocations to [sentiment-seeker-agent] (y/N)?`
+When prompted: `Allow unauthenticated invocations to [domain-specialist-agent] (y/N)?`
 - Enter `y` for public access (testing)
 - Enter `N` for authenticated access (production)
 
@@ -286,14 +286,14 @@ When prompted: `Allow unauthenticated invocations to [sentiment-seeker-agent] (y
 ✓ Building container image...
 ✓ Pushing to Artifact Registry...
 ✓ Deploying to Cloud Run...
-✓ Service URL: https://sentiment-seeker-agent-xxx-asia-south2.run.app
+✓ Service URL: https://domain-specialist-agent-xxx-us-central1.run.app
 ```
 
 ### Step 4B: Deploy with gcloud CLI (Advanced)
 
 #### Create Custom FastAPI Structure:
 ```bash
-mkdir -p custom_deploy/sentiment_seeker_agent
+mkdir -p custom_deploy/domain_specialist_agent
 cd custom_deploy
 
 # Create main.py
@@ -338,19 +338,19 @@ CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port $PORT"]
 EOF
 
 # Deploy with gcloud
-gcloud run deploy sentiment-seeker-agent \
+gcloud run deploy domain-specialist-agent \
 --source . \
---region asia-south2-c \
---project "agents-cloud" \
+--region us-central1 \
+--project "business-cloud" \
 --allow-unauthenticated \
 --set-env-vars="GOOGLE_CLOUD_PROJECT=Agents Cloud,GOOGLE_CLOUD_LOCATION=asia-south2-c,GOOGLE_GENAI_USE_VERTEXAI=0,GOOGLE_API_KEY=```
 
 ### Step 3: Update Agent Cards
 ```json
 {
-    "name": "Sentiment Seeker",
-    "description": "Reddit and social media sentiment analyzer for market intelligence",
-    "url": "https://sentiment-seeker-agent-xxx.asia-south2.run.app/",
+    "name": "Domain Specialist",
+    "description": "Business logic and domain rules enforcement agent",
+    "url": "https://domain-specialist-agent-xxx.us-central1.run.app/",
     "provider": "Google Cloud Run",
     "version": "1.0.0",
     "capabilities": {
@@ -363,14 +363,14 @@ gcloud run deploy sentiment-seeker-agent \
 
 ### Step 4: Deploy Remaining Agents
 ```bash
-# Deploy all Market Oracle agents
-adk deploy cloud_run --agent fundamental_analyst_agent.py
-adk deploy cloud_run --agent technical_prophet_agent.py
-adk deploy cloud_run --agent oracle_prime_agent.py
-adk deploy cloud_run --agent risk_guardian_agent.py
-adk deploy cloud_run --agent trend_correlator_agent.py
-adk deploy cloud_run --agent report_synthesizer_agent.py
-adk deploy cloud_run --agent audio_briefer_agent.py
+# Deploy all A2A-MCP agents
+adk deploy cloud_run --agent analytics_agent.py
+adk deploy cloud_run --agent service_agent.py
+adk deploy cloud_run --agent notification_agent.py
+adk deploy cloud_run --agent data_processing_agent.py
+adk deploy cloud_run --agent integration_agent.py
+adk deploy cloud_run --agent workflow_agent.py
+adk deploy cloud_run --agent reporting_agent.py
 ```
 
 ### Step 5: Deploy MCP Server
@@ -386,7 +386,7 @@ adk deploy cloud_run --service server.py
 Simply navigate to your Cloud Run service URL in a web browser:
 ```bash
 # Example URL format
-https://sentiment-seeker-agent-xxx-asia-south2.run.app
+https://domain-specialist-agent-xxx-us-central1.run.app
 ```
 
 The ADK dev UI allows you to:
@@ -398,7 +398,7 @@ The ADK dev UI allows you to:
 
 #### Step 1: Set Application URL
 ```bash
-export APP_URL="https://sentiment-seeker-agent-xxx-asia-south2.run.app"
+export APP_URL="https://domain-specialist-agent-xxx-us-central1.run.app"
 ```
 
 #### Step 2: Get Identity Token (if authentication required)
@@ -414,7 +414,7 @@ curl -X GET -H "Authorization: Bearer $TOKEN" $APP_URL/list-apps
 #### Step 4: Create or Update Session
 ```bash
 curl -X POST -H "Authorization: Bearer $TOKEN" \
-    $APP_URL/apps/sentiment_seeker/users/user_123/sessions/session_abc \
+    $APP_URL/apps/domain_specialist/users/user_123/sessions/session_abc \
     -H "Content-Type: application/json" \
     -d '{"state": {"preferred_language": "English", "visit_count": 1}}'
 ```
@@ -425,13 +425,13 @@ curl -X POST -H "Authorization: Bearer $TOKEN" \
     $APP_URL/run_sse \
     -H "Content-Type: application/json" \
     -d '{
-    "app_name": "sentiment_seeker",
+    "app_name": "domain_specialist",
     "user_id": "user_123", 
     "session_id": "session_abc",
     "new_message": {
         "role": "user",
         "parts": [{
-        "text": "What is the sentiment on AAPL?"
+        "text": "Process order validation for customer request"
         }]
     },
     "streaming": false
@@ -445,13 +445,13 @@ curl -X POST -H "Authorization: Bearer $TOKEN" \
     $APP_URL/run_sse \
     -H "Content-Type: application/json" \
     -d '{
-    "app_name": "sentiment_seeker",
+    "app_name": "domain_specialist",
     "user_id": "user_123",
     "session_id": "session_abc", 
     "new_message": {
         "role": "user",
         "parts": [{
-        "text": "Analyze sentiment for Tesla stock"
+        "text": "Validate business rules for new order"
         }]
     },
     "streaming": true
@@ -463,7 +463,7 @@ curl -X POST -H "Authorization: Bearer $TOKEN" \
 ### Cloud Operations Integration:
 ```bash
 # View logs
-gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=sentiment-seeker-agent"
+gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=domain-specialist-agent"
 
 # Monitor metrics
 gcloud monitoring metrics list --filter="metric.type:run.googleapis.com"
@@ -538,7 +538,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: google-github-actions/setup-gcloud@v0
-      - run: adk deploy cloud_run --agent sentiment_seeker_agent.py
+      - run: adk deploy cloud_run --agent domain_specialist_agent.py
 ```
 
 This comprehensive tutorial enables full cloud deployment of your A2A-MCP agent ecosystem using Google's ADK platform!

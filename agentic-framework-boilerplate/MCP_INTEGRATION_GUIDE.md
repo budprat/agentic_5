@@ -2,13 +2,13 @@
 
 ## Overview
 
-The Model Context Protocol (MCP) serves as the backbone of the A2A-MCP system, providing agent discovery, tool provision, and resource management capabilities. This guide details how MCP integration enables seamless communication between agents and centralized service management.
+The Model Context Protocol (MCP) serves as the backbone of the A2A-MCP system, providing agent discovery, tool provision, and resource management capabilities. This guide details how MCP integration enables seamless communication between agents and centralized service management across any business domain.
 
 ## MCP Architecture Components
 
 ### MCP Server (`src/a2a_mcp/mcp/server.py`)
 - **Central Registry**: Maintains catalog of all available agents
-- **Tool Provider**: Exposes database access via `query_travel_data` tool
+- **Tool Provider**: Exposes database access via `query_business_data` tool
 - **Resource Manager**: Serves agent cards and metadata via MCP resources
 - **Discovery Engine**: Uses embedding-based similarity matching for agent selection
 
@@ -74,14 +74,14 @@ async def find_best_agent(query: str) -> dict:
 
 ### Agent Discovery Examples
 
-**Query**: "Book business class flights from NYC to Tokyo"
+**Query**: "Process order with payment validation"
 ```python
 # Embedding analysis finds best match
 {
     'agent_card': {
-        'name': 'Air Ticketing Agent',
-        'description': 'Specializes in booking flights and air travel arrangements',
-        'skills': ['flight booking', 'airline search', 'itinerary planning'],
+        'name': 'Payment Processing Agent',
+        'description': 'Specializes in payment processing and transaction validation',
+        'skills': ['payment processing', 'transaction validation', 'payment methods'],
         'port': 10103
     },
     'similarity_score': 0.94,
@@ -89,14 +89,14 @@ async def find_best_agent(query: str) -> dict:
 }
 ```
 
-**Query**: "Find luxury hotel in downtown Tokyo"
+**Query**: "Generate analytics report for Q4 sales"
 ```python
 # Embedding analysis finds best match
 {
     'agent_card': {
-        'name': 'Hotel Booking Agent', 
-        'description': 'Specializes in booking hotels and accommodations',
-        'skills': ['hotel booking', 'accommodation search', 'room selection'],
+        'name': 'Analytics Agent', 
+        'description': 'Specializes in data analysis and report generation',
+        'skills': ['data analysis', 'report generation', 'business intelligence'],
         'port': 10104
     },
     'similarity_score': 0.91,
@@ -112,8 +112,8 @@ The MCP server provides a unified database access tool:
 
 ```python
 @server.call_tool()
-async def query_travel_data(query: str) -> list[dict]:
-    """Execute SQL queries on the travel database."""
+async def query_business_data(query: str) -> list[dict]:
+    """Execute SQL queries on the business database."""
     
     # Validate query for security
     if not is_safe_query(query):
@@ -121,7 +121,7 @@ async def query_travel_data(query: str) -> list[dict]:
     
     # Execute query
     try:
-        conn = sqlite3.connect('travel_agency.db')
+        conn = sqlite3.connect('business_data.db')
         cursor = conn.cursor()
         cursor.execute(query)
         
@@ -222,28 +222,28 @@ async def init_agent(self):
 
 ```python
 # Example tool usage in agent workflow
-async def search_flights(self, criteria: dict) -> list[dict]:
-    """Search for flights using MCP database tool."""
+async def search_products(self, criteria: dict) -> list[dict]:
+    """Search for products using MCP database tool."""
     
     # Build SQL query from criteria
     query = f"""
-    SELECT carrier, flight_number, departure_time, arrival_time, price
-    FROM flights 
-    WHERE from_airport = '{criteria['origin']}'
-    AND to_airport = '{criteria['destination']}'
-    AND ticket_class = '{criteria['class']}'
+    SELECT product_id, product_name, category, price, stock_quantity
+    FROM products 
+    WHERE category = '{criteria['category']}'
+    AND price BETWEEN {criteria['min_price']} AND {criteria['max_price']}
+    AND stock_quantity > 0
     ORDER BY price ASC
     """
     
     # Execute via MCP tool
     try:
         results = await self.session.call_tool(
-            name='query_travel_data',
+            name='query_business_data',
             arguments={'query': query}
         )
         return results.content
     except Exception as e:
-        logger.error(f"Flight search failed: {e}")
+        logger.error(f"Product search failed: {e}")
         return []
 ```
 
@@ -320,7 +320,7 @@ MCP_CONFIG = {
     'host': 'localhost', 
     'port': 10100,
     'model': 'models/text-embedding-004',
-    'database_path': 'travel_agency.db',
+    'database_path': 'business_data.db',
     'agent_cards_dir': 'agent_cards/',
     'max_query_length': 1000,
     'enable_embeddings': True,
@@ -348,7 +348,7 @@ def get_mcp_server_config() -> MCPConfig:
 # MCP server environment variables
 export MCP_SERVER_HOST=localhost
 export MCP_SERVER_PORT=10100
-export MCP_DATABASE_PATH=travel_agency.db
+export MCP_DATABASE_PATH=business_data.db
 export MCP_EMBEDDINGS_MODEL=models/text-embedding-004
 export MCP_ENABLE_SECURITY=true
 ```
@@ -368,7 +368,7 @@ REMOTE_MCP_SERVERS = [
     {
         'name': 'third_party_booking',
         'url': 'https://partner-api.example.com/mcp',
-        'capabilities': ['flight_booking', 'hotel_booking'],
+        'capabilities': ['payment_processing', 'order_management'],
         'auth_required': True
     }
 ]
@@ -431,7 +431,7 @@ async def check_mcp_health(self) -> dict:
     
     try:
         # Test agent discovery
-        test_query = "test flight booking"
+        test_query = "test product search"
         agent_result = await self.find_best_agent(test_query)
         discovery_time = time.time() - start_time
         
@@ -441,7 +441,7 @@ async def check_mcp_health(self) -> dict:
         
         # Test database connectivity
         db_start = time.time()
-        test_result = await self.query_travel_data("SELECT COUNT(*) FROM flights")
+        test_result = await self.query_business_data("SELECT COUNT(*) FROM products")
         db_time = time.time() - db_start
         
         return {
@@ -521,4 +521,4 @@ async def execute_with_fallback(self, query: str) -> dict:
         }
 ```
 
-This comprehensive MCP integration guide demonstrates how the Model Context Protocol serves as the foundation for agent coordination, tool discovery, and resource management in the A2A-MCP system, enabling scalable and efficient multi-agent travel booking workflows.
+This comprehensive MCP integration guide demonstrates how the Model Context Protocol serves as the foundation for agent coordination, tool discovery, and resource management in the A2A-MCP system, enabling scalable and efficient multi-agent business workflows across any domain.
