@@ -1,2 +1,0 @@
-warning: `uv run` is experimental and may change without warning.
-✗ Environment validation failed: GOOGLE_API_KEY is required but not set

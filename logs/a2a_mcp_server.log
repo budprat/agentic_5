@@ -1,2 +1,0 @@
-warning: `uv run` is experimental and may change without warning.
-python: can't open file '/home/user/solopreneur/src/a2a_mcp_server/__main__.py': [Errno 2] No such file or directory
