@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-# ABOUTME: A2A JSON-RPC protocol compliant client for AI Solopreneur Oracle System
-# ABOUTME: Uses proper message/send and message/stream methods per A2A specification
+# ABOUTME: Generic A2A JSON-RPC protocol compliant client template for Framework V2.0
+# ABOUTME: Base class that domains can extend with their specific display and business logic
 
 import asyncio
 import aiohttp
@@ -13,12 +13,8 @@ from datetime import datetime
 from rich.console import Console
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
-from rich.table import Table
-from rich.markdown import Markdown
 
-# Add src to path for Framework V2.0 types
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../src'))
-
+# Framework V2.0 types import with fallback
 try:
     from a2a_mcp.common.types import AgentResponse
 except ImportError:
@@ -27,11 +23,22 @@ except ImportError:
 
 console = Console()
 
-class A2ASolopreneurClient:
-    """A2A Protocol compliant client for AI Solopreneur Oracle System."""
+class GenericA2AClient:
+    """
+    Generic A2A Protocol compliant client template for Framework V2.0.
     
-    def __init__(self, orchestrator_url: str = "http://localhost:10901"):
+    This base class provides:
+    - Core A2A JSON-RPC protocol handling
+    - Stream processing logic
+    - Basic progress display
+    - Generic query methods
+    
+    Domains should inherit from this and override display methods for their specific needs.
+    """
+    
+    def __init__(self, orchestrator_url: str = "http://localhost:10901", domain_name: str = "Generic"):
         self.orchestrator_url = orchestrator_url
+        self.domain_name = domain_name
         self.session = None
         
     async def __aenter__(self):
@@ -192,8 +199,11 @@ class A2ASolopreneurClient:
                             "response_type": "data"
                         }
     
-    async def query_oracle(self, query: str, show_progress: bool = True) -> Dict[str, Any]:
-        """Query the Solopreneur Oracle and return structured result."""
+    async def query_agent(self, query: str, show_progress: bool = True) -> Dict[str, Any]:
+        """
+        Query the agent and return structured result.
+        This is the main method domains should override for custom behavior.
+        """
         
         if show_progress:
             with Progress(
@@ -201,7 +211,7 @@ class A2ASolopreneurClient:
                 TextColumn("[progress.description]{task.description}"),
                 console=console
             ) as progress:
-                task = progress.add_task("Querying Solopreneur Oracle...", total=None)
+                task = progress.add_task(f"Querying {self.domain_name} Agent...", total=None)
                 
                 result = None
                 async for update in self.send_message(query, stream=True):
@@ -236,7 +246,7 @@ class A2ASolopreneurClient:
             return self._parse_result(result)
     
     def _parse_result(self, result: Any) -> Dict[str, Any]:
-        """Parse the result into structured format."""
+        """Parse the result into structured format. Domains can override this."""
         if not result:
             return {"error": "No result received"}
         
@@ -250,153 +260,99 @@ class A2ASolopreneurClient:
         
         return result
     
-    def display_analysis(self, analysis: Dict[str, Any]) -> None:
-        """Display analysis results in a formatted way."""
+    def display_result(self, result: Dict[str, Any]) -> None:
+        """
+        Display result in a formatted way.
+        Domains should override this method for custom display formatting.
+        """
         
-        if "error" in analysis:
-            console.print(f"[red]Error: {analysis['error']}[/red]")
+        if "error" in result:
+            console.print(f"[red]Error: {result['error']}[/red]")
             return
         
-        if analysis.get("type") == "text":
-            console.print(Panel(analysis["content"], title="Oracle Response", style="blue"))
+        if result.get("type") == "text":
+            console.print(Panel(result["content"], title=f"{self.domain_name} Response", style="blue"))
             return
         
-        # Display structured analysis
-        if "executive_summary" in analysis:
-            console.print(Panel(
-                f"{analysis['executive_summary']}\n\n"
-                f"Confidence: {analysis.get('confidence_score', 0)*100:.0f}%",
-                title="📋 Executive Summary",
-                style="bold green"
-            ))
-        
-        # Technical Assessment
-        if "technical_assessment" in analysis:
-            tech = analysis["technical_assessment"]
-            table = Table(title="🔧 Technical Assessment", show_header=True)
-            table.add_column("Metric", style="cyan")
-            table.add_column("Value", style="white")
-            
-            table.add_row("Feasibility", f"{tech.get('feasibility_score', 0)}%")
-            table.add_row("Complexity", tech.get('implementation_complexity', 'N/A'))
-            table.add_row("Architecture", ', '.join(tech.get('architecture_recommendations', [])))
-            
-            if tech.get('technical_risks'):
-                table.add_row("Risks", ', '.join(tech['technical_risks'][:2]))
-            
-            console.print(table)
-        
-        # Personal Optimization
-        if "personal_optimization" in analysis:
-            personal = analysis["personal_optimization"]
-            table = Table(title="🧠 Personal Optimization", show_header=True)
-            table.add_column("Aspect", style="cyan")
-            table.add_column("Assessment", style="white")
-            
-            table.add_row("Energy Impact", personal.get('energy_impact', 'N/A'))
-            table.add_row("Cognitive Load", personal.get('cognitive_load', 'N/A'))
-            table.add_row("Sustainability", f"{personal.get('sustainability_score', 0)}%")
-            
-            console.print(table)
-        
-        # Strategic Insights
-        if "strategic_insights" in analysis:
-            console.print("\n💡 [bold]Key Insights:[/bold]")
-            for insight in analysis["strategic_insights"][:3]:
-                confidence = insight.get('confidence', 0) * 100
-                console.print(f"  • {insight.get('insight', 'N/A')} [dim]({confidence:.0f}% confidence)[/dim]")
-        
-        # Action Plan
-        if "action_plan" in analysis:
-            plan = analysis["action_plan"]
-            console.print("\n📅 [bold]Action Plan:[/bold]")
-            
-            if plan.get("immediate_actions"):
-                console.print("  [yellow]Immediate:[/yellow]")
-                for action in plan["immediate_actions"][:2]:
-                    console.print(f"    • {action}")
-            
-            if plan.get("short_term_goals"):
-                console.print("  [cyan]Short-term:[/cyan]")
-                for goal in plan["short_term_goals"][:2]:
-                    console.print(f"    • {goal}")
-            
-            if plan.get("long_term_vision"):
-                console.print(f"  [green]Vision:[/green] {plan['long_term_vision']}")
+        # Generic structured display
+        console.print(Panel(
+            json.dumps(result, indent=2),
+            title=f"{self.domain_name} Analysis",
+            style="green"
+        ))
+    
+    def get_help_content(self) -> str:
+        """
+        Get help content for the domain.
+        Domains should override this to provide domain-specific help.
+        """
+        return f"""
+**{self.domain_name} Agent Help**
+
+This is a generic A2A client. Available commands:
+• Type your query or question
+• Type 'help' for this help
+• Type 'quit' to exit
+
+Example: "Analyze this request..."
+"""
 
 
-async def interactive_session():
-    """Run an interactive session with the A2A-compliant Solopreneur Oracle."""
+async def interactive_session(client_class=None, orchestrator_url: str = "http://localhost:10901", domain_name: str = "Generic"):
+    """
+    Run an interactive session with the A2A-compliant agent.
+    Domains can pass their custom client class.
+    """
+    
+    if client_class is None:
+        client_class = GenericA2AClient
+    
     console.print(Panel(
-        "🔮 [bold magenta]AI Solopreneur Oracle[/bold magenta] 🔮\n\n"
-        "Your AI-powered developer/entrepreneur assistant\n"
-        "Using A2A JSON-RPC Protocol\n\n"
+        f"🤖 [bold magenta]{domain_name} AI Agent[/bold magenta] 🤖\\n\\n"
+        f"Your AI-powered {domain_name.lower()} assistant\\n"
+        "Using A2A JSON-RPC Protocol\\n\\n"
         "Type 'help' for commands or 'quit' to exit",
         style="bold blue"
     ))
     
-    async with A2ASolopreneurClient() as client:
+    async with client_class(orchestrator_url, domain_name) as client:
         while True:
             try:
-                query = console.input("\n[bold cyan]You:[/bold cyan] ")
+                query = console.input("\\n[bold cyan]You:[/bold cyan] ")
                 
                 if query.lower() in ['quit', 'exit', 'q']:
-                    console.print("[yellow]Goodbye! May your code be bug-free! 🚀[/yellow]")
+                    console.print(f"[yellow]Goodbye! Have a great day! 🚀[/yellow]")
                     break
                 
                 if query.lower() == 'help':
                     console.print(Panel(
-                        "**Available Queries:**\n\n"
-                        "• Technical: Architecture, frameworks, AI/ML, development practices\n"
-                        "• Personal: Work-life balance, productivity, energy management\n"
-                        "• Learning: Skill development, learning paths, knowledge gaps\n"
-                        "• Integration: Workflow optimization, tool integration, automation\n"
-                        "• Strategic: Project planning, decision making, risk assessment\n\n"
-                        "Example: 'How can I implement a scalable microservices architecture while maintaining productivity as a solo developer?'\n\n"
-                        "Type 'quit' to exit",
+                        client.get_help_content(),
                         title="Help",
                         style="green"
                     ))
                     continue
                 
-                # Query the oracle
-                result = await client.query_oracle(query)
+                # Query the agent
+                result = await client.query_agent(query)
                 
                 # Display results
-                console.print(f"\n[bold magenta]Oracle:[/bold magenta]")
-                client.display_analysis(result)
+                console.print(f"\\n[bold magenta]{domain_name} Agent:[/bold magenta]")
+                client.display_result(result)
                 
             except KeyboardInterrupt:
-                console.print("\n[yellow]Interrupted. Type 'quit' to exit.[/yellow]")
+                console.print("\\n[yellow]Interrupted. Type 'quit' to exit.[/yellow]")
             except Exception as e:
-                console.print(f"\n[red]Error: {e}[/red]")
-
-
-async def demo_queries():
-    """Run demonstration queries."""
-    demo_questions = [
-        "How can I architect a scalable SaaS application while maintaining work-life balance as a solo developer?",
-        "What's the most efficient way to learn Kubernetes for deploying my AI applications?",
-        "How should I integrate MCP tools with my existing development workflow for maximum productivity?"
-    ]
-    
-    async with A2ASolopreneurClient() as client:
-        for i, question in enumerate(demo_questions, 1):
-            console.print(f"\n[bold]Demo Query {i}:[/bold] {question}")
-            
-            result = await client.query_oracle(question)
-            client.display_analysis(result)
-            
-            if i < len(demo_questions):
-                console.print("\n" + "="*60 + "\n")
+                console.print(f"\\n[red]Error: {e}[/red]")
 
 
 if __name__ == "__main__":
     import sys
     
-    if len(sys.argv) > 1 and sys.argv[1] == "demo":
-        # Run demo queries
-        asyncio.run(demo_queries())
+    # Example usage - domains would create their own main sections
+    if len(sys.argv) > 1:
+        domain_name = sys.argv[1]
     else:
-        # Run interactive session
-        asyncio.run(interactive_session())
+        domain_name = "Generic"
+    
+    # Run interactive session
+    asyncio.run(interactive_session(domain_name=domain_name))

@@ -60,6 +60,25 @@ The **A2A-MCP Unified Framework V2.0** provides **production-ready multi-agent i
 - **Purpose:** Task execution, tool operations, database queries, direct service delivery
 - **Ports:** 10900-10999 range
 
+### 1.0.1 Framework V2.0 Complete Boilerplate Templates
+
+**All templates are available in `src/a2a_mcp/common/` for universal access:**
+
+**Core Agent Templates:**
+- `MasterOrchestratorTemplate` - Tier 1 sophisticated orchestration
+- `StandardizedAgentBase` - Tier 2/3 universal agent base
+- `ADKServiceAgent` - Tier 3 streamlined MCP service agents
+
+**Domain Implementation Templates:**
+- `generic_a2a_client.py` - A2A JSON-RPC client template for domain frontends
+- `agent_registry_template.py` - Tier-based agent organization template
+
+**Template Usage Pattern:**
+1. Copy `agent_registry_template.py` → `your_domain_agent_registry.py`
+2. Copy `generic_a2a_client.py` → `your_domain_client.py` 
+3. Customize agent definitions, ports, and domain-specific logic
+4. Use Framework V2.0 tier-based template rules for each agent
+
 ### 1.1 StandardizedAgentBase Pattern (Universal Base)
 
 ```python
