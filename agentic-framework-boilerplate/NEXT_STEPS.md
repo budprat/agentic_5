@@ -1,6 +1,6 @@
 # A2A-MCP Framework - Next Steps Roadmap
 
-This document outlines the recommended next steps for continuing the development and enhancement of the A2A-MCP framework.
+This document outlines the recommended next steps for continuing the development and enhancement of the A2A-MCP agentic framework.
 
 ## Priority 1: Production Readiness (1-2 weeks)
 
@@ -119,17 +119,17 @@ tests/
 **Effort**: 5-7 days
 
 - Implement SAGA orchestrator
-- Compensation logic for failed bookings
+- Compensation logic for failed operations
 - Transaction state management
 - Rollback mechanisms
 
 **Example Flow**:
 ```
-1. Book Flight → Success
-2. Book Hotel → Success
-3. Book Car → Failure
-4. Compensate: Cancel Hotel
-5. Compensate: Cancel Flight
+1. Process Payment → Success
+2. Update Inventory → Success
+3. Send Notification → Failure
+4. Compensate: Revert Inventory
+5. Compensate: Refund Payment
 6. Return failure to user
 ```
 
@@ -270,8 +270,8 @@ To begin implementation:
 
 1. **Set up development environment**
    ```bash
-   git clone https://github.com/budprat/a2a-mcp.git
-   cd a2a-mcp
+   git clone <your-repository-url>
+   cd agentic-framework-boilerplate
    git checkout -b feature/redis-caching
    ```
 

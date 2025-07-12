@@ -2,7 +2,7 @@
 
 ## Overview
 
-The A2A-MCP system provides two distinct orchestration strategies for coordinating travel booking workflows: **Sequential Execution** and **Parallel Execution**. This guide compares both approaches and provides guidance on when to use each strategy.
+The A2A-MCP system provides two distinct orchestration strategies for coordinating multi-agent workflows: **Sequential Execution** and **Parallel Execution**. This guide compares both approaches and provides guidance on when to use each strategy.
 
 ## Orchestration Implementations
 
@@ -41,15 +41,15 @@ for task_data in artifact_data["tasks"]:
 ### Execution Timeline
 
 ```
-Travel Booking Request
+Multi-Task Request
        ↓
 Step 1: Planner Agent (2 seconds)
        ↓
-Step 2: Flight Booking Agent (5 seconds)  
+Step 2: Data Processing Agent (5 seconds)  
        ↓
-Step 3: Hotel Booking Agent (4 seconds)
+Step 3: Analytics Agent (4 seconds)
        ↓
-Step 4: Car Rental Agent (3 seconds)
+Step 4: Notification Agent (3 seconds)
        ↓
 Step 5: Result Aggregation (1 second)
        ↓
@@ -77,20 +77,20 @@ The `ParallelOrchestratorAgent` analyzes task dependencies and executes independ
 def analyze_task_dependencies(self, tasks: list[dict]) -> dict[str, list[str]]:
     """Group tasks by service type for parallel execution."""
     task_groups = {
-        "flights": [],
-        "hotels": [], 
-        "cars": [],
+        "data": [],
+        "analytics": [], 
+        "notification": [],
         "other": []
     }
     
     for idx, task in enumerate(tasks):
         desc = task.get("description", "").lower()
-        if "flight" in desc or "air" in desc:
-            task_groups["flights"].append(idx)
-        elif "hotel" in desc or "accommodation" in desc:
-            task_groups["hotels"].append(idx)
-        elif "car" in desc or "rental" in desc:
-            task_groups["cars"].append(idx)
+        if "data" in desc or "process" in desc:
+            task_groups["data"].append(idx)
+        elif "analytics" in desc or "report" in desc:
+            task_groups["analytics"].append(idx)
+        elif "notification" in desc or "alert" in desc:
+            task_groups["notification"].append(idx)
         else:
             task_groups["other"].append(idx)
     
@@ -115,14 +115,14 @@ async def execute_parallel_tasks(self, task_groups: dict):
 ### Execution Timeline
 
 ```
-Travel Booking Request
+Multi-Task Request
        ↓
 Step 1: Planner Agent (2 seconds)
        ↓
 Step 2: Parallel Task Execution (5 seconds maximum)
-       ├── Flight Booking Agent (5 seconds) ┐
-       ├── Hotel Booking Agent (4 seconds)  ├─ Concurrent
-       └── Car Rental Agent (3 seconds)     ┘
+       ├── Data Processing Agent (5 seconds) ┐
+       ├── Analytics Agent (4 seconds)       ├─ Concurrent
+       └── Notification Agent (3 seconds)    ┘
        ↓
 Step 3: Result Aggregation (1 second)
        ↓
@@ -132,30 +132,30 @@ Total Time: 8 seconds (53% faster)
 ### Task Dependency Analysis
 
 ```python
-# Example dependency analysis for travel booking
-def analyze_booking_dependencies(self, tasks):
+# Example dependency analysis for business workflows
+def analyze_workflow_dependencies(self, tasks):
     """
-    Travel booking tasks are typically independent:
-    - Flight booking: Requires origin, destination, dates
-    - Hotel booking: Requires city, dates  
-    - Car rental: Requires city, dates
+    Business workflow tasks are often independent:
+    - Data processing: Requires input data, validation rules
+    - Analytics: Requires processed data, reporting parameters
+    - Notifications: Requires results, recipient lists
     
-    These can execute in parallel since they don't depend on each other.
+    These can execute in parallel when dependencies are met.
     """
     independent_groups = []
     dependent_chain = []
     
-    # Group by service type (independent)
-    flights = [t for t in tasks if self.is_flight_task(t)]
-    hotels = [t for t in tasks if self.is_hotel_task(t)]
-    cars = [t for t in tasks if self.is_car_task(t)]
+    # Group by task type (independent when possible)
+    data_tasks = [t for t in tasks if self.is_data_task(t)]
+    analytics_tasks = [t for t in tasks if self.is_analytics_task(t)]
+    notification_tasks = [t for t in tasks if self.is_notification_task(t)]
     
-    if flights:
-        independent_groups.append(("flights", flights))
-    if hotels:
-        independent_groups.append(("hotels", hotels))
-    if cars:
-        independent_groups.append(("cars", cars))
+    if data_tasks:
+        independent_groups.append(("data", data_tasks))
+    if analytics_tasks:
+        independent_groups.append(("analytics", analytics_tasks))
+    if notification_tasks:
+        independent_groups.append(("notification", notification_tasks))
         
     return {
         "parallel_groups": independent_groups,
@@ -180,45 +180,45 @@ def analyze_booking_dependencies(self, tasks):
 
 | Metric | Sequential | Parallel | Improvement |
 |--------|------------|----------|-------------|
-| Simple Trip (1 service) | 7s | 7s | 0% |
-| Standard Trip (3 services) | 15s | 8s | 47% |
-| Complex Trip (5+ services) | 25s | 12s | 52% |
+| Simple Task (1 agent) | 7s | 7s | 0% |
+| Standard Workflow (3 agents) | 15s | 8s | 47% |
+| Complex Workflow (5+ agents) | 25s | 12s | 52% |
 | System Resource Usage | Low | Medium | N/A |
 | Error Recovery Time | 2s | 4s | -50% |
 
 ### Real-world Performance Examples
 
-**Example 1: Business Trip to Tokyo**
+**Example 1: Data Processing Pipeline**
 ```
 Sequential Execution:
 - Planner: 2s
-- Flights: 5s  
-- Hotel: 4s
-- Car: 3s
+- Data Validation: 5s  
+- Analytics: 4s
+- Notification: 3s
 - Total: 14s
 
 Parallel Execution:
 - Planner: 2s
-- [Flights || Hotel || Car]: max(5s, 4s, 3s) = 5s
+- [Data Validation || Analytics || Notification]: max(5s, 4s, 3s) = 5s
 - Total: 7s
 - Improvement: 50%
 ```
 
-**Example 2: Family Vacation (Multi-city)**
+**Example 2: E-commerce Order Processing**
 ```
 Sequential Execution:
 - Planner: 3s
-- Flight 1: 5s
-- Hotel 1: 4s  
-- Flight 2: 5s
-- Hotel 2: 4s
-- Activities: 3s
+- Payment Processing: 5s
+- Inventory Update: 4s  
+- Shipping Label: 5s
+- Email Confirmation: 4s
+- SMS Notification: 3s
 - Total: 24s
 
 Parallel Execution:
 - Planner: 3s
-- Level 1: [Flight 1 || Hotel 1]: 5s
-- Level 2: [Flight 2 || Hotel 2 || Activities]: 5s  
+- Level 1: [Payment || Inventory]: 5s
+- Level 2: [Shipping || Email || SMS]: 5s  
 - Total: 13s
 - Improvement: 46%
 ```
@@ -272,9 +272,9 @@ def select_orchestration_strategy(self, tasks: list) -> str:
 ```python
 # Sequential: Stop execution on first error
 try:
-    flight_result = await flight_agent.execute()
-    hotel_result = await hotel_agent.execute()
-    car_result = await car_agent.execute()
+    data_result = await data_agent.execute()
+    analytics_result = await analytics_agent.execute()
+    notification_result = await notification_agent.execute()
 except AgentError as e:
     logger.error(f"Workflow stopped due to error: {e}")
     return partial_results
@@ -316,9 +316,9 @@ async def execute_with_error_handling(self, tasks):
 ### When to Use Parallel Orchestration
 
 1. **Production Environments**: When performance is critical
-2. **Complex Travel Bookings**: Multiple independent services required
+2. **Complex Business Workflows**: Multiple independent services required
 3. **High-Throughput Scenarios**: When handling multiple concurrent requests
-4. **Multi-service Workflows**: When tasks can be grouped by service type
+4. **Multi-agent Workflows**: When tasks can be grouped by agent capabilities
 
 ### Optimization Guidelines
 
@@ -334,11 +334,11 @@ async def execute_with_error_handling(self, tasks):
 ```python
 # Define custom task dependencies
 CUSTOM_DEPENDENCIES = {
-    "flight_booking": [],  # No dependencies
-    "hotel_booking": [],   # No dependencies  
-    "car_rental": [],      # No dependencies
-    "travel_insurance": ["flight_booking", "hotel_booking"],  # Depends on other bookings
-    "activity_booking": ["hotel_booking"]  # Depends on accommodation
+    "data_processing": [],  # No dependencies
+    "analytics": ["data_processing"],   # Depends on processed data 
+    "notification": [],      # No dependencies
+    "reporting": ["analytics", "data_processing"],  # Depends on analytics and data
+    "archival": ["reporting"]  # Depends on completed reports
 }
 ```
 
@@ -398,4 +398,4 @@ def monitor_orchestration_health(self):
     }
 ```
 
-This comprehensive guide demonstrates how the A2A-MCP system provides flexible orchestration strategies that can be optimized for different use cases, from simple debugging scenarios to high-performance production deployments.
+This comprehensive guide demonstrates how the A2A-MCP system provides flexible orchestration strategies that can be optimized for different use cases, from simple debugging scenarios to high-performance production deployments across any business domain.

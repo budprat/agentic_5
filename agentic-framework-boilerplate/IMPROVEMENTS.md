@@ -70,20 +70,20 @@ export ENABLE_PARALLEL_EXECUTION=true
 ## 4. Performance Benefits
 
 ### Parallel Execution
-- **Before**: Tasks executed sequentially (Flight → Hotel → Car)
+- **Before**: Tasks executed sequentially (Task A → Task B → Task C)
 - **After**: Independent tasks run concurrently
-- **Expected Improvement**: 2-3x faster for multi-service bookings
+- **Expected Improvement**: 2-3x faster for multi-task workflows
 
 ### Example Execution Plan
 ```
 Execution Plan:
 Level 0 (SEQUENTIAL):
-  - Planner: Plan trip to London
+  - Planner: Analyze requirements and create task plan
 
 Level 1 (PARALLEL):
-  - flights Task 0: Book flight from SFO to LHR
-  - hotels Task 1: Book hotel in London
-  - cars Task 2: Rent car at Heathrow
+  - data Task 0: Process data validation
+  - analytics Task 1: Generate analytics report
+  - notification Task 2: Send status notifications
 ```
 
 ## 5. Security Enhancements
@@ -137,8 +137,8 @@ export JWT_SECRET_KEY="your-secret-key"
 # Enable parallel execution
 export ENABLE_PARALLEL_EXECUTION=true
 
-# Run a multi-service request
-python simple_client.py
+# Run a multi-task request
+python examples/simple_client.py
 
 # Check logs for parallel execution
 grep "PARALLEL" logs/orchestrator_*.log
@@ -182,13 +182,13 @@ All improvements maintain backward compatibility:
 # The MCP server automatically loads remote servers from .mcp.json
 # Agents can now call remote tools through the MCP server
 
-# Example: Call a tool on the Firecrawl MCP server
+# Example: Call a tool on an external MCP server
 result = await mcp_client.call_tool(
     name='call_remote_tool',
     arguments={
-        'server_name': 'firecrawl',
-        'tool_name': 'firecrawl_scrape',
-        'arguments': {'url': 'https://example.com'}
+        'server_name': 'external_service',
+        'tool_name': 'process_data',
+        'arguments': {'data': 'example_payload'}
     }
 )
 ```
