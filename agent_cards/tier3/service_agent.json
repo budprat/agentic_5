@@ -4,7 +4,7 @@
   "tier": 3,
   "port": 10010,
   "description": "Service-level agent responsible for executing specific tasks, tool operations, and direct service delivery",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "capabilities": [
     "task_execution",
     "tool_operation",

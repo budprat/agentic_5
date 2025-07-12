@@ -22,7 +22,45 @@ The **A2A-MCP Unified Framework V2.0** provides **production-ready multi-agent i
 
 ## 1. Unified Agent Architecture Standards
 
-### 1.1 StandardizedAgentBase Pattern (Universal)
+### 1.0 Framework V2.0 Tier-Based Agent Template Rules
+
+**MANDATORY FRAMEWORK RULES - Established by NU for A2A_MCP_ORACLE_FRAMEWORK V2.0:**
+
+**Tier 1 - Master Orchestrators:**
+- **MUST** use `MasterOrchestratorTemplate` for all sophisticated multi-agent orchestration
+- **Purpose:** Strategic planning, task decomposition, complex domain coordination
+- **Use Cases:** Business oracles, domain master orchestrators, complex workflow coordination
+- **Key Features:** LangGraph integration, parallel workflow management, quality-aware decision making
+- **Ports:** 10000-10099 range
+
+**Tier 2 - Domain Specialists:** 
+- **MUST** use `StandardizedAgentBase` as the primary template
+- **Purpose:** Domain expertise, specialized analysis, knowledge synthesis  
+- **Use Cases:** Technical intelligence, knowledge management, research specialists, domain experts
+- **Key Features:** Google ADK integration, MCP tools, A2A communication, quality validation
+- **Ports:** 10200-10899 range
+
+**Tier 3 - Service/MCP Agents (Dual Template Approach):**
+
+**Template Choice Guidelines:**
+- **Use `ADKServiceAgent`** for:
+  - MCP-focused database agents 
+  - Simple service coordination
+  - Direct tool integration tasks
+  - Legacy compatibility requirements
+  - Streamlined MCP tool workflows
+
+- **Use `StandardizedAgentBase`** for:
+  - Complex service logic requiring full framework features
+  - Agents needing advanced quality validation
+  - Services requiring centralized configuration management
+  - Future-forward implementations with full V2.0 capabilities
+
+**Both templates are valid and production-ready for Tier 3 agents.**
+- **Purpose:** Task execution, tool operations, database queries, direct service delivery
+- **Ports:** 10900-10999 range
+
+### 1.1 StandardizedAgentBase Pattern (Universal Base)
 
 ```python
 # PRODUCTION STANDARD: All agents inherit from StandardizedAgentBase
@@ -90,10 +128,32 @@ class OracleAgent(StandardizedAgentBase):
         pass
 ```
 
-#### **Service Agents (Tool-Focused)**
+#### **Service Agents (Dual Template Options)**
+
+**Option A: ADKServiceAgent (Tier 3 - MCP/Database Focus)**
 ```python
-class ServiceAgent(StandardizedAgentBase):
-    """Service agent focused on specific tool utilization."""
+from a2a_mcp.agents.adk_service_agent import ADKServiceAgent
+
+class MCPServiceAgent(ADKServiceAgent):
+    """MCP-focused service agent for direct tool integration."""
+    
+    def __init__(self, service_domain: str):
+        super().__init__(
+            agent_name=f"{service_domain} Service Agent",
+            description=f"{service_domain} MCP tool coordination",
+            instructions=f"You are a {service_domain} service agent focused on tool execution...",
+            a2a_enabled=True,
+            quality_domain=QualityDomain.SERVICE
+        )
+    
+    # Inherits stream() method with built-in MCP tool integration
+    # Optimized for database queries and direct service delivery
+```
+
+**Option B: StandardizedAgentBase (Tier 3 - Full Framework Features)**
+```python
+class AdvancedServiceAgent(StandardizedAgentBase):
+    """Service agent with full framework capabilities."""
     
     def __init__(self, service_domain: str):
         super().__init__(

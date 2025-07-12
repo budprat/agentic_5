@@ -4,7 +4,7 @@
   "tier": 1,
   "port": 10001,
   "description": "Master orchestrator agent responsible for high-level coordination, strategic planning, and delegation across the agent hierarchy",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "capabilities": [
     "strategic_planning",
     "task_decomposition",

@@ -95,14 +95,8 @@ class ADKServiceAgent(BaseAgent):
             quality_config: Quality threshold configuration for response validation
             quality_domain: Quality validation domain type (SERVICE, BUSINESS, ACADEMIC)
         """
-        # Issue deprecation warning
-        warnings.warn(
-            f"ADKServiceAgent is deprecated and will be removed in v3.0. "
-            f"Please use StandardizedAgentBase instead. "
-            f"See migration guide at docs/ADKSERVICEAGENT_MIGRATION.md",
-            DeprecationWarning,
-            stacklevel=2
-        )
+        # Framework V2.0: ADKServiceAgent is a valid Tier 3 template for MCP/Database agents
+        # Use alongside StandardizedAgentBase based on specific use case requirements
         
         init_api_key()
 
