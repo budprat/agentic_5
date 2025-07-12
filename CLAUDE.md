@@ -280,3 +280,6 @@ When you are using /compact, please focus on our conversation, your most recent 
 - @~/.claude/docs/python.md
 - @~/.claude/docs/source-control.md
 - @~/.claude/docs/using-uv.md
+
+# TypeScript Guidelines
+- You MUST follow the guidelines in •claud/rules/typescript-best-practices.md for all TypeScript code
