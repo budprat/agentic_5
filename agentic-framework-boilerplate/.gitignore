@@ -1,8 +1,18 @@
-# Python
+# ========================================
+# AGENTIC FRAMEWORK BOILERPLATE .gitignore
+# ========================================
+# Comprehensive ignore patterns for multi-agent systems with MCP integration
+
+# ============================================
+# PYTHON & PACKAGE MANAGEMENT
+# ============================================
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
+
+# Distribution / packaging
 .Python
 build/
 develop-eggs/
@@ -16,99 +26,392 @@ parts/
 sdist/
 var/
 wheels/
+pip-wheel-metadata/
+share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
 MANIFEST
 
-# Virtual Environments
-venv/
-ENV/
-env/
-.venv
-.env
+# PyInstaller
+*.manifest
+*.spec
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-.project
-.pydevproject
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
 
-# Testing
+# Unit test / coverage reports
+htmlcov/
 .tox/
+.nox/
 .coverage
 .coverage.*
 .cache
 nosetests.xml
 coverage.xml
 *.cover
+*.py,cover
 .hypothesis/
 .pytest_cache/
-htmlcov/
+cover/
 
-# Logs
-*.log
+# ============================================
+# VIRTUAL ENVIRONMENTS & DEPENDENCIES
+# ============================================
+# Virtualenv
+venv/
+ENV/
+env/
+.venv/
+.ENV/
+.env/
+pyvenv.cfg
+
+# UV package manager
+uv.lock
+.uv/
+
+# Poetry
+poetry.lock
+
+# Pipenv
+Pipfile.lock
+
+# PDM
+.pdm.toml
+.pdm-python
+.pdm-build/
+
+# ============================================
+# ENVIRONMENT & CONFIGURATION
+# ============================================
+# Environment variables and secrets
+.env
+.env.*
+!.env.template
+!.env.example
+*.env
+.envrc
+
+# Configuration files with potential secrets
+config.local.yaml
+config.local.yml
+config.local.json
+*.secret.*
+secrets.yaml
+secrets.yml
+secrets.json
+
+# API keys and tokens
+.api_keys
+.tokens
+*.key
+*.pem
+*.p12
+*.pfx
+
+# ============================================
+# AGENT SYSTEM SPECIFIC
+# ============================================
+# Agent runtime and state files
+agents_runtime/
+agent_state/
+*.agent.pid
+*.agent.state
+agent_*.sock
+
+# Agent communication and protocol files
+a2a_messages/
+protocol_cache/
+message_queue/
+*.a2a.log
+*.a2a.cache
+
+# Agent cards with runtime modifications
+agent_cards/*.runtime.json
+agent_cards/*.temp.json
+
+# Quality framework outputs
+quality_reports/
+validation_reports/
+*.quality.json
+*.validation.log
+
+# ============================================
+# MCP (MODEL CONTEXT PROTOCOL) SPECIFIC
+# ============================================
+# MCP server files
+mcp_server.log*
+mcp_*.log
+.mcp.json
+.mcp_cache/
+mcp_tools_cache/
+
+# MCP tool artifacts
+tools_cache/
+mcp_responses/
+*.mcp.cache
+
+# MCP server runtime
+mcp_server.pid
+mcp_server.sock
+mcp_*.pid
+
+# ============================================
+# LOGS & RUNTIME FILES
+# ============================================
+# Application logs
 logs/
+*.log
 *.log.*
+*.log.gz
+*.log.bz2
+*.out
 
-# Database
+# Runtime process files
+*.pid
+*.sock
+nohup.out
+
+# System logs
+system_*.log
+health_*.log
+monitor_*.log
+
+# Specific agent logs
+oracle_*.log
+tier*_*.log
+master_*.log
+domain_*.log
+service_*.log
+
+# ============================================
+# DATABASES & CACHES
+# ============================================
+# Local databases
 *.db
 *.sqlite
 *.sqlite3
+*.db-journal
 
-# Environment variables
-.env
-.env.local
-.env.*.local
-*.env
+# Cache directories
+cache/
+.cache/
+__cache__/
+*.cache
 
-# OS
+# Temporary data storage
+temp/
+tmp/
+.tmp/
+data/temp/
+data/cache/
+
+# ============================================
+# DEVELOPMENT TOOLS & IDE
+# ============================================
+# VSCode
+.vscode/
+*.code-workspace
+
+# PyCharm
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Vim/Neovim
+*.swp
+*.swo
+*~
+.netrwhist
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# ============================================
+# TESTING & QUALITY ASSURANCE
+# ============================================
+# Test outputs
+test_results/
+test_reports/
+.pytest_cache/
+.testmondata
+
+# Performance testing
+.benchmarks/
+profiling_data/
+performance_*.json
+
+# Security scanning
+.bandit
+.safety
+security_reports/
+
+# Type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pytype/
+
+# Linting
+.pylint.d/
+.ruff_cache/
+
+# ============================================
+# DOCUMENTATION & BUILDS
+# ============================================
+# Sphinx documentation
+docs/_build/
+docs/build/
+site/
+
+# MkDocs
+site/
+
+# Jupyter Book
+_build/
+
+# ============================================
+# OPERATING SYSTEM FILES
+# ============================================
+# macOS
 .DS_Store
 .DS_Store?
 ._*
 .Spotlight-V100
 .Trashes
-ehthumbs.db
+.AppleDouble
+.LSOverride
+
+# Windows
 Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.tmp
+*.lnk
+Desktop.ini
+$RECYCLE.BIN/
 
-# Project specific
-cache/
-temp/
-tmp/
-*.pid
-nohup.out
-*.lock
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
 
-# MCP Server
-mcp_server.log*
-oracle_*.log
-agent_*.log
-*.log.*.gz
-.mcp.json
+# ============================================
+# CONTAINERIZATION & DEPLOYMENT
+# ============================================
+# Docker
+Dockerfile.local
+docker-compose.override.yml
+.dockerignore.local
 
-# Generated files
-*.pyc
-*.pyo
-*.pyd
-.pytest_cache/
-.mypy_cache/
-.dmypy.json
-dmypy.json
+# Kubernetes
+*.kubeconfig
+k8s-local/
 
-# Documentation
-docs/_build/
-site/
+# Deployment artifacts
+deployment/local/
+infrastructure/local/
 
-# Jupyter Notebooks
-.ipynb_checkpoints
+# ============================================
+# CI/CD & AUTOMATION
+# ============================================
+# GitHub Actions local testing
+.github/workflows/local/
 
+# Local CI artifacts
+.ci-local/
+ci_artifacts/
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars
+
+# ============================================
+# BACKUP & TEMPORARY FILES
+# ============================================
 # Backup files
 *.bak
 *.backup
-*~
+*.orig
+*.save
+*.swp
 
-# UV
-uv.lock
+# Temporary files
+.temp/
+.temporary/
+*.temp
+*.temporary
+
+# Archive files (often temporary)
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+*.rar
+*.7z
+
+# ============================================
+# FRAMEWORK SPECIFIC IGNORE PATTERNS
+# ============================================
+# Launch system artifacts
+launch_state/
+process_management/
+health_monitoring/
+
+# Agent registry cache
+.agent_registry_cache
+agent_discovery_cache/
+
+# Protocol testing artifacts
+protocol_test_data/
+a2a_test_messages/
+
+# Framework development
+framework_dev_data/
+boilerplate_test_data/
+
+# Custom MCP tools development
+custom_tools_dev/
+mcp_dev/
+
+# ============================================
+# USER SPECIFIC (SHOULD BE RARE)
+# ============================================
+# Personal configuration
+.personal/
+personal_configs/
+
+# Local development overrides
+local_*
+dev_*
+
+# Custom scripts (that shouldn't be shared)
+my_*
+custom_*
