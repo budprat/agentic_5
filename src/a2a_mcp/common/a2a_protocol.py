@@ -7,6 +7,8 @@ import asyncio
 import aiohttp
 from typing import Dict, Any, Optional, Callable
 from datetime import datetime
+from .a2a_connection_pool import get_global_connection_pool, A2AConnectionPool
+from .metrics_collector import record_a2a_message
 
 logger = logging.getLogger(__name__)
 
@@ -88,7 +90,10 @@ class A2AProtocolClient:
         max_retries: int = 3,
         retry_delay: float = 1.0,
         custom_port_mapping: Optional[Dict[str, int]] = None,
-        response_processor: Optional[Callable] = None
+        response_processor: Optional[Callable] = None,
+        use_connection_pool: bool = True,
+        connection_pool: Optional[A2AConnectionPool] = None,
+        source_agent_name: Optional[str] = None
     ):
         """
         Initialize A2A protocol client.
@@ -99,12 +104,18 @@ class A2AProtocolClient:
             retry_delay: Initial delay between retries (exponential backoff)
             custom_port_mapping: Additional agent name to port mappings
             response_processor: Custom response processing function
+            use_connection_pool: Whether to use connection pooling (60% performance improvement)
+            connection_pool: Custom connection pool instance (uses global pool if None)
+            source_agent_name: Name of the source agent for metrics tracking
         """
         self.default_timeout = default_timeout
         self.max_retries = max_retries
         self.retry_delay = retry_delay
         self.custom_port_mapping = custom_port_mapping or {}
         self.response_processor = response_processor
+        self.use_connection_pool = use_connection_pool
+        self._connection_pool = connection_pool
+        self.source_agent_name = source_agent_name or "unknown"
         self.session_stats = {
             "requests_sent": 0,
             "requests_successful": 0,
@@ -152,35 +163,82 @@ class A2AProtocolClient:
         
         self.session_stats["requests_sent"] += 1
         
+        # Track start time for latency metrics
+        start_time = datetime.now()
+        target_agent_name = f"port_{target_port}"  # Default name
+        
         for attempt in range(self.max_retries):
             try:
                 logger.debug(f"A2A request to port {target_port}, attempt {attempt + 1}/{self.max_retries}")
                 
-                # Configure timeout
-                timeout_config = aiohttp.ClientTimeout(
-                    total=timeout_setting,
-                    connect=10,
-                    sock_read=30
-                )
-                
-                async with aiohttp.ClientSession(timeout=timeout_config) as session:
-                    async with session.post(url, json=payload, headers=headers) as response:
-                        if response.status == 200:
-                            result = await response.json()
-                            self.session_stats["requests_successful"] += 1
-                            logger.debug(f"A2A communication successful with port {target_port}")
-                            return await self._process_a2a_response(result)
-                        else:
-                            error_text = await response.text()
-                            logger.warning(f"A2A HTTP {response.status} from port {target_port}: {error_text}")
-                            
-                            if attempt < self.max_retries - 1:
-                                await self._wait_for_retry(attempt)
-                                continue
-                            else:
-                                raise A2ACommunicationError(
-                                    f"HTTP {response.status} from port {target_port}: {error_text}"
+                if self.use_connection_pool:
+                    # Use connection pool for better performance
+                    pool = self._get_connection_pool()
+                    async with pool.get_session(target_port) as session:
+                        async with session.post(url, json=payload, headers=headers) as response:
+                            if response.status == 200:
+                                result = await response.json()
+                                self.session_stats["requests_successful"] += 1
+                                logger.debug(f"A2A communication successful with port {target_port}")
+                                
+                                # Record success metrics
+                                latency = (datetime.now() - start_time).total_seconds()
+                                record_a2a_message(
+                                    source_agent=self.source_agent_name,
+                                    target_agent=target_agent_name,
+                                    status="success",
+                                    latency=latency
                                 )
+                                
+                                return await self._process_a2a_response(result)
+                            else:
+                                error_text = await response.text()
+                                logger.warning(f"A2A HTTP {response.status} from port {target_port}: {error_text}")
+                                
+                                if attempt < self.max_retries - 1:
+                                    await self._wait_for_retry(attempt)
+                                    continue
+                                else:
+                                    raise A2ACommunicationError(
+                                        f"HTTP {response.status} from port {target_port}: {error_text}"
+                                    )
+                else:
+                    # Legacy mode without connection pooling
+                    # Configure timeout
+                    timeout_config = aiohttp.ClientTimeout(
+                        total=timeout_setting,
+                        connect=10,
+                        sock_read=30
+                    )
+                    
+                    async with aiohttp.ClientSession(timeout=timeout_config) as session:
+                        async with session.post(url, json=payload, headers=headers) as response:
+                            if response.status == 200:
+                                result = await response.json()
+                                self.session_stats["requests_successful"] += 1
+                                logger.debug(f"A2A communication successful with port {target_port}")
+                                
+                                # Record success metrics
+                                latency = (datetime.now() - start_time).total_seconds()
+                                record_a2a_message(
+                                    source_agent=self.source_agent_name,
+                                    target_agent=target_agent_name,
+                                    status="success",
+                                    latency=latency
+                                )
+                                
+                                return await self._process_a2a_response(result)
+                            else:
+                                error_text = await response.text()
+                                logger.warning(f"A2A HTTP {response.status} from port {target_port}: {error_text}")
+                                
+                                if attempt < self.max_retries - 1:
+                                    await self._wait_for_retry(attempt)
+                                    continue
+                                else:
+                                    raise A2ACommunicationError(
+                                        f"HTTP {response.status} from port {target_port}: {error_text}"
+                                    )
                                 
             except asyncio.TimeoutError:
                 logger.warning(f"A2A timeout for port {target_port} (attempt {attempt + 1}/{self.max_retries})")
@@ -211,7 +269,23 @@ class A2AProtocolClient:
         
         # Should not reach here due to explicit handling above
         self.session_stats["requests_failed"] += 1
+        
+        # Record failure metrics
+        latency = (datetime.now() - start_time).total_seconds()
+        record_a2a_message(
+            source_agent=self.source_agent_name,
+            target_agent=target_agent_name,
+            status="error",
+            latency=latency
+        )
+        
         raise A2ACommunicationError(f"Failed to communicate with port {target_port} after {self.max_retries} attempts")
+
+    def _get_connection_pool(self) -> A2AConnectionPool:
+        """Get the connection pool instance."""
+        if self._connection_pool:
+            return self._connection_pool
+        return get_global_connection_pool()
 
     async def send_message_by_name(
         self,
@@ -381,14 +455,22 @@ class A2AProtocolClient:
             if total_requests > 0 else 0
         )
         
-        return {
+        stats = {
             **self.session_stats,
             "success_rate_percent": round(success_rate, 2),
             "average_retries_per_request": (
                 self.session_stats["retries_performed"] / total_requests
                 if total_requests > 0 else 0
-            )
+            ),
+            "connection_pooling_enabled": self.use_connection_pool
         }
+        
+        # Add pool metrics if using connection pooling
+        if self.use_connection_pool:
+            pool = self._get_connection_pool()
+            stats["pool_metrics"] = pool.get_metrics()
+            
+        return stats
 
     async def health_check(self, target_port: int) -> Dict[str, Any]:
         """

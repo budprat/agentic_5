@@ -1,0 +1,115 @@
+# Framework V2.0 Configuration
+# This file defines the default configuration for the A2A-MCP Framework
+
+framework_version: "2.0"
+environment: "development"  # Options: development, staging, production
+log_level: "INFO"          # Options: DEBUG, INFO, WARNING, ERROR
+
+# MCP Server Configuration
+mcp_server:
+  host: "localhost"
+  port: 10099
+  transport: "sse"
+
+# A2A Connection Pool Configuration
+connection_pool:
+  enabled: true
+  max_connections_per_host: 10
+  max_keepalive_connections: 5
+  keepalive_timeout: 30
+  connection_timeout: 10
+  total_timeout: 60
+  health_check_interval: 300  # 5 minutes
+  cleanup_interval: 600       # 10 minutes
+
+# Quality Framework Configuration
+quality:
+  domain: "GENERIC"
+  validation_enabled: true
+  strict_mode: false
+  thresholds:
+    accuracy: 0.8
+    completeness: 0.9
+    relevance: 0.85
+
+# Metrics Configuration (Prometheus)
+metrics:
+  enabled: false
+  prometheus_port: 9090
+  export_interval: 30
+  include_system_metrics: true
+  custom_labels:
+    framework: "a2a-mcp"
+    version: "2.0"
+
+# Directory Paths
+agent_cards_dir: "agent_cards"
+config_dir: "configs"
+logs_dir: "logs"
+
+# Feature Flags
+features:
+  response_formatting_v2: true
+  connection_pooling: true
+  quality_validation: true
+  prometheus_metrics: false
+  advanced_routing: false
+
+# Agent Configurations
+# Define your agents here with their specific settings
+agents:
+  # Example Tier 1 Orchestrator
+  master_orchestrator:
+    name: "Master Orchestrator"
+    port: 10100
+    tier: 1
+    description: "Primary orchestration agent for multi-agent coordination"
+    quality_domain: "BUSINESS"
+    temperature: 0.1
+    model: "gemini-2.0-flash"
+    mcp_tools_enabled: true
+    a2a_enabled: true
+    capabilities:
+      - "orchestration"
+      - "task_delegation"
+      - "response_aggregation"
+
+  # Example Tier 2 Domain Specialist
+  technical_specialist:
+    name: "Technical Domain Specialist"
+    port: 10201
+    tier: 2
+    description: "Handles technical analysis and implementation tasks"
+    quality_domain: "SERVICE"
+    temperature: 0.0
+    model: "gemini-2.0-flash"
+    mcp_tools_enabled: true
+    a2a_enabled: true
+    capabilities:
+      - "code_analysis"
+      - "architecture_design"
+      - "technical_documentation"
+
+  # Example Tier 3 Service Agent
+  code_analyzer:
+    name: "Code Analysis Service"
+    port: 10901
+    tier: 3
+    description: "Performs detailed code analysis and quality checks"
+    quality_domain: "SERVICE"
+    temperature: 0.0
+    model: "gemini-2.0-flash"
+    mcp_tools_enabled: true
+    a2a_enabled: true
+    capabilities:
+      - "static_analysis"
+      - "complexity_metrics"
+      - "dependency_analysis"
+
+# Environment Variable Override Examples:
+# A2A_MCP_LOG_LEVEL=DEBUG
+# A2A_MCP_ENVIRONMENT=production
+# A2A_MCP_MCP_SERVER_PORT=10100
+# A2A_MCP_CONNECTION_POOL_ENABLED=true
+# A2A_MCP_METRICS_ENABLED=true
+# A2A_MCP_FEATURES='{"prometheus_metrics": true}'

@@ -289,51 +289,40 @@ class ADKServiceAgent(BaseAgent):
             data = self.format_response(chunk)
             logger.info(f'Formatted response: {data}')
             
-            if isinstance(data, dict):
-                # Handle structured responses
-                if 'status' in data and data['status'] == 'input_required':
-                    # Interactive mode - requires user input
-                    return {
-                        'response_type': 'text',
-                        'is_task_complete': False,
-                        'require_user_input': True,
-                        'content': data['question'],
-                    }
-                else:
-                    # Data mode - structured output
-                    return {
-                        'response_type': 'data',
-                        'is_task_complete': True,
-                        'require_user_input': False,
-                        'content': data,
-                    }
-            else:
-                # Handle text responses
-                response_type = 'data'
-                try:
-                    # Try to parse text as JSON
-                    data = json.loads(data)
-                    response_type = 'data'
-                except Exception as json_e:
-                    logger.debug(f'JSON conversion failed: {json_e}')
-                    response_type = 'text'
-                    
-                return {
-                    'response_type': response_type,
-                    'is_task_complete': True,
-                    'require_user_input': False,
-                    'content': data,
-                }
+            # Detect interactive mode
+            is_interactive = ResponseFormatter.detect_interactive_mode(data)
+            
+            # Create standardized response using ResponseFormatter
+            response = ResponseFormatter.standardize_response_format(
+                content=data,
+                is_interactive=is_interactive,
+                is_complete=not is_interactive,
+                agent_name=self.agent_name
+            )
+            
+            # Apply quality validation if enabled and task is complete
+            if response.get('is_task_complete', False) and self.quality_framework.is_enabled():
+                # Note: Original query not available in this method signature
+                # Quality validation could be enhanced by passing query through stream method
+                quality_result = self.quality_framework.validate_response_sync(
+                    response.get('content', {}), ""
+                )
+                response['quality_metadata'] = quality_result
+            
+            # Update last successful operation timestamp
+            self.last_successful_operation = datetime.now().isoformat()
+            
+            return response
                 
         except Exception as e:
             # Error handling with graceful degradation
             logger.error(f'Error in get_agent_response: {e}')
-            return {
-                'response_type': 'text',
-                'is_task_complete': True,
-                'require_user_input': False,
-                'content': 'Could not complete the requested task. Please try again.',
-            }
+            return create_agent_error(
+                error_message='Could not complete the requested task. Please try again.',
+                agent_name=self.agent_name,
+                error_type='processing',
+                context={'error': str(e)}
+            )
     
     async def communicate_with_agent(
         self, target_agent_port: int, message: str, metadata: Optional[Dict] = None
