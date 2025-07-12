@@ -1,4 +1,4 @@
-# ABOUTME: Database Query Service - Tier 3 Service Agent for data tool operations  
+# ABOUTME: Generic Data Service - Tier 3 Service Agent for data tool operations  
 # ABOUTME: Uses ADKServiceAgent for streamlined MCP tool integration and database queries
 
 from a2a_mcp.common.adk_service_agent import ADKServiceAgent
@@ -7,7 +7,7 @@ from a2a_mcp.common.quality_framework import QualityDomain
 
 class DataServiceAgent(ADKServiceAgent):
     """
-    Database Query Service - Service agent for data tool operations.
+    Generic Data Service - Service agent for data tool operations.
     
     Framework V2.0 Tier 3 agent using ADKServiceAgent template for efficient
     MCP tool integration and database operations.
@@ -16,7 +16,7 @@ class DataServiceAgent(ADKServiceAgent):
     def __init__(self):
         # Data-specific service instructions
         instructions = f"""
-You are a Database Query Service, specialized in executing data service operations and tool coordination.
+You are a Generic Data Service, specialized in executing data service operations and tool coordination.
 
 Your responsibilities:
 - Execute specific data tasks efficiently
@@ -37,7 +37,7 @@ Focus on reliable execution and clear communication of results.
 """
         
         super().__init__(
-            agent_name="Database Query Service",
+            agent_name="Generic Data Service",
             description=f"Service agent for data tool operations and data processing",
             instructions=instructions,
             temperature=0.1,  # Low temperature for consistent service execution
@@ -46,7 +46,7 @@ Focus on reliable execution and clear communication of results.
         )
 
 
-# Port assignment for data service: 10300
+# Port assignment for data service: 10350
 if __name__ == "__main__":
     import asyncio
     

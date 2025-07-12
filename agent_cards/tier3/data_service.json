@@ -1,8 +1,8 @@
 {
-  "name": "Database Query Service",
+  "name": "Generic Data Service",
   "type": "service",
   "tier": 3,
-  "port": 10300,
+  "port": 10350,
   "description": "Service agent for data tool operations and data processing",
   "version": "2.0.0",
   "capabilities": [

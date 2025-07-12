@@ -21,7 +21,7 @@ from a2a_mcp.common.a2a_protocol import A2AProtocolClient, A2A_AGENT_PORTS
 from a2a_mcp.common.quality_framework import QualityThresholdFramework, QualityDomain
 from a2a_mcp.common.agent_runner import AgentRunner
 from a2a_mcp.common.utils import get_mcp_server_config, init_api_key
-from a2a_mcp.types import TaskList, GenericTask
+from a2a_mcp.common.types import TaskList, GenericTask
 from a2a_mcp.common.parallel_workflow import (
     ParallelWorkflowGraph, 
     ParallelWorkflowNode,

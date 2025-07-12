@@ -6,7 +6,7 @@ from typing import Optional, Any
 
 from a2a_mcp.server.events import EventQueue
 from a2a_mcp.server.tasks import TaskUpdater
-from a2a_mcp.types import (
+from a2a_mcp.common.types import (
     DataPart,
     InvalidParamsError,
     SendStreamingMessageSuccessResponse,

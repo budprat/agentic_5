@@ -5,7 +5,7 @@ import logging
 from typing import List, Any, Optional
 from datetime import datetime
 
-from a2a_mcp.types import (
+from a2a_mcp.common.types import (
     TaskState,
     TaskStatusUpdateEvent,
     TaskArtifactUpdateEvent,

@@ -5,7 +5,7 @@ import uuid
 from datetime import datetime
 from typing import Any, Optional
 
-from a2a_mcp.types import Task, TaskState, Message, TextPart
+from a2a_mcp.common.types import Task, TaskState, Message, TextPart
 
 
 def new_task(message: Any) -> Task:
