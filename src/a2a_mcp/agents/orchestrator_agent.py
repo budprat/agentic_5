@@ -8,7 +8,7 @@ from a2a.types import (
     TaskState,
     TaskStatusUpdateEvent,
 )
-from a2a_mcp.common import prompts
+# Removed prompts import - using configurable prompts instead
 from a2a_mcp.common.base_agent import BaseAgent
 from a2a_mcp.common.utils import init_api_key
 from a2a_mcp.common.workflow import Status, WorkflowGraph, WorkflowNode
@@ -31,16 +31,46 @@ class OrchestratorAgent(BaseAgent):
         )
         self.graph = None
         self.results = []
-        self.travel_context = {}
+        self.domain_context = {}
         self.query_history = []
         self.context_id = None
+
+    def get_summary_prompt(self) -> str:
+        """Get domain-configurable summary prompt."""
+        return """
+        Based on the following data: {domain_data}
+        
+        Generate a comprehensive summary of the completed workflow and results.
+        Focus on:
+        1. What was accomplished
+        2. Key outcomes and decisions
+        3. Any important details or insights
+        
+        Provide a clear, concise summary that captures the essential information.
+        """
+
+    def get_qa_prompt(self) -> str:
+        """Get domain-configurable Q&A prompt."""
+        return """
+        Context: {DOMAIN_CONTEXT}
+        Conversation History: {CONVERSATION_HISTORY}
+        Question: {DOMAIN_QUESTION}
+        
+        Based on the provided context and conversation history, determine if you can answer the question.
+        
+        Respond in this JSON format:
+        {{
+            "can_answer": "yes" or "no",
+            "answer": "your answer if can_answer is yes, otherwise explain why you cannot answer"
+        }}
+        """
 
     async def generate_summary(self) -> str:
         client = genai.Client()
         response = client.models.generate_content(
             model=os.getenv('GEMINI_MODEL', 'gemini-2.0-flash-001'),
-            contents=prompts.SUMMARY_COT_INSTRUCTIONS.replace(
-                "{travel_data}", str(self.results)
+            contents=self.get_summary_prompt().replace(
+                "{domain_data}", str(self.results)
             ),
             config={"temperature": 0.0},
         )
@@ -51,11 +81,11 @@ class OrchestratorAgent(BaseAgent):
             client = genai.Client()
             response = client.models.generate_content(
                 model=os.getenv('GEMINI_MODEL', 'gemini-2.0-flash-001'),
-                contents=prompts.QA_COT_PROMPT.replace(
-                    "{TRIP_CONTEXT}", str(self.travel_context)
+                contents=self.get_qa_prompt().replace(
+                    "{DOMAIN_CONTEXT}", str(self.domain_context)
                 )
                 .replace("{CONVERSATION_HISTORY}", str(self.query_history))
-                .replace("{TRIP_QUESTION}", question),
+                .replace("{DOMAIN_QUESTION}", question),
                 config={
                     "temperature": 0.0,
                     "response_mime_type": "application/json",
@@ -101,7 +131,7 @@ class OrchestratorAgent(BaseAgent):
     def clear_state(self):
         self.graph = None
         self.results.clear()
-        self.travel_context.clear()
+        self.domain_context.clear()
         self.query_history.clear()
 
     async def stream(
@@ -198,8 +228,8 @@ class OrchestratorAgent(BaseAgent):
                         if artifact.name == "PlannerAgent-result":
                             # Planning agent returned data, update graph.
                             artifact_data = artifact.parts[0].root.data
-                            if "trip_info" in artifact_data:
-                                self.travel_context = artifact_data["trip_info"]
+                            if "domain_info" in artifact_data:
+                                self.domain_context = artifact_data["domain_info"]
                             logger.info(
                                 f"Updating workflow with {len(artifact_data['tasks'])} task nodes"
                             )

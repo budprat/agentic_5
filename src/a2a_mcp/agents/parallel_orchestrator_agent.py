@@ -10,7 +10,7 @@ from a2a.types import (
     TaskState,
     TaskStatusUpdateEvent,
 )
-from a2a_mcp.common import prompts
+# Removed prompts import - using configurable prompts instead
 from a2a_mcp.common.base_agent import BaseAgent
 from a2a_mcp.common.utils import init_api_key
 from a2a_mcp.common.parallel_workflow import (
@@ -36,17 +36,54 @@ class ParallelOrchestratorAgent(BaseAgent):
         )
         self.graph = None
         self.results = []
-        self.travel_context = {}
+        self.domain_context = {}
         self.query_history = []
         self.context_id = None
         self.enable_parallel = True  # Feature flag for parallel execution
+        self.task_categories = {  # Configurable task categories
+            "category_a": [],
+            "category_b": [],
+            "category_c": [],
+            "other": []
+        }
+
+    def get_summary_prompt(self) -> str:
+        \"\"\"Get domain-configurable summary prompt.\"\"\"
+        return \"\"\"
+        Based on the following data: {domain_data}
+        
+        Generate a comprehensive summary of the completed parallel workflow and results.
+        Focus on:
+        1. What was accomplished across parallel tasks
+        2. Key outcomes and decisions from each task group
+        3. Any important details or insights
+        4. How parallel execution improved efficiency
+        
+        Provide a clear, concise summary that captures the essential information.
+        \"\"\"
+
+    def get_qa_prompt(self) -> str:
+        \"\"\"Get domain-configurable Q&A prompt.\"\"\"
+        return \"\"\"
+        Context: {DOMAIN_CONTEXT}
+        Conversation History: {CONVERSATION_HISTORY}
+        Question: {DOMAIN_QUESTION}
+        
+        Based on the provided context and conversation history, determine if you can answer the question.
+        
+        Respond in this JSON format:
+        {{
+            \"can_answer\": \"yes\" or \"no\",
+            \"answer\": \"your answer if can_answer is yes, otherwise explain why you cannot answer\"
+        }}
+        \"\"\"
 
     async def generate_summary(self) -> str:
         client = genai.Client()
         response = client.models.generate_content(
             model=os.getenv('GEMINI_MODEL', 'gemini-2.0-flash-001'),
-            contents=prompts.SUMMARY_COT_INSTRUCTIONS.replace(
-                "{travel_data}", str(self.results)
+            contents=self.get_summary_prompt().replace(
+                "{domain_data}", str(self.results)
             ),
             config={"temperature": 0.0},
         )
@@ -57,11 +94,11 @@ class ParallelOrchestratorAgent(BaseAgent):
             client = genai.Client()
             response = client.models.generate_content(
                 model=os.getenv('GEMINI_MODEL', 'gemini-2.0-flash-001'),
-                contents=prompts.QA_COT_PROMPT.replace(
-                    "{TRIP_CONTEXT}", str(self.travel_context)
+                contents=self.get_qa_prompt().replace(
+                    "{DOMAIN_CONTEXT}", str(self.domain_context)
                 )
                 .replace("{CONVERSATION_HISTORY}", str(self.query_history))
-                .replace("{TRIP_QUESTION}", question),
+                .replace("{DOMAIN_QUESTION}", question),
                 config={
                     "temperature": 0.0,
                     "response_mime_type": "application/json",
@@ -106,24 +143,13 @@ class ParallelOrchestratorAgent(BaseAgent):
 
     def analyze_task_dependencies(self, tasks: list[dict]) -> dict[str, list[str]]:
         """Analyze tasks to identify dependencies and parallel opportunities."""
-        # Simple heuristic: tasks for different services can run in parallel
-        task_groups = {
-            "flights": [],
-            "hotels": [],
-            "cars": [],
-            "other": []
-        }
+        # Simple heuristic: tasks for different categories can run in parallel
+        task_groups = self.task_categories.copy()
         
         for idx, task in enumerate(tasks):
             desc = task.get("description", "").lower()
-            if "flight" in desc or "air" in desc:
-                task_groups["flights"].append(idx)
-            elif "hotel" in desc or "accommodation" in desc:
-                task_groups["hotels"].append(idx)
-            elif "car" in desc or "rental" in desc:
-                task_groups["cars"].append(idx)
-            else:
-                task_groups["other"].append(idx)
+            # Generic categorization - override in domain-specific implementations
+            task_groups["other"].append(idx)
         
         # Log parallel execution opportunities
         parallel_count = sum(1 for group in task_groups.values() if len(group) > 0)
@@ -135,7 +161,7 @@ class ParallelOrchestratorAgent(BaseAgent):
     def clear_state(self):
         self.graph = None
         self.results.clear()
-        self.travel_context.clear()
+        self.domain_context.clear()
         self.query_history.clear()
 
     async def stream(

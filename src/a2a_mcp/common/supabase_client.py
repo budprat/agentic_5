@@ -1,7 +1,7 @@
-"""Supabase client configuration for Market Oracle."""
+"""Generic Supabase client for A2A-MCP framework."""
 
 import os
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from supabase import create_client, Client
 from dotenv import load_dotenv
 
@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class SupabaseClient:
-    """Singleton Supabase client for Market Oracle."""
+    """Generic Supabase client for A2A-MCP framework."""
     
     _instance: Optional[Client] = None
     
@@ -40,261 +40,65 @@ class SupabaseClient:
         # This is a placeholder - actual implementation depends on query type
         pass
     
-    # Add instance methods for easier use
+    # Generic database operations
     def __init__(self):
         """Initialize with client."""
         self.client = self.get_client()
         
-    async def get_portfolios(self, user_id: str, limit: int = 10) -> list:
-        """Get portfolios for a user."""
-        response = self.client.table('portfolios').select("*").eq('user_id', user_id).limit(limit).execute()
+    async def select_records(self, table: str, filters: Optional[Dict[str, Any]] = None, 
+                           limit: Optional[int] = None, order_by: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Generic select records from table."""
+        query = self.client.table(table).select("*")
+        
+        if filters:
+            for field, value in filters.items():
+                query = query.eq(field, value)
+        
+        if order_by:
+            query = query.order(order_by, desc=True)
+            
+        if limit:
+            query = query.limit(limit)
+            
+        response = query.execute()
         return response.data
         
-    async def get_positions(self, portfolio_id: str) -> list:
-        """Get positions for a portfolio."""
-        response = self.client.table('positions').select("*").eq('portfolio_id', portfolio_id).is_('exit_date', 'null').execute()
-        return response.data
-        
-    async def get_latest_signals(self, limit: int = 10) -> list:
-        """Get latest trading signals."""
-        response = self.client.table('trading_signals').select("*").order('created_at', desc=True).limit(limit).execute()
-        return response.data
-    
-    # Portfolio operations
-    @classmethod
-    async def create_portfolio(cls, user_id: str, total_value: float, cash_balance: float) -> Dict[str, Any]:
-        """Create a new portfolio."""
-        client = cls.get_client()
-        
-        data = {
-            'user_id': user_id,
-            'total_value': total_value,
-            'cash_balance': cash_balance
-        }
-        
-        response = client.table('portfolios').insert(data).execute()
+    async def insert_record(self, table: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Generic insert record into table."""
+        response = self.client.table(table).insert(data).execute()
         return response.data[0] if response.data else None
-    
-    @classmethod
-    async def get_portfolio(cls, portfolio_id: str) -> Dict[str, Any]:
-        """Get portfolio by ID."""
-        client = cls.get_client()
         
-        response = client.table('portfolios').select("*").eq('id', portfolio_id).execute()
+    async def update_record(self, table: str, record_id: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Generic update record in table."""
+        response = self.client.table(table).update(data).eq('id', record_id).execute()
         return response.data[0] if response.data else None
+        
+    async def delete_record(self, table: str, record_id: str) -> bool:
+        """Generic delete record from table."""
+        response = self.client.table(table).delete().eq('id', record_id).execute()
+        return len(response.data) > 0
     
-    # Position operations
-    @classmethod
-    async def create_position(cls, portfolio_id: str, symbol: str, quantity: int, 
-                            entry_price: float, position_type: str = 'long') -> Dict[str, Any]:
-        """Create a new position."""
-        client = cls.get_client()
+    async def count_records(self, table: str, filters: Optional[Dict[str, Any]] = None) -> int:
+        """Generic count records in table."""
+        query = self.client.table(table).select("id", count="exact")
         
-        data = {
-            'portfolio_id': portfolio_id,
-            'symbol': symbol,
-            'quantity': quantity,
-            'entry_price': entry_price,
-            'current_price': entry_price,
-            'position_type': position_type
-        }
-        
-        response = client.table('positions').insert(data).execute()
-        return response.data[0] if response.data else None
+        if filters:
+            for field, value in filters.items():
+                query = query.eq(field, value)
+                
+        response = query.execute()
+        return response.count
     
-    @classmethod
-    async def get_positions(cls, portfolio_id: str) -> list:
-        """Get all positions for a portfolio."""
-        client = cls.get_client()
-        
-        response = client.table('positions').select("*").eq('portfolio_id', portfolio_id).execute()
-        return response.data or []
+    # Helper methods for common patterns
+    async def get_user_records(self, table: str, user_id: str, limit: int = 10) -> List[Dict[str, Any]]:
+        """Get records belonging to a specific user."""
+        return await self.select_records(table, {"user_id": user_id}, limit=limit)
     
-    # Trading signal operations
-    @classmethod
-    async def create_trading_signal(cls, symbol: str, signal_type: str, 
-                                  confidence_score: float, agent_name: str, 
-                                  reasoning: str) -> Dict[str, Any]:
-        """Create a trading signal."""
-        client = cls.get_client()
-        
-        data = {
-            'symbol': symbol,
-            'signal_type': signal_type,
-            'confidence_score': confidence_score,
-            'agent_name': agent_name,
-            'reasoning': reasoning
-        }
-        
-        response = client.table('trading_signals').insert(data).execute()
-        return response.data[0] if response.data else None
+    async def get_recent_records(self, table: str, limit: int = 10, created_field: str = "created_at") -> List[Dict[str, Any]]:
+        """Get most recent records from table."""
+        return await self.select_records(table, limit=limit, order_by=created_field)
     
-    @classmethod
-    async def get_latest_signals(cls, symbol: str, limit: int = 10) -> list:
-        """Get latest trading signals for a symbol."""
-        client = cls.get_client()
-        
-        response = (client.table('trading_signals')
-                   .select("*")
-                   .eq('symbol', symbol)
-                   .order('created_at', desc=True)
-                   .limit(limit)
-                   .execute())
-        return response.data or []
-    
-    # Sentiment data operations
-    @classmethod
-    async def create_sentiment_data(cls, symbol: str, source: str, 
-                                  sentiment_score: float, volume_score: int) -> Dict[str, Any]:
-        """Create sentiment data entry."""
-        client = cls.get_client()
-        
-        data = {
-            'symbol': symbol,
-            'source': source,
-            'sentiment_score': sentiment_score,
-            'volume_score': volume_score
-        }
-        
-        response = client.table('sentiment_data').insert(data).execute()
-        return response.data[0] if response.data else None
-    
-    @classmethod
-    async def get_sentiment_summary(cls, symbol: str, hours: int = 24) -> Dict[str, Any]:
-        """Get sentiment summary for a symbol over specified hours."""
-        client = cls.get_client()
-        
-        # This would ideally be a PostgreSQL function for better performance
-        # For now, fetch recent data and compute in Python
-        response = (client.table('sentiment_data')
-                   .select("*")
-                   .eq('symbol', symbol)
-                   .gte('timestamp', f'now() - interval \'{hours} hours\'')
-                   .execute())
-        
-        data = response.data or []
-        
-        if not data:
-            return {'avg_sentiment': 0, 'total_volume': 0, 'data_points': 0}
-        
-        avg_sentiment = sum(d['sentiment_score'] for d in data) / len(data)
-        total_volume = sum(d['volume_score'] for d in data)
-        
-        return {
-            'avg_sentiment': avg_sentiment,
-            'total_volume': total_volume,
-            'data_points': len(data)
-        }
-    
-    # Agent analysis operations
-    @classmethod
-    async def save_agent_analysis(cls, data: Dict[str, Any]) -> Dict[str, Any]:
-        """Save generic agent analysis data."""
-        client = cls.get_client()
-        
-        # Map to appropriate table based on analysis type
-        analysis_type = data.get('analysis_type', 'general')
-        
-        if analysis_type == 'sentiment':
-            # Save to sentiment_data table
-            sentiment_data = {
-                'symbol': data.get('symbol'),
-                'source': data.get('agent_name', 'unknown'),
-                'sentiment_score': data.get('sentiment_score', 0),
-                'volume_score': data.get('volume_score', 0)
-            }
-            response = client.table('sentiment_data').insert(sentiment_data).execute()
-            
-        elif analysis_type == 'investment_research':
-            # Save to investment_research table
-            await cls.save_investment_research(data)
-            return data
-            
-        elif analysis_type == 'trading_signal':
-            # Save to trading_signals table
-            signal_data = {
-                'symbol': data.get('symbol'),
-                'signal_type': data.get('signal_type', 'ANALYSIS'),
-                'action': data.get('action', 'HOLD'),
-                'confidence': data.get('confidence', 0.5),
-                'metadata': data.get('metadata', {})
-            }
-            response = client.table('trading_signals').insert(signal_data).execute()
-            
-        else:
-            # Save to a generic agent_interactions table if it exists
-            # For now, just return the data
-            return data
-            
-        return response.data[0] if response and response.data else data
-    
-    # Investment research operations
-    @classmethod
-    async def create_research(cls, symbol: str, thesis_summary: str, 
-                            target_price: float, confidence_level: str,
-                            fundamental_score: float, technical_score: float,
-                            sentiment_score: float) -> Dict[str, Any]:
-        """Create investment research entry."""
-        client = cls.get_client()
-        
-        # Ensure all numeric values are properly typed
-        def safe_float(value, default=0.0):
-            """Safely convert value to float."""
-            if value is None:
-                return default
-            if isinstance(value, (int, float)):
-                return float(value)
-            if isinstance(value, str):
-                if value.lower() in ['n/a', 'na', 'none', '']:
-                    return default
-                try:
-                    return float(value.replace('$', '').replace(',', '').replace('%', ''))
-                except ValueError:
-                    return default
-            return default
-            
-        data = {
-            'symbol': symbol,
-            'thesis_summary': thesis_summary,
-            'target_price': safe_float(target_price),
-            'confidence_level': confidence_level,
-            'fundamental_score': safe_float(fundamental_score, 0.5),
-            'technical_score': safe_float(technical_score, 0.5),
-            'sentiment_score': safe_float(sentiment_score, 0.0)
-        }
-        
-        response = client.table('investment_research').insert(data).execute()
-        return response.data[0] if response.data else None
-    
-    @classmethod
-    async def get_latest_research(cls, symbol: str) -> Optional[Dict[str, Any]]:
-        """Get latest research for a symbol."""
-        client = cls.get_client()
-        
-        response = (client.table('investment_research')
-                   .select("*")
-                   .eq('symbol', symbol)
-                   .order('created_at', desc=True)
-                   .limit(1)
-                   .execute())
-        
-        return response.data[0] if response.data else None
-    
-    # Risk metrics operations
-    @classmethod
-    async def create_risk_metrics(cls, portfolio_id: str, var_95: float,
-                                sharpe_ratio: float, max_drawdown: float,
-                                correlation_score: float) -> Dict[str, Any]:
-        """Create risk metrics entry."""
-        client = cls.get_client()
-        
-        data = {
-            'portfolio_id': portfolio_id,
-            'var_95': var_95,
-            'sharpe_ratio': sharpe_ratio,
-            'max_drawdown': max_drawdown,
-            'correlation_score': correlation_score
-        }
-        
-        response = client.table('risk_metrics').insert(data).execute()
-        return response.data[0] if response.data else None
+    async def search_records(self, table: str, search_field: str, search_term: str, limit: int = 10) -> List[Dict[str, Any]]:
+        """Search records by field containing term."""
+        # Note: This uses simple equality - for text search you might need PostgreSQL full-text search
+        return await self.select_records(table, {search_field: search_term}, limit=limit)
