@@ -1,31 +1,23 @@
 {
   "name": "ExampleAgent",
-  "type": "general",
-  "description": "A general-purpose example agent demonstrating the agent card structure",
-  "version": "1.0.0",
+  "type": "service",
+  "version": "2.0.0",
+  "description": "Example agent demonstrating Framework V2.0 with Starlette architecture",
+  "port": 10001,
   "capabilities": [
-    "task_planning",
-    "information_retrieval",
-    "basic_reasoning"
+    "example_processing",
+    "demo_responses",
+    "test_streaming"
   ],
-  "required_tools": [
-    "search",
-    "calculate",
-    "summarize"
-  ],
-  "configuration": {
-    "model": "gpt-4",
+  "instructions": "You are an example agent demonstrating the Framework V2.0 capabilities. You can process simple requests and return structured responses.",
+  "config": {
     "temperature": 0.7,
-    "max_tokens": 2000
+    "max_tokens": 2048,
+    "response_format": "json"
   },
   "metadata": {
-    "author": "Framework Team",
-    "created": "2024-01-01",
-    "tags": ["example", "general", "demo"]
-  },
-  "interaction_patterns": {
-    "input_format": "natural_language",
-    "output_format": "structured_json",
-    "communication_style": "professional"
+    "author": "A2A MCP Framework Team",
+    "created": "2024-01-20",
+    "framework_version": "2.0.0"
   }
 }

@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import re
+import warnings
 
 from collections.abc import AsyncIterable
 from typing import Any, Dict, List, Optional
@@ -14,8 +15,10 @@ from a2a_mcp.common.base_agent import BaseAgent
 from a2a_mcp.common.utils import get_mcp_server_config, init_api_key
 from a2a_mcp.common.a2a_protocol import A2AProtocolClient
 from a2a_mcp.common.quality_framework import QualityThresholdFramework, QualityDomain
+from a2a_mcp.common.response_formatter import ResponseFormatter, create_agent_error
 from google.adk.agents import Agent
-from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, SseServerParams
+from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset
+from google.adk.tools.mcp_tool.mcp_session_manager import SseServerParams
 from google.genai import types as genai_types
 
 
@@ -92,6 +95,15 @@ class ADKServiceAgent(BaseAgent):
             quality_config: Quality threshold configuration for response validation
             quality_domain: Quality validation domain type (SERVICE, BUSINESS, ACADEMIC)
         """
+        # Issue deprecation warning
+        warnings.warn(
+            f"ADKServiceAgent is deprecated and will be removed in v3.0. "
+            f"Please use StandardizedAgentBase instead. "
+            f"See migration guide at docs/ADKSERVICEAGENT_MIGRATION.md",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        
         init_api_key()
 
         super().__init__(
@@ -105,7 +117,7 @@ class ADKServiceAgent(BaseAgent):
         self.instructions = instructions
         self.temperature = temperature
         self.agent = None
-        self.runner = None
+        self.runner = AgentRunner(user_id='user_1', app_name='A2A-MCP')
         
         # Framework V2.0: Quality Framework Integration
         if not quality_config:
@@ -130,6 +142,34 @@ class ADKServiceAgent(BaseAgent):
             logger.info(f'{self.agent_name}: A2A protocol disabled')
         
         logger.info(f'{self.agent_name}: Quality framework enabled for {quality_domain.value} domain')
+    
+    def _get_default_quality_thresholds(self, domain: QualityDomain) -> Dict[str, float]:
+        """Get default quality thresholds based on domain.
+        
+        Args:
+            domain: Quality domain type
+            
+        Returns:
+            Dictionary of threshold values
+        """
+        if domain == QualityDomain.BUSINESS:
+            return {
+                "accuracy": 0.95,
+                "completeness": 0.9,
+                "relevance": 0.9
+            }
+        elif domain == QualityDomain.ACADEMIC:
+            return {
+                "accuracy": 0.98,
+                "completeness": 0.95,
+                "relevance": 0.85
+            }
+        else:  # SERVICE domain
+            return {
+                "accuracy": 0.8,
+                "completeness": 0.85,
+                "relevance": 0.8
+            }
 
     async def init_agent(self):
         """Initialize the ADK agent with MCP tools.
@@ -169,8 +209,6 @@ class ADKServiceAgent(BaseAgent):
             tools=tools,  # MCP tools integrated into ADK agent
         )
         
-        # Initialize agent runner for A2A protocol
-        self.runner = AgentRunner()
         logger.info(f'{self.agent_name} initialization complete')
 
     async def invoke(self, query, session_id) -> dict:
