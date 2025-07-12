@@ -37,7 +37,7 @@ class AgentBoilerplateGenerator:
         code = f'''# ABOUTME: {name} - Tier 1 Master Orchestrator for {domain} domain
 # ABOUTME: Uses MasterOrchestratorTemplate for sophisticated multi-agent coordination
 
-from a2a_mcp.agents.master_orchestrator_template import MasterOrchestratorTemplate
+from a2a_mcp.common.master_orchestrator_template import MasterOrchestratorTemplate
 from a2a_mcp.common.quality_framework import QualityDomain
 
 
@@ -120,7 +120,7 @@ if __name__ == "__main__":
     asyncio.run(main())
 '''
         
-        agent_card = {{
+        agent_card = {
             "name": name,
             "type": "orchestrator", 
             "tier": 1,
@@ -133,20 +133,20 @@ if __name__ == "__main__":
                 "agent_coordination",
                 f"{domain}_expertise"
             ],
-            "metadata": {{
+            "metadata": {
                 "author": "Framework Team",
                 "domain": domain,
                 "tier": 1,
                 "template": "MasterOrchestratorTemplate"
-            }}
-        }}
+            }
+        }
         
-        return {{
+        return {
             "code": code,
             "filename": filename,
             "agent_card": agent_card,
             "card_filename": f"{domain.lower()}_orchestrator.json"
-        }}
+        }
     
     def generate_tier2_specialist(self, name: str, domain: str, port: int) -> Dict[str, str]:
         """Generate Tier 2 Domain Specialist using StandardizedAgentBase."""
@@ -275,7 +275,7 @@ if __name__ == "__main__":
     asyncio.run(main())
 '''
         
-        agent_card = {{
+        agent_card = {
             "name": name,
             "type": "specialist",
             "tier": 2, 
@@ -288,20 +288,20 @@ if __name__ == "__main__":
                 "strategic_planning",
                 "risk_assessment"
             ],
-            "metadata": {{
+            "metadata": {
                 "author": "Framework Team",
                 "domain": domain,
                 "tier": 2,
                 "template": "StandardizedAgentBase"
-            }}
-        }}
+            }
+        }
         
-        return {{
+        return {
             "code": code,
             "filename": filename,
             "agent_card": agent_card,
             "card_filename": f"{domain.lower()}_specialist.json"
-        }}
+        }
     
     def generate_tier3_service(self, name: str, domain: str, port: int, template: str) -> Dict[str, str]:
         """Generate Tier 3 Service Agent using ADKServiceAgent or StandardizedAgentBase."""
@@ -319,7 +319,7 @@ if __name__ == "__main__":
         code = f'''# ABOUTME: {name} - Tier 3 Service Agent for {domain} tool operations  
 # ABOUTME: Uses ADKServiceAgent for streamlined MCP tool integration and database queries
 
-from a2a_mcp.agents.adk_service_agent import ADKServiceAgent
+from a2a_mcp.common.adk_service_agent import ADKServiceAgent
 from a2a_mcp.common.quality_framework import QualityDomain
 
 
@@ -382,7 +382,7 @@ if __name__ == "__main__":
     asyncio.run(main())
 '''
         
-        agent_card = {{
+        agent_card = {
             "name": name,
             "type": "service",
             "tier": 3,
@@ -395,20 +395,20 @@ if __name__ == "__main__":
                 f"{domain}_services",
                 "api_integration"
             ],
-            "metadata": {{
+            "metadata": {
                 "author": "Framework Team", 
                 "domain": domain,
                 "tier": 3,
                 "template": "ADKServiceAgent"
-            }}
-        }}
+            }
+        }
         
-        return {{
+        return {
             "code": code,
             "filename": filename,
             "agent_card": agent_card,
             "card_filename": f"{domain.lower()}_service.json"
-        }}
+        }
     
     def _generate_standardized_service_agent(self, name: str, domain: str, port: int) -> Dict[str, str]:
         """Generate Tier 3 service using StandardizedAgentBase template."""
@@ -541,7 +541,7 @@ if __name__ == "__main__":
     asyncio.run(main())
 '''
         
-        agent_card = {{
+        agent_card = {
             "name": name,
             "type": "service",
             "tier": 3,
@@ -554,20 +554,20 @@ if __name__ == "__main__":
                 f"{domain}_services",
                 "workflow_orchestration"
             ],
-            "metadata": {{
+            "metadata": {
                 "author": "Framework Team",
                 "domain": domain,
                 "tier": 3,
                 "template": "StandardizedAgentBase"
-            }}
-        }}
+            }
+        }
         
-        return {{
+        return {
             "code": code,
             "filename": filename,
             "agent_card": agent_card,
             "card_filename": f"{domain.lower()}_advanced_service.json"
-        }}
+        }
     
     def write_files(self, generated: Dict[str, str], tier: int, domain: str):
         """Write generated code and agent card to appropriate directories."""
@@ -590,15 +590,15 @@ if __name__ == "__main__":
             json.dump(generated["agent_card"], f, indent=2)
         
         print(f"✅ Generated agent files:")
-        print(f"   Code: {{code_path}}")
-        print(f"   Card: {{card_path}}")
+        print(f"   Code: {code_path}")
+        print(f"   Card: {card_path}")
         
         # Provide usage instructions
-        print(f"\\n📝 Usage Instructions:")
+        print(f"\n📝 Usage Instructions:")
         print(f"   1. Review and customize the generated code")
         print(f"   2. Update agent card configuration as needed")
         print(f"   3. Add to your agent registry")
-        print(f"   4. Test with: python {{code_path}}")
+        print(f"   4. Test with: python {code_path}")
 
 
 def main():
@@ -636,10 +636,10 @@ Examples:
     
     generator = AgentBoilerplateGenerator()
     
-    print(f"🚀 Generating Framework V2.0 Tier {{args.tier}} agent...")
-    print(f"   Name: {{args.name}}")
-    print(f"   Domain: {{args.domain}}")
-    print(f"   Port: {{args.port}}")
+    print(f"🚀 Generating Framework V2.0 Tier {args.tier} agent...")
+    print(f"   Name: {args.name}")
+    print(f"   Domain: {args.domain}")
+    print(f"   Port: {args.port}")
     
     if args.tier == 1:
         generated = generator.generate_tier1_orchestrator(args.name, args.domain, args.port)
@@ -650,11 +650,11 @@ Examples:
     elif args.tier == 3:
         template_name = "ADKServiceAgent" if args.template == "adk" else "StandardizedAgentBase"
         generated = generator.generate_tier3_service(args.name, args.domain, args.port, args.template)
-        print(f"   Template: {{template_name}}")
+        print(f"   Template: {template_name}")
     
     generator.write_files(generated, args.tier, args.domain)
     
-    print(f"\\n🎉 Framework V2.0 agent boilerplate generated successfully!")
+    print(f"\n🎉 Framework V2.0 agent boilerplate generated successfully!")
 
 
 if __name__ == "__main__":

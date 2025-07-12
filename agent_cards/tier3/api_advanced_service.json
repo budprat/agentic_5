@@ -1,0 +1,20 @@
+{
+  "name": "Advanced API Service",
+  "type": "service",
+  "tier": 3,
+  "port": 10301,
+  "description": "Advanced service agent for complex api operations",
+  "version": "2.0.0",
+  "capabilities": [
+    "advanced_processing",
+    "quality_validation",
+    "api_services",
+    "workflow_orchestration"
+  ],
+  "metadata": {
+    "author": "Framework Team",
+    "domain": "api",
+    "tier": 3,
+    "template": "StandardizedAgentBase"
+  }
+}

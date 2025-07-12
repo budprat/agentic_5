@@ -1,0 +1,20 @@
+{
+  "name": "Healthcare Master Orchestrator",
+  "type": "orchestrator",
+  "tier": 1,
+  "port": 10100,
+  "description": "Master orchestrator for healthcare domain coordination and strategy",
+  "version": "2.0.0",
+  "capabilities": [
+    "strategic_planning",
+    "task_decomposition",
+    "agent_coordination",
+    "healthcare_expertise"
+  ],
+  "metadata": {
+    "author": "Framework Team",
+    "domain": "healthcare",
+    "tier": 1,
+    "template": "MasterOrchestratorTemplate"
+  }
+}

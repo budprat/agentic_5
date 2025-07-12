@@ -132,7 +132,7 @@ class OracleAgent(StandardizedAgentBase):
 
 **Option A: ADKServiceAgent (Tier 3 - MCP/Database Focus)**
 ```python
-from a2a_mcp.agents.adk_service_agent import ADKServiceAgent
+from a2a_mcp.common.adk_service_agent import ADKServiceAgent
 
 class MCPServiceAgent(ADKServiceAgent):
     """MCP-focused service agent for direct tool integration."""

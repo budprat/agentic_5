@@ -1,0 +1,20 @@
+{
+  "name": "Financial Data Analyst",
+  "type": "specialist",
+  "tier": 2,
+  "port": 10200,
+  "description": "Domain specialist providing expert finance knowledge and analysis",
+  "version": "2.0.0",
+  "capabilities": [
+    "finance_expertise",
+    "domain_analysis",
+    "strategic_planning",
+    "risk_assessment"
+  ],
+  "metadata": {
+    "author": "Framework Team",
+    "domain": "finance",
+    "tier": 2,
+    "template": "StandardizedAgentBase"
+  }
+}
