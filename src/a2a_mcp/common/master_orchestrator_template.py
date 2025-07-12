@@ -21,7 +21,7 @@ from a2a_mcp.common.a2a_protocol import A2AProtocolClient, A2A_AGENT_PORTS
 from a2a_mcp.common.quality_framework import QualityThresholdFramework, QualityDomain
 from a2a_mcp.common.agent_runner import AgentRunner
 from a2a_mcp.common.utils import get_mcp_server_config, init_api_key
-from a2a_mcp.common.types import TaskList
+from a2a_mcp.types import TaskList, GenericTask
 from a2a_mcp.common.parallel_workflow import (
     ParallelWorkflowGraph, 
     ParallelWorkflowNode,
@@ -330,12 +330,13 @@ Format responses as structured JSON with comprehensive analysis.
             fallback_tasks = []
             for domain_group, specialists in dependency_analysis["domain_groups"].items():
                 specialist_key = specialists[0] if specialists else domain_group
-                fallback_tasks.append({
-                    "task_id": f"{specialist_key}_analysis",
-                    "description": f"Comprehensive {specialist_key.replace('_', ' ')} analysis for: {query}",
-                    "domain": specialist_key,
-                    "priority": self._get_domain_priority(specialist_key)
-                })
+                fallback_tasks.append(GenericTask(
+                    id=f"{specialist_key}_analysis",
+                    description=f"Comprehensive {specialist_key.replace('_', ' ')} analysis for: {query}",
+                    status="pending",
+                    agent_type=specialist_key,
+                    metadata={"domain": specialist_key, "priority": self._get_domain_priority(specialist_key)}
+                ))
             
             return DomainTaskFormat(
                 status='ready',
@@ -352,12 +353,13 @@ Format responses as structured JSON with comprehensive analysis.
             return DomainTaskFormat(
                 status='error',
                 analysis=f"Minimal analysis mode for {self.domain_name}: {query}",
-                tasks=TaskList(tasks=[{
-                    "task_id": "manual_analysis",
-                    "description": f"Manual {self.domain_name.lower()} analysis required",
-                    "domain": "manual",
-                    "priority": 1
-                }]),
+                tasks=TaskList(tasks=[GenericTask(
+                    id="manual_analysis",
+                    description=f"Manual {self.domain_name.lower()} analysis required",
+                    status="pending",
+                    agent_type="manual",
+                    metadata={"domain": "manual", "priority": 1}
+                )]),
                 coordination_strategy="sequential",
                 domains_required=["manual"],
                 quality_requirements={},

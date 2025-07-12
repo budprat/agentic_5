@@ -7,7 +7,7 @@ from typing import Any, AsyncIterable, Dict, Literal
 
 from a2a_mcp.common import prompts
 from a2a_mcp.common.base_agent import BaseAgent
-from a2a_mcp.common.types import TaskList
+from examples.travel.types.travel_types import TravelTaskList as TaskList
 from a2a_mcp.common.utils import init_api_key
 from langchain_core.messages import AIMessage
 from langchain_google_genai import ChatGoogleGenerativeAI

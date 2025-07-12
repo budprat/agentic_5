@@ -1,0 +1,20 @@
+{
+  "name": "Test Orchestrator",
+  "type": "orchestrator",
+  "tier": 1,
+  "port": 10110,
+  "description": "Master orchestrator for test domain coordination and strategy",
+  "version": "2.0.0",
+  "capabilities": [
+    "strategic_planning",
+    "task_decomposition",
+    "agent_coordination",
+    "test_expertise"
+  ],
+  "metadata": {
+    "author": "Framework Team",
+    "domain": "test",
+    "tier": 1,
+    "template": "MasterOrchestratorTemplate"
+  }
+}

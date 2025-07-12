@@ -131,6 +131,35 @@ class SendStreamingMessageSuccessResponse:
     result: Union[TaskStatusUpdateEvent, TaskArtifactUpdateEvent]
 
 
+# Generic task list for orchestrators
+@dataclass 
+class GenericTask:
+    """Generic task for orchestration."""
+    id: str
+    description: str
+    status: str = "pending"
+    agent_type: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
+
+
+@dataclass
+class TaskList:
+    """Generic task list for orchestrators."""
+    tasks: List[GenericTask]
+    metadata: Optional[Dict[str, Any]] = None
+
+
+@dataclass 
+class AgentResponse:
+    """Generic agent response format for all Framework V2.0 agents."""
+    content: Union[str, Dict[str, Any]]
+    is_task_complete: bool
+    require_user_input: bool
+    agent_name: Optional[str] = None
+    response_type: str = "text"  # "text", "data", "json"
+    metadata: Optional[Dict[str, Any]] = None
+
+
 # Error types
 class BaseError(Exception):
     """Base error class."""
