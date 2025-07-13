@@ -25,11 +25,25 @@ The A2A MCP Framework provides a structured approach to building collaborative A
 - Unified interface for diverse tool ecosystems
 - Support for custom MCP implementations
 
+### 🔍 Enterprise Observability
+- **OpenTelemetry Integration**: Distributed tracing across all agents
+- **Prometheus Metrics**: Real-time performance monitoring
+- **Grafana Dashboards**: Pre-built visualization for key metrics
+- **Structured Logging**: JSON logs with trace correlation
+- **Health Monitoring**: Comprehensive health checks for all components
+
 ### 📊 Quality & Reliability
 - Comprehensive test coverage
-- Built-in performance monitoring
+- Enterprise observability (OpenTelemetry, Prometheus, Grafana)
 - Graceful error recovery
-- Structured logging and debugging
+- Structured JSON logging with distributed tracing
+
+### 🚀 Enhanced Master Orchestrator Features
+- **PHASE 7 Streaming**: Real-time workflow execution with artifact events
+- **Dynamic WorkflowGraph**: State management with pause/resume capabilities
+- **Context Tracking**: Intelligent Q&A based on execution history
+- **Session Management**: Advanced isolation and cleanup
+- **Enhanced Planner Integration**: Sophisticated strategic planning delegation
 
 ## 🚦 Quick Start
 
@@ -81,7 +95,10 @@ agentic-framework-boilerplate/
 ├── examples/               # Example implementations
 ├── agent_cards/            # Agent capability definitions
 ├── configs/                # Configuration files
-└── docs/                   # Documentation
+├── docs/                   # Documentation
+│   ├── A2A_MCP_ORACLE_FRAMEWORK.md  # Framework V2.0 reference
+│   └── OBSERVABILITY_DEPLOYMENT.md   # Observability setup guide
+└── dashboards/             # Grafana dashboard templates
 ```
 
 ## 🔧 Configuration
@@ -133,18 +150,21 @@ Create a JSON file in `agent_cards/`:
 
 ### 2. Implement the Agent
 
-Create your agent class extending `BaseAgent`:
+Create your agent class using Framework V2.0 templates:
 
 ```python
-from a2a_mcp.common.base_agent import BaseAgent
+# For Tier 2 Domain Specialists
+from a2a_mcp.common.standardized_agent_base import StandardizedAgentBase
 
-class MyCustomAgent(BaseAgent):
+class MyDomainSpecialist(StandardizedAgentBase):
     def __init__(self):
         super().__init__(
-            agent_id="my_agent",
-            name="My Custom Agent",
-            description="What this agent does",
-            capabilities=["capability1", "capability2"]
+            agent_name="My Domain Specialist",
+            description="Expert in specific domain",
+            instructions="Detailed system instructions...",
+            quality_config={"domain": "BUSINESS"},  # or ACADEMIC, SERVICE
+            mcp_tools_enabled=True,
+            a2a_enabled=True
         )
     
     async def process_request(self, message: dict) -> dict:
@@ -167,6 +187,39 @@ Add your agent to the system and start it:
 agent = MyCustomAgent()
 await agent.start(port=10201)
 ```
+
+## 📊 Observability Configuration
+
+### Basic Setup
+
+1. **Enable observability features** in your `.env`:
+```env
+# OpenTelemetry
+OTEL_SERVICE_NAME=a2a-mcp-framework
+OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
+TRACING_ENABLED=true
+
+# Prometheus
+METRICS_ENABLED=true
+METRICS_PORT=9090
+
+# Structured Logging
+JSON_LOGS=true
+LOG_LEVEL=INFO
+```
+
+2. **Deploy the observability stack**:
+```bash
+# Start Grafana, Prometheus, Jaeger, and OpenTelemetry Collector
+docker-compose -f docker-compose.observability.yml up -d
+```
+
+3. **Access monitoring dashboards**:
+- Grafana: http://localhost:3000 (admin/admin)
+- Prometheus: http://localhost:9090
+- Jaeger: http://localhost:16686
+
+For detailed setup, see [Observability Deployment Guide](docs/OBSERVABILITY_DEPLOYMENT.md)
 
 ## 🔌 MCP Tool Integration
 

@@ -35,7 +35,8 @@ A2A-MCP Framework
 │   ├── StandardizedAgentBase     # Base class for all agents
 │   ├── A2AProtocolClient        # Agent-to-agent communication
 │   ├── QualityFramework         # Quality validation
-│   └── MCPToolset               # MCP tool integration
+│   ├── MCPToolset               # MCP tool integration
+│   └── ObservabilityManager     # Tracing, metrics, logging
 │
 ├── MCP Server
 │   ├── Agent Discovery          # Find available agents
@@ -47,9 +48,16 @@ A2A-MCP Framework
 │   ├── Process Management      # Starts/stops agents
 │   └── Health Loop            # Monitors system health
 │
+├── Observability Stack
+│   ├── OpenTelemetry           # Distributed tracing
+│   ├── Prometheus              # Metrics collection
+│   ├── Grafana                 # Visualization dashboards
+│   └── Structured Logging      # JSON logs with correlation
+│
 └── Configuration
     ├── Agent Cards            # JSON agent definitions
     ├── Quality Configs        # Domain quality rules
+    ├── Observability Config   # Monitoring settings
     └── Environment           # System settings
 ```
 
@@ -88,11 +96,86 @@ Provides system-wide tools for:
 - Health monitoring
 - Custom domain tools
 
+## Observability Architecture
+
+### Distributed Tracing
+
+The framework uses OpenTelemetry to provide end-to-end visibility:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                  Trace Context Flow                      │
+├─────────────────────────────────────────────────────────┤
+│ Client Request                                          │
+│   └─> Orchestrator Span                                │
+│       ├─> Planning Phase Span                          │
+│       ├─> Task Distribution Span                       │
+│       │   ├─> Agent A Execution Span                  │
+│       │   │   └─> MCP Tool Call Span                  │
+│       │   └─> Agent B Execution Span                  │
+│       └─> Result Synthesis Span                       │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Metrics Collection
+
+Prometheus metrics are collected at multiple levels:
+
+```yaml
+# Orchestration Metrics
+orchestration_requests_total{domain, status}
+orchestration_duration_seconds{domain, strategy}
+
+# Task Metrics
+tasks_executed_total{specialist, status}
+task_duration_seconds{specialist}
+
+# System Metrics
+active_sessions{}
+workflow_nodes_active{state}
+artifacts_created_total{type, session}
+
+# Performance Metrics
+streaming_duration_seconds{type}
+artifact_size_bytes{type}
+```
+
+### Structured Logging
+
+All logs are emitted as structured JSON with trace correlation:
+
+```json
+{
+  "timestamp": "2024-01-15T10:30:45Z",
+  "level": "INFO",
+  "message": "Task execution completed",
+  "trace_id": "1234567890abcdef",
+  "span_id": "abcdef1234",
+  "session_id": "session_123",
+  "task_id": "task_456",
+  "specialist": "research_agent",
+  "duration": 1.234
+}
+```
+
+### Monitoring Data Flow
+
+```
+Agents/Orchestrators
+    │
+    ├──[Traces]──> OpenTelemetry Collector ──> Jaeger
+    ├──[Metrics]─> Prometheus ──> Grafana Dashboards
+    └──[Logs]────> Structured Logger ──> Log Aggregator
+```
+
 ## Communication Patterns
 
 1. **Direct A2A**: Client → Agent A → Agent B → Client
 2. **Orchestrated**: Client → Orchestrator → Multiple Agents → Aggregated Response
 3. **Tool-Enhanced**: Agent → MCP Tool → External Service → Quality Check → Client
+4. **Streaming with Artifacts**: Client → Orchestrator → Real-time Events → Progress/Artifacts → Client
+
+All patterns include automatic trace propagation and metric collection.
 
 ## Port Management
 
@@ -100,6 +183,37 @@ Provides system-wide tools for:
 - Tier 2 (Domain Specialists): 10200-10899
 - Tier 3 (Service Agents): 10900-10999
 - MCP Server: 10099
+
+## Enhanced Master Orchestrator Capabilities
+
+### PHASE 7: Workflow Streaming
+
+Real-time execution visibility with artifact events:
+
+```python
+# Streaming event types
+- progress: Task execution progress (0-100%)
+- artifact: Artifact creation events
+- task_update: Individual task status changes
+- workflow_state: Workflow graph state updates
+- metrics: Real-time performance data
+```
+
+### Dynamic WorkflowGraph
+
+State management with pause/resume capabilities:
+- Automatic state persistence
+- Resumption strategies (continue, restart, skip, rollback)
+- Checkpoint creation for recovery
+- Workflow visualization data
+
+### Context & History Tracking
+
+Intelligent Q&A based on execution history:
+- Session context preservation
+- Query pattern analysis
+- Domain-specific learnings
+- Automatic context clearing on significant changes
 
 ## Best Practices
 

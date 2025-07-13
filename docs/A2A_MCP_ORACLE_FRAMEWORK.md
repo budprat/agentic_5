@@ -30,7 +30,14 @@ The **A2A-MCP Unified Framework V2.0** provides **production-ready multi-agent i
 - **MUST** use `MasterOrchestratorTemplate` for all sophisticated multi-agent orchestration
 - **Purpose:** Strategic planning, task decomposition, complex domain coordination
 - **Use Cases:** Business oracles, domain master orchestrators, complex workflow coordination
-- **Key Features:** LangGraph integration, parallel workflow management, quality-aware decision making
+- **Key Features:** 
+  - Enhanced Planner Agent delegation for strategic planning
+  - Dynamic WorkflowGraph with real-time state management
+  - PHASE 7 streaming with artifact events
+  - Context & history tracking with intelligent Q&A
+  - Session state management with pause/resume
+  - Comprehensive observability (OpenTelemetry, Prometheus)
+  - LangGraph integration, parallel workflow management
 - **Ports:** 10000-10099 range
 
 **Tier 2 - Domain Specialists:** 
@@ -455,13 +462,79 @@ def get_agent(agent_card: AgentCard):
     return agent
 ```
 
-### 5.2 Health Monitoring and Observability
+### 5.2 Enterprise Observability Architecture
+
+The Framework V2.0 includes comprehensive observability features for production monitoring:
+
+#### **5.2.1 OpenTelemetry Integration**
 
 ```python
-# PRODUCTION STANDARD: Comprehensive health monitoring
+# PRODUCTION STANDARD: Distributed tracing
+from a2a_mcp.common.observability import trace_async, trace_span, get_tracer
+
+class StandardizedAgentBase:
+    @trace_async("agent_execution")
+    async def execute(self, query: str, context_id: str, task_id: str):
+        """Agent execution with distributed tracing."""
+        with trace_span("query_processing", {"query_length": len(query)}):
+            # Processing logic with automatic trace propagation
+            pass
+```
+
+#### **5.2.2 Prometheus Metrics Collection**
+
+```python
+# PRODUCTION STANDARD: Performance metrics
+from a2a_mcp.common.observability import record_metric, measure_performance
+
+# Available metrics:
+# - orchestration_requests_total: Total orchestration requests by domain/status
+# - tasks_executed_total: Tasks by specialist and status  
+# - orchestration_duration_seconds: Execution time histograms
+# - active_sessions: Current active session gauge
+# - artifacts_created_total: Artifact creation tracking
+# - errors_total: Errors by component and type
+
+@measure_performance("task_duration_seconds")
+async def execute_task(self, task: dict):
+    """Task execution with automatic performance tracking."""
+    result = await self._process_task(task)
+    record_metric('tasks_executed_total', 1, 
+                  {'specialist': self.agent_name, 'status': 'completed'})
+    return result
+```
+
+#### **5.2.3 Structured JSON Logging**
+
+```python
+# PRODUCTION STANDARD: Structured logging with trace correlation
+from a2a_mcp.common.observability import get_logger
+
+logger = get_logger(__name__)
+
+# Structured logging with contextual fields
+logger.info("Task execution completed",
+            session_id=session_id,
+            task_id=task_id,
+            duration=execution_time,
+            specialist=agent_name)
+```
+
+#### **5.2.4 Grafana Dashboard Integration**
+
+Pre-built dashboards available at `src/a2a_mcp/common/dashboards/`:
+- Orchestration performance monitoring
+- Task execution analytics
+- Error rate tracking
+- Session management visualization
+- Artifact lifecycle monitoring
+
+#### **5.2.5 Health Monitoring Enhanced**
+
+```python
 class StandardizedAgentBase:
     def get_health_status(self) -> Dict[str, Any]:
-        """Comprehensive agent health status."""
+        """Enhanced health status with observability metrics."""
         return {
             "agent_name": self.agent_name,
             "initialization_complete": self.initialization_complete,
@@ -469,35 +542,111 @@ class StandardizedAgentBase:
             "mcp_tools_loaded": len(self.tools),
             "a2a_enabled": self.a2a_client is not None,
             "quality_framework_enabled": self.quality_framework.is_enabled(),
-            "last_context_id": self.context_id,
-            "session_stats": self.a2a_client.get_session_stats() if self.a2a_client else {},
+            "observability": {
+                "tracing_enabled": self.tracing_enabled,
+                "metrics_enabled": self.metrics_enabled,
+                "active_traces": self.get_active_trace_count(),
+                "metrics_summary": self.get_metrics_summary()
+            },
+            "session_stats": self.get_session_statistics(),
             "timestamp": datetime.now().isoformat()
         }
+```
 
-# System-wide health monitoring
-async def system_health_check():
-    """Check health of all agents and services."""
-    health_report = {
-        "unified_mcp_server": unified_server.get_health_status(),
-        "agents": {},
-        "communication": {}
+For complete observability deployment guide, see: `docs/OBSERVABILITY_DEPLOYMENT.md`
+
+---
+
+## 6. PHASE 7: Workflow Streaming with Artifact Events
+
+### 6.1 Real-Time Streaming Architecture
+
+The Master Orchestrator Template now supports real-time streaming with artifact events:
+
+```python
+# PRODUCTION STANDARD: Streaming with artifact events
+from a2a_mcp.common.master_orchestrator_template import MasterOrchestratorTemplate
+
+class DomainOrchestrator(MasterOrchestratorTemplate):
+    async def stream_with_artifacts(self, query: str, sessionId: str, task_id: str):
+        """
+        Enhanced streaming providing real-time visibility into:
+        - Task execution progress with percentage tracking
+        - Artifact creation events as they happen
+        - Performance metrics in real-time
+        - Partial results for long-running tasks
+        - Live workflow graph updates
+        """
+        async for event in super().stream_with_artifacts(query, sessionId, task_id):
+            yield event
+```
+
+### 6.2 Streaming Event Types
+
+```python
+# Event structure for streaming
+{
+    'response_type': 'progress' | 'artifact' | 'task_update' | 'workflow_state',
+    'is_task_complete': bool,
+    'require_user_input': bool,
+    'content': str | dict,
+    'stage': str,  # Current execution stage
+    'progress': float,  # 0.0 to 1.0
+    'task_info': {  # For task updates
+        'task_id': str,
+        'specialist': str,
+        'status': str,
+        'partial_result': Any
+    },
+    'artifact_info': {  # For artifact events
+        'artifact_id': str,
+        'type': str,
+        'size': int,
+        'metadata': dict
+    },
+    'workflow_update': {  # For workflow state
+        'nodes_pending': int,
+        'nodes_executing': int,
+        'nodes_completed': int,
+        'execution_path': List[str]
+    },
+    'metrics': {  # Real-time performance
+        'tasks_per_second': float,
+        'avg_task_duration': float,
+        'memory_usage': int
     }
-    
-    # Check all agent ports
-    for agent_name, port in A2A_AGENT_PORTS.items():
+}
+```
+
+### 6.3 Integration with Observability
+
+Streaming sessions are fully integrated with the observability stack:
+
+```python
+# Streaming with automatic observability
+class EnhancedStreaming:
+    @trace_async("streaming_session")
+    async def stream_with_artifacts(self, query: str, sessionId: str):
+        # Initialize streaming metrics
+        streaming_session_id = f"{sessionId}_stream_{timestamp}"
+        
+        # Track streaming performance
+        record_metric('streaming_sessions_active', 1)
+        
         try:
-            client = A2AProtocolClient()
-            health = await client.health_check(port)
-            health_report["agents"][agent_name] = health
-        except Exception as e:
-            health_report["agents"][agent_name] = {"status": "unhealthy", "error": str(e)}
-    
-    return health_report
+            async for event in self._generate_stream_events():
+                # Record event metrics
+                record_metric('streaming_events_total', 1, 
+                             {'event_type': event['response_type']})
+                yield event
+        finally:
+            # Cleanup and record session metrics
+            record_metric('streaming_duration_seconds', duration)
 ```
 
 ---
 
-## 6. Migration from Legacy Patterns
+## 7. Migration from Legacy Patterns
 
 ### 6.1 Oracle Agent Migration
 
@@ -555,7 +704,7 @@ class ModernTravelAgent(StandardizedAgentBase):
 
 ---
 
-## 7. Best Practices and Guidelines
+## 8. Best Practices and Guidelines
 
 ### 7.1 Agent Development Guidelines
 
@@ -613,14 +762,27 @@ class OptimizedAgent(StandardizedAgentBase):
 
 ---
 
-## 8. Framework Evolution Roadmap
+## 9. Framework Evolution Roadmap
 
-### 8.1 Current Status (V2.0)
+### 9.1 Current Status (V2.0)
 - ✅ Unified agent architecture standards
 - ✅ Standardized communication protocol
 - ✅ Configurable quality frameworks
 - ✅ Consolidated tool ecosystem
 - ✅ Production deployment patterns
+- ✅ **ENHANCED MASTER ORCHESTRATOR CAPABILITIES**
+  - ✅ PHASE 1-7: Complete implementation of all enhancement phases
+  - ✅ Dynamic WorkflowGraph with state management
+  - ✅ Context & history tracking with intelligent Q&A
+  - ✅ Artifact management and result collection
+  - ✅ Real-time streaming with artifact events
+  - ✅ Session state management with pause/resume
+- ✅ **ENTERPRISE OBSERVABILITY**
+  - ✅ OpenTelemetry distributed tracing integration
+  - ✅ Prometheus metrics collection
+  - ✅ Structured JSON logging with trace correlation
+  - ✅ Pre-built Grafana dashboards
+  - ✅ Comprehensive health monitoring
 - ✅ **SOLOPRENEUR ORACLE: FULL FRAMEWORK V2.0 COMPLIANCE ACHIEVED**
   - ✅ Complete StandardizedAgentBase inheritance with sophisticated orchestration preserved
   - ✅ A2AProtocolClient integration with graceful degradation fallbacks
@@ -628,16 +790,17 @@ class OptimizedAgent(StandardizedAgentBase):
   - ✅ Google ADK + LangGraph integration maintaining original sophistication
   - ✅ Production-ready Framework V2.0 reference implementation
 
-### 8.2 Future Enhancements (V2.1+)
-- **Advanced Orchestration**: Distributed workflow management
+### 9.2 Future Enhancements (V2.1+)
+- **Advanced Orchestration**: Distributed workflow management across multiple nodes
 - **Intelligent Caching**: Agent response caching and optimization
 - **Dynamic Scaling**: Auto-scaling based on load patterns
-- **Enhanced Observability**: Distributed tracing and metrics
-- **Security Framework**: Authentication and authorization standards
+- **Enhanced Security**: OAuth2/JWT authentication standards
+- **Multi-Cloud Support**: AWS/GCP/Azure native integrations
+- **GraphQL API**: Alternative to JSON-RPC for modern clients
 
 ---
 
-## 9. Conclusion
+## 10. Conclusion
 
 The **A2A-MCP Unified Framework V2.0** represents a significant evolution from Oracle-specific patterns to **universal multi-agent standards**. This framework provides:
 
