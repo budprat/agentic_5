@@ -28,7 +28,7 @@ from datetime import datetime
 from pathlib import Path
 
 # Configuration
-GITHUB_URL = "https://github.com/google/adk-python"
+GITHUB_URL = "https://github.com/NomenAK/SuperClaude.git"
 PROJECT_ID = "gen-lang-client-0871164439"
 LOCATION = "us-central1"
 BUCKET_NAME = "sankhya-gen-lang-client-0871164439"
