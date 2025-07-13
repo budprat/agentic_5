@@ -13,7 +13,7 @@ import uvicorn
 
 from a2a.server.apps import A2AStarletteApplication
 from a2a.server.request_handlers import DefaultRequestHandler
-from a2a.server.tasks import InMemoryTaskStore
+from a2a.server.tasks import InMemoryTaskStore, InMemoryPushNotifier
 from a2a_mcp.common.types import AgentCard
 
 logger = logging.getLogger(__name__)
@@ -338,10 +338,11 @@ def main(host, port, agent_card):
         # Create the agent executor with the appropriate agent
         agent_executor = GenericAgentExecutor(agent=get_agent(agent_card_obj))
         
-        # Create request handler with agent executor and task store
+        # Create request handler with agent executor, task store, and push notifier
         request_handler = DefaultRequestHandler(
             agent_executor=agent_executor,
-            task_store=InMemoryTaskStore()
+            task_store=InMemoryTaskStore(),
+            push_notifier=InMemoryPushNotifier(client)
         )
         
         # Create A2A server application
