@@ -1,13 +1,16 @@
+# ABOUTME: Generic planner agent for task decomposition across any domain
+# ABOUTME: Framework V2.0 compliant planner using LangGraph and generic task types
+
 # type: ignore
 
 import logging
 
 from collections.abc import AsyncIterable
-from typing import Any, Literal
+from typing import Any, Literal, Optional
 
 from a2a_mcp.common import prompts
 from a2a_mcp.common.base_agent import BaseAgent
-from a2a_mcp.common.types import TaskList
+from a2a_mcp.common.types import GenericTaskList
 from a2a_mcp.common.utils import init_api_key
 from langchain_core.messages import AIMessage
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -20,44 +23,65 @@ memory = MemorySaver()
 logger = logging.getLogger(__name__)
 
 
-class ResponseFormat(BaseModel):
-    """Respond to the user in this format."""
+class GenericResponseFormat(BaseModel):
+    """Generic response format for any domain planner."""
 
     status: Literal['input_required', 'completed', 'error'] = 'input_required'
     question: str = Field(
         description='Input needed from the user to generate the plan'
     )
-    content: TaskList = Field(
+    content: GenericTaskList = Field(
         description='List of tasks when the plan is generated'
     )
 
 
-class LangraphPlannerAgent(BaseAgent):
-    """Planner Agent backed by LangGraph."""
+class GenericPlannerAgent(BaseAgent):
+    """Generic Planner Agent backed by LangGraph for any domain."""
 
-    def __init__(self):
+    def __init__(self, domain: str = "General", agent_name: str = None, custom_prompt: Optional[str] = None):
         init_api_key()
 
-        logger.info('Initializing LanggraphPlannerAgent')
+        agent_name = agent_name or f"{domain} Planner Agent"
+        logger.info(f'Initializing {agent_name}')
 
         super().__init__(
-            agent_name='PlannerAgent',
-            description='Breakdown the user request into executable tasks',
+            agent_name=agent_name,
+            description=f'Breakdown {domain.lower()} user requests into executable tasks',
             content_types=['text', 'text/plain'],
         )
 
+        self.domain = domain
         self.model = ChatGoogleGenerativeAI(
             model='gemini-2.0-flash', temperature=0.0
         )
 
+        # Use custom prompt or default to generic planner instructions
+        planning_prompt = custom_prompt or self._get_generic_planning_prompt()
+
         self.graph = create_react_agent(
             self.model,
             checkpointer=memory,
-            prompt=prompts.PLANNER_COT_INSTRUCTIONS,
-            # prompt=prompts.TRIP_PLANNER_INSTRUCTIONS_1,
-            response_format=ResponseFormat,
+            prompt=planning_prompt,
+            response_format=GenericResponseFormat,
             tools=[],
         )
+
+    def _get_generic_planning_prompt(self) -> str:
+        """Get generic planning prompt that works for any domain."""
+        return f"""
+You are a {self.domain} Task Planner. Your role is to analyze user requests and break them down into clear, executable tasks.
+
+Instructions:
+1. Analyze the user's request thoroughly
+2. Identify the key components and requirements
+3. Break down the request into specific, actionable tasks
+4. Ensure tasks are ordered logically with clear dependencies
+5. Assign appropriate status to each task (pending, in_progress, completed, etc.)
+6. Consider the domain context: {self.domain.lower()}
+
+If you need more information from the user to create a comprehensive plan, ask specific questions.
+Always provide a complete task list when you have sufficient information.
+        """
 
     def invoke(self, query, sessionId) -> str:
         config = {'configurable': {'thread_id': sessionId}}
@@ -71,7 +95,7 @@ class LangraphPlannerAgent(BaseAgent):
         config = {'configurable': {'thread_id': sessionId}}
 
         logger.info(
-            f'Running LanggraphPlannerAgent stream for session {sessionId} {task_id} with input {query}'
+            f'Running {self.agent_name} stream for session {sessionId} {task_id} with input {query}'
         )
 
         for item in self.graph.stream(inputs, config, stream_mode='values'):
@@ -89,7 +113,7 @@ class LangraphPlannerAgent(BaseAgent):
         current_state = self.graph.get_state(config)
         structured_response = current_state.values.get('structured_response')
         if structured_response and isinstance(
-            structured_response, ResponseFormat
+            structured_response, GenericResponseFormat
         ):
             if (
                 structured_response.status == 'input_required'
