@@ -1,5 +1,5 @@
-# ABOUTME: MCP server providing agent discovery and system health monitoring tools
-# ABOUTME: Extensible framework for domain-specific tool integration using FastMCP
+# ABOUTME: Enhanced MCP server using generic template with agent discovery and extensible tool patterns
+# ABOUTME: Framework V2.0 server combining agent management with reusable API/database integration patterns
 
 import json
 import os
@@ -12,7 +12,11 @@ import numpy as np
 import pandas as pd
 
 from a2a_mcp.common.utils import init_api_key
-from mcp.server.fastmcp import FastMCP
+from a2a_mcp.common.generic_mcp_server_template import (
+    GenericMCPServerTemplate, 
+    APIConfig,
+    DatabaseConfig
+)
 from mcp.server.fastmcp.utilities.logging import get_logger
 
 # Initialize logger
@@ -22,6 +26,8 @@ logger = get_logger(__name__)
 AGENT_CARDS_DIR = os.getenv('AGENT_CARDS_DIR', 'agent_cards')
 EMBEDDING_MODEL = 'models/embedding-001'
 SYSTEM_DB = os.getenv('SYSTEM_DB', 'system.db')
+PLACES_API_URL = 'https://places.googleapis.com/v1/places:searchText'
+SQLLITE_DB = os.getenv('SQLLITE_DB', 'travel.db')
 
 # Agent card management
 agent_embeddings_df = None
@@ -124,49 +130,16 @@ def build_agent_card_embeddings() -> Optional[pd.DataFrame]:
         return None
 
 
-def serve(host: str, port: int, transport: str):
-    """Initializes and runs the Agent-to-Agent MCP server.
-
-    Args:
-        host: The hostname or IP address to bind the server to.
-        port: The port number to bind the server to.
-        transport: The transport mechanism for the MCP server (e.g., 'stdio', 'sse').
-    """
-    # Initialize API key if needed
-    try:
-        init_api_key()
-    except Exception as e:
-        logger.warning(f"API key initialization failed: {e}. Some features may be limited.")
+def create_agent_discovery_tools(server: GenericMCPServerTemplate):
+    """Add agent discovery tools to the MCP server."""
     
-    logger.info('Starting Agent-to-Agent MCP Server')
-    mcp = FastMCP('a2a-framework', host=host, port=port)
-
-    # Build agent embeddings
-    global agent_embeddings_df
-    agent_embeddings_df = build_agent_card_embeddings()
-
-    # Tool: Find the most relevant agent
-    @mcp.tool(
-        name='find_agent',
-        description='Finds the most relevant agent card based on a natural language query string.',
-    )
-    def find_agent(query: str) -> str:
-        """Finds the most relevant agent card based on a query string.
-
-        This function takes a user query, generates its embedding, and compares it against
-        pre-computed embeddings of loaded agent cards to find the best match.
-
-        Args:
-            query: The natural language query string used to search for a relevant agent.
-
-        Returns:
-            The agent card JSON deemed most relevant to the input query.
-        """
+    def find_agent(query: str) -> Dict[str, Any]:
+        """Finds the most relevant agent card based on a query string."""
         if agent_embeddings_df is None or agent_embeddings_df.empty:
-            return json.dumps({
+            return {
                 'error': 'No agent cards loaded',
                 'suggestion': 'Ensure agent cards are present in the configured directory'
-            })
+            }
         
         try:
             # Generate query embedding
@@ -189,32 +162,23 @@ def serve(host: str, port: int, transport: str):
             result = agent_embeddings_df.iloc[best_match_index]['agent_card']
             result['_match_score'] = float(best_score)
             
-            return json.dumps(result)
+            return result
             
         except Exception as e:
             logger.error(f'Error finding agent: {e}', exc_info=True)
-            return json.dumps({
+            return {
                 'error': 'Failed to find matching agent',
                 'details': str(e)
-            })
-
-    # Tool: List all available agents
-    @mcp.tool(
-        name='list_available_agents',
-        description='List all available agents with their basic information.',
-    )
-    def list_available_agents() -> str:
-        """Lists all available agents with their basic information.
-
-        Returns:
-            JSON list of agents with their names, descriptions, and capabilities.
-        """
+            }
+    
+    def list_available_agents() -> Dict[str, Any]:
+        """Lists all available agents with their basic information."""
         if agent_embeddings_df is None or agent_embeddings_df.empty:
-            return json.dumps({
+            return {
                 'agents': [],
                 'count': 0,
                 'message': 'No agents currently loaded'
-            })
+            }
         
         try:
             agents_summary = []
@@ -229,122 +193,183 @@ def serve(host: str, port: int, transport: str):
                 }
                 agents_summary.append(summary)
             
-            return json.dumps({
+            return {
                 'agents': agents_summary,
                 'count': len(agents_summary)
-            })
+            }
             
         except Exception as e:
             logger.error(f'Error listing agents: {e}', exc_info=True)
-            return json.dumps({
+            return {
                 'error': 'Failed to list agents',
                 'details': str(e)
-            })
-
-    # Tool: System health check
-    @mcp.tool(
-        name='check_system_health',
-        description='Check the health status of the MCP server and its components.',
-    )
-    def check_system_health() -> str:
-        """Checks the health status of the MCP server and its components.
-
-        Returns:
-            JSON object with health status information.
-        """
-        health_status = {
-            'status': 'healthy',
-            'timestamp': datetime.now().isoformat(),
-            'components': {}
-        }
-        
-        # Check agent cards
-        agent_status = {
-            'status': 'healthy' if agent_embeddings_df is not None else 'unhealthy',
-            'loaded_count': len(agent_embeddings_df) if agent_embeddings_df is not None else 0,
-            'has_embeddings': agent_embeddings_df is not None and 'card_embeddings' in agent_embeddings_df.columns
-        }
-        health_status['components']['agent_cards'] = agent_status
-        
-        # Check embeddings
-        embedding_status = {
-            'status': 'healthy',
-            'model': EMBEDDING_MODEL,
-            'fallback_active': False
-        }
-        try:
-            # Test embedding generation
-            test_embedding = generate_embeddings("test")
-            if len(test_embedding) != 768:  # Expected embedding size
-                embedding_status['fallback_active'] = True
-        except Exception as e:
-            embedding_status['status'] = 'degraded'
-            embedding_status['error'] = str(e)
-        
-        health_status['components']['embeddings'] = embedding_status
-        
-        # Overall status
-        if any(comp.get('status') == 'unhealthy' for comp in health_status['components'].values()):
-            health_status['status'] = 'unhealthy'
-        elif any(comp.get('status') == 'degraded' for comp in health_status['components'].values()):
-            health_status['status'] = 'degraded'
-        
-        return json.dumps(health_status)
-
-    # Tool: Get server configuration
-    @mcp.tool(
-        name='get_server_config',
-        description='Get the current configuration of the MCP server.',
-    )
-    def get_server_config() -> str:
-        """Gets the current configuration of the MCP server.
-
-        Returns:
-            JSON object with server configuration details.
-        """
-        config = {
-            'server_name': 'a2a-framework',
-            'host': host,
-            'port': port,
-            'transport': transport,
+            }
+    
+    def get_server_config() -> Dict[str, Any]:
+        """Gets the current configuration of the MCP server."""
+        return {
+            'server_name': 'a2a-framework-enhanced',
+            'version': '2.0',
             'agent_cards_directory': AGENT_CARDS_DIR,
             'embedding_model': EMBEDDING_MODEL,
             'system_database': SYSTEM_DB,
+            'sqllite_database': SQLLITE_DB,
+            'places_api_url': PLACES_API_URL,
+            'framework_type': 'A2A MCP Framework V2.0',
+            'capabilities': [
+                'Agent discovery and matching',
+                'Extensible API integrations',
+                'Database query tools',
+                'Custom tool registration',
+                'Health monitoring'
+            ],
             'environment': {
                 'python_version': os.sys.version.split()[0],
                 'platform': os.sys.platform
             }
         }
-        
-        return json.dumps(config)
+    
+    # Add tools to server
+    server.add_custom_tool(
+        name="find_agent",
+        description="Finds the most relevant agent card based on a natural language query string",
+        handler_func=find_agent,
+        parameters={
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string", 
+                    "description": "Natural language query to find relevant agent"
+                }
+            },
+            "required": ["query"]
+        }
+    )
+    
+    server.add_custom_tool(
+        name="list_available_agents",
+        description="List all available agents with their basic information",
+        handler_func=list_available_agents,
+        parameters={}
+    )
+    
+    server.add_custom_tool(
+        name="get_server_config",
+        description="Get the current configuration and capabilities of the MCP server",
+        handler_func=get_server_config,
+        parameters={}
+    )
 
-    # Resources: Agent cards list
-    @mcp.resource('resource://agent_cards/list', mime_type='application/json')
+
+def create_example_integrations(server: GenericMCPServerTemplate):
+    """Add example API and database integrations using the generic patterns."""
+    
+    # Example: Google Places API integration (like your example)
+    if os.getenv('GOOGLE_PLACES_API_KEY'):
+        logger.info("Adding Google Places API integration...")
+        places_config = APIConfig(
+            name="query_places_data",
+            description="Query Google Places API for location and business information",
+            base_url=PLACES_API_URL,
+            headers={
+                'X-Goog-Api-Key': '',  # Will be set from env var
+                'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress',
+                'Content-Type': 'application/json'
+            },
+            auth_env_var='GOOGLE_PLACES_API_KEY',
+            default_params={
+                'languageCode': 'en',
+                'maxResultCount': 10
+            }
+        )
+        server.add_api_tool("google_places", places_config)
+    
+    # Example: SQLite database integration (like your example)
+    if os.path.exists(SQLLITE_DB):
+        logger.info(f"Adding SQLite database integration: {SQLLITE_DB}")
+        travel_db_config = DatabaseConfig(
+            name="query_travel_data",
+            description="Retrieves the most up-to-date, airline, hotel and car rental availability. Helps with the booking. This tool should be used when a user asks for the airline ticket booking, hotel or accommodation booking, or car rental reservations.",
+            connection_string=SQLLITE_DB,
+            db_type="sqlite",
+            query_whitelist=[
+                "SELECT * FROM airlines",
+                "SELECT * FROM hotels", 
+                "SELECT * FROM car_rentals",
+                "SELECT * FROM bookings"
+            ],
+            max_results=1000
+        )
+        server.add_database_tool("travel_db", travel_db_config)
+    
+    # Example: Weather API integration
+    if os.getenv('OPENWEATHER_API_KEY'):
+        logger.info("Adding OpenWeather API integration...")
+        weather_config = APIConfig(
+            name="query_weather_data",
+            description="Query current weather information for any location",
+            base_url="https://api.openweathermap.org/data/2.5/weather",
+            headers={'Content-Type': 'application/json'},
+            auth_env_var='OPENWEATHER_API_KEY',
+            default_params={
+                'units': 'metric'
+            }
+        )
+        server.add_api_tool("weather_api", weather_config)
+
+
+def serve(host: str, port: int, transport: str):
+    """Initializes and runs the enhanced Agent-to-Agent MCP server.
+
+    Args:
+        host: The hostname or IP address to bind the server to.
+        port: The port number to bind the server to.
+        transport: The transport mechanism for the MCP server (e.g., 'stdio', 'sse').
+    """
+    # Initialize API key if needed
+    try:
+        init_api_key()
+    except Exception as e:
+        logger.warning(f"API key initialization failed: {e}. Some features may be limited.")
+    
+    logger.info('Starting Enhanced Agent-to-Agent MCP Server (Framework V2.0)')
+    
+    # Create enhanced MCP server using generic template
+    server = GenericMCPServerTemplate(
+        server_name="a2a-framework-enhanced",
+        description="A2A Framework V2.0 - Agent discovery with extensible tool integrations",
+        host=host,
+        port=port,
+        transport=transport
+    )
+
+    # Build agent embeddings
+    global agent_embeddings_df
+    agent_embeddings_df = build_agent_card_embeddings()
+
+    # Add agent discovery tools
+    logger.info("Adding agent discovery and management tools...")
+    create_agent_discovery_tools(server)
+    
+    # Add example integrations (optional, based on environment)
+    logger.info("Adding example API and database integrations...")
+    create_example_integrations(server)
+    
+    # Add MCP resource endpoints for agent cards
+    @server.mcp.resource('resource://agent_cards/list', mime_type='application/json')
     def get_agent_cards() -> dict:
-        """Retrieves all loaded agent cards for the MCP resource endpoint.
-
-        Returns:
-            Dictionary containing list of agent card URIs.
-        """
+        """Retrieves all loaded agent cards for the MCP resource endpoint."""
         if agent_embeddings_df is None or agent_embeddings_df.empty:
             return {'agent_cards': []}
         
         logger.info('Reading agent cards resource list')
         return {'agent_cards': agent_embeddings_df['card_uri'].tolist()}
 
-    # Resources: Individual agent card
-    @mcp.resource(
+    @server.mcp.resource(
         'resource://agent_cards/{card_name}', mime_type='application/json'
     )
     def get_agent_card(card_name: str) -> dict:
-        """Retrieves a specific agent card for the MCP resource endpoint.
-
-        Args:
-            card_name: Name/ID of the agent card to retrieve.
-
-        Returns:
-            Dictionary containing the agent card data.
-        """
+        """Retrieves a specific agent card for the MCP resource endpoint."""
         if agent_embeddings_df is None or agent_embeddings_df.empty:
             return {'error': 'No agent cards loaded'}
         
@@ -360,23 +385,23 @@ def serve(host: str, port: int, transport: str):
         else:
             return {'error': f'Agent card not found: {card_name}'}
 
-    # Extension point for domain-specific tools
-    # Add your custom tools here by decorating functions with @mcp.tool()
-    # Example:
-    # @mcp.tool(
-    #     name='domain_specific_tool',
-    #     description='Description of what this tool does.'
-    # )
-    # def domain_specific_tool(param1: str, param2: int) -> str:
-    #     """Your domain-specific implementation."""
-    #     pass
-
-    logger.info(
-        f'Agent-to-Agent MCP Server running at {host}:{port} using {transport} transport'
-    )
+    logger.info(f"Enhanced A2A MCP Server ready with {len(server.tool_handlers)} tools")
+    
+    # Environment status
+    env_status = []
+    if os.getenv('GOOGLE_PLACES_API_KEY'): env_status.append("Google Places API")
+    if os.getenv('OPENWEATHER_API_KEY'): env_status.append("Weather API")
+    if os.path.exists(SQLLITE_DB): env_status.append("SQLite DB")
+    
+    if env_status:
+        logger.info(f"External integrations available: {', '.join(env_status)}")
+    else:
+        logger.info("Running with core agent discovery tools only")
+    
+    logger.info("🚀 Starting enhanced MCP server...")
     
     # Run the server
-    mcp.run(transport=transport)
+    server.run()
 
 
 # Entry point for testing
