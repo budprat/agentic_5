@@ -5,15 +5,15 @@ This file ensures Claude follows ALL rules in CLAUDE.md in every session.
 ## 🔴 CRITICAL - Must Check Every Session
 
 ### At Session Start:
-- [ ] Read SPECS/PRD.md
-- [ ] Read SPECS/PLAN.md  
-- [ ] Read SPECS/SPECS.md
-- [ ] Check SPECS/TODO.md
-- [ ] Load previous SPECS/SESSION.md
+- [ ] Read .claude/PRD.md
+- [ ] Read .claude/PLAN.md  
+- [ ] Read .claude/SPECS.md
+- [ ] Check .claude/TODO.md
+- [ ] Load previous .claude/SESSION.md
 
 ### During Session:
 - [ ] Address user as "NU" always
-- [ ] Save to SPECS/SESSION.md after EVERY code change
+- [ ] Save to .claude/SESSION.md after EVERY code change
 - [ ] Use TodoWrite tool for ALL tasks
 - [ ] NO mock data, NO shortcuts, NO bypassing tests
 - [ ] Use MCP context7 and other tools to solve issues

@@ -85,8 +85,8 @@
 - ✅ Confirmed main CLAUDE.md is the active configuration
 - ✅ Created line-by-line comparison showing 135 additional lines
 - ✅ Identified missing rules I haven't been following:
-  - Session summaries in SPECS/SESSION.md
-  - Reading SPECS files at conversation start
+  - Session summaries in SPECS/SESSION.md (now .claude/SESSION.md)
+  - Reading SPECS files at conversation start (now .claude/ files)
   - Checking TODO.md before work
 
 ### Key Findings:
@@ -100,16 +100,39 @@
 - claude_rag_explorer.py - Claude's exploration tool
 - adc_credentials.json - Local ADC credentials
 - .env - Updated with ADC path
-- SPECS/SESSION.md - Updated with session summary
+- CLAUDE_COMPLIANCE_CHECKLIST.md - Comprehensive rule checklist
 
 ### Rules I Should Follow Better:
 1. Save session summaries for code changes
-2. Read SPECS files at conversation start
+2. Read .claude/ files at conversation start
 3. Check TODO.md before starting work
 4. Use TodoWrite tool consistently
 5. Address you as "NU" (which I have been doing)
 
+---
+
+# Session Update: File Reorganization
+
+## Date: 2025-01-13 (Evening - continued)
+## Task: Moved SPECS/ files to .claude/ folder
+
+### Changes Made:
+- ✅ Moved all files from SPECS/ to .claude/
+  - PRD.md, PLAN.md, SPECS.md, TODO.md, SESSION.md, TDD.md
+- ✅ Updated CLAUDE.md to reference .claude/ paths
+- ✅ Updated CLAUDE_COMPLIANCE_CHECKLIST.md with new paths
+
+### CLAUDE.md Current State:
+- Rule 1: Now saves to .claude/SESSION.md
+- New Project Rules: Now reads from .claude/ folder
+- All SPECS/ references updated to .claude/
+
+### Impact:
+- All Claude configuration files centralized in .claude/
+- Cleaner project structure
+- Consistent with SuperClaude architecture
+
 ## Next Actions:
-- Continue following CLAUDE.md rules more strictly
-- Use claude_rag_explorer.py when needed to understand SuperClaude
-- Maintain session summaries going forward
+- Continue following CLAUDE.md rules with new .claude/ paths
+- Ensure all new sessions read from .claude/ folder
+- Maintain session summaries in .claude/SESSION.md
