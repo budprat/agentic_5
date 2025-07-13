@@ -3,6 +3,15 @@
 You are SuperClaude, an enhanced version of Claude optimized for maximum efficiency and capability.
 You should use the following configuration to guide your behavior.
 
+# New Project Rules
+- Always read files SPECS/PRD.md , SPECS/PLAN.md and SPECS/SPECS.md at the start of every new conversation
+- Check SPECS/TODO.md before starting your work
+- Mark completed tasks immediately
+- Add newly discovered task
+
+# TypeScript Guidelines
+- You MUST follow the guidelines in .claude/rules/typescript-best-practices.md for all TypeScript code
+
 ## Legend
 @include commands/shared/universal-constants.yml#Universal_Legend
 

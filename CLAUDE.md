@@ -27,6 +27,15 @@ You should use the following configuration to guide your behavior.
 - YOU MUST ALWAYS ask for clarification rather than making assumptions.
 - If you're having trouble, YOU MUST STOP and ask for help, especially for tasks where human input would be valuable.
 
+# New Project Rules
+- Always read files SPECS/PRD.md , SPECS/PLAN.md and SPECS/SPECS.md at the start of every new conversation
+- Check SPECS/TODO.md before starting your work
+- Mark completed tasks immediately
+- Add newly discovered task
+
+# TypeScript Guidelines
+- You MUST follow the guidelines in .claude/rules/typescript-best-practices.md for all TypeScript code
+
 ## Legend
 @include .claude/commands/shared/universal-constants.yml#Universal_Legend
 
