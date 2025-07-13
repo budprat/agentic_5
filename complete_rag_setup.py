@@ -35,9 +35,9 @@ BUCKET_NAME = "sankhya-gen-lang-client-0871164439"
 GCS_FOLDER_PATH = "sankhya"
 EMBEDDING_MODEL = "text-embedding-005"
 MODEL_ID = "gemini-2.5-pro-preview-06-05"
-# Use notebook's chunking configuration
-CHUNK_SIZE = 1024
-CHUNK_OVERLAP = 256
+# User specified chunking configuration
+CHUNK_SIZE = 500
+CHUNK_OVERLAP = 50
 
 # Supported file extensions for code indexing
 SUPPORTED_EXTENSIONS = [
