@@ -110,7 +110,11 @@
       "Bash(gsutil ls:*)",
       "Bash(./upload_superclaude.sh:*)",
       "Bash(gsutil:*)",
-      "Bash(pip show:*)"
+      "Bash(pip show:*)",
+      "Bash(if [ -f \".venv/bin/activate\" ])",
+      "Bash(then)",
+      "Bash(else)",
+      "Bash(fi)"
     ],
     "deny": []
   },
