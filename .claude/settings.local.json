@@ -106,7 +106,8 @@
       "Bash(~/google-cloud-sdk/bin/gsutil ls gs://sankhya-gen-lang-client-0871164439/sankhya/)",
       "Bash(~/google-cloud-sdk/bin/gcloud services list --enabled)",
       "Bash(/home/user/a2a-mcp-framework/setup_vertex_rag.sh:*)",
-      "Bash(source:*)"
+      "Bash(source:*)",
+      "Bash(gsutil ls:*)"
     ],
     "deny": []
   },

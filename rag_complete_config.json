@@ -1,0 +1,16 @@
+{
+  "corpus_name": "projects/616868565535/locations/us-central1/ragCorpora/8207810320882728960",
+  "corpus_display_name": "rag-corpus-code-62b6a995-1763-4d77-9644-807d331f7614",
+  "project_id": "gen-lang-client-0871164439",
+  "location": "us-central1",
+  "model_id": "gemini-2.5-pro-preview-06-05",
+  "github_url": "https://github.com/NomenAK/SuperClaude.git",
+  "gcs_bucket": "sankhya-gen-lang-client-0871164439",
+  "gcs_folder": "sankhya",
+  "gcs_uri": "gs://sankhya-gen-lang-client-0871164439/sankhya/",
+  "chunk_size": 500,
+  "chunk_overlap": 50,
+  "files_uploaded": 11,
+  "studio_url": "https://console.cloud.google.com/vertex-ai/studio/multimodal;ragCorpusName=projects%2F616868565535%2Flocations%2Fus-central1%2FragCorpora%2F8207810320882728960?project=gen-lang-client-0871164439",
+  "created_at": "2025-07-13T16:35:04.028707"
+}
