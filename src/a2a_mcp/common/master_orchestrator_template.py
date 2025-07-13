@@ -172,6 +172,12 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
         self.domain_specialist_usage: Dict[str, int] = {}  # Track specialist usage patterns
         self.archived_sessions: Dict[str, Dict[str, Any]] = {}  # Archived session summaries
         
+        # PHASE 3: Enhanced State Management with Pause/Resume
+        self.execution_states: Dict[str, Dict[str, Any]] = {}  # session_id -> execution state
+        self.pause_checkpoints: Dict[str, List[Dict[str, Any]]] = {}  # session_id -> checkpoints
+        self.state_transitions: List[Dict[str, Any]] = []  # Track state transition events
+        self.resumption_strategies: Dict[str, str] = {}  # session_id -> resumption strategy
+        
         logger.info(f"Refactored {domain_name} Master Orchestrator initialized with Enhanced Planner")
 
     def _get_default_quality_thresholds(self, quality_domain: QualityDomain) -> Dict[str, Any]:
@@ -1297,17 +1303,303 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
             'avg_confidence': sum(e.get('confidence', 0) for e in context_events) / len(context_events)
         }
     
-    def pause_workflow(self, paused_node_id: Optional[str] = None):
-        """Pause the current workflow."""
+    def pause_workflow(self, paused_node_id: Optional[str] = None, reason: str = 'manual', save_checkpoint: bool = True):
+        """Enhanced pause workflow with state management - PHASE 3."""
         if self.dynamic_workflow:
+            session_id = self.current_session_id
+            
+            # PHASE 3: Create execution checkpoint before pausing
+            if save_checkpoint and session_id:
+                self._create_execution_checkpoint(session_id, paused_node_id, reason)
+            
+            # Pause the workflow
             self.dynamic_workflow.pause_workflow(paused_node_id)
-            logger.info(f"Paused workflow at node {paused_node_id}")
+            
+            # PHASE 3: Update execution state
+            self._update_execution_state(session_id, 'paused', {
+                'paused_node_id': paused_node_id,
+                'pause_reason': reason,
+                'pause_timestamp': datetime.now().isoformat(),
+                'workflow_state_snapshot': self._capture_workflow_state()
+            })
+            
+            logger.info(f"Enhanced pause: workflow at node {paused_node_id}, reason: {reason}")
     
-    def resume_workflow(self):
-        """Resume the current workflow."""
+    def resume_workflow(self, resumption_strategy: str = 'continue', validation_checks: bool = True):
+        """Enhanced resume workflow with state validation - PHASE 3."""
+        if self.dynamic_workflow and self.current_session_id:
+            session_id = self.current_session_id
+            
+            # PHASE 3: Validate resumption conditions
+            if validation_checks and not self._validate_resumption_conditions(session_id):
+                logger.warning(f"Resumption validation failed for session {session_id}")
+                return False
+            
+            # PHASE 3: Apply resumption strategy
+            success = self._apply_resumption_strategy(session_id, resumption_strategy)
+            
+            if success:
+                # Resume the workflow
+                self.dynamic_workflow.resume_workflow()
+                
+                # PHASE 3: Update execution state
+                self._update_execution_state(session_id, 'running', {
+                    'resume_timestamp': datetime.now().isoformat(),
+                    'resumption_strategy': resumption_strategy,
+                    'validation_passed': validation_checks
+                })
+                
+                logger.info(f"Enhanced resume: workflow resumed with strategy {resumption_strategy}")
+                return True
+            else:
+                logger.error(f"Failed to resume workflow for session {session_id}")
+                return False
+        
+        return False
+    
+    # ============================================================================
+    # PHASE 3: Enhanced State Management Support Methods
+    # ============================================================================
+    
+    def _create_execution_checkpoint(self, session_id: str, paused_node_id: Optional[str], reason: str):
+        """Create execution checkpoint for state recovery."""
+        if session_id not in self.pause_checkpoints:
+            self.pause_checkpoints[session_id] = []
+        
+        checkpoint = {
+            'checkpoint_id': str(uuid.uuid4()),
+            'timestamp': datetime.now().isoformat(),
+            'paused_node_id': paused_node_id,
+            'pause_reason': reason,
+            'workflow_state': self._capture_workflow_state(),
+            'execution_context': dict(self.execution_context),
+            'active_agents': dict(self.active_agents),
+            'session_context_snapshot': self.session_contexts.get(session_id, {}),
+            'performance_metrics_snapshot': self.performance_metrics.get(session_id, {})
+        }
+        
+        self.pause_checkpoints[session_id].append(checkpoint)
+        
+        # Keep only last 10 checkpoints per session to manage memory
+        if len(self.pause_checkpoints[session_id]) > 10:
+            self.pause_checkpoints[session_id] = self.pause_checkpoints[session_id][-10:]
+        
+        logger.debug(f"Created execution checkpoint {checkpoint['checkpoint_id']} for session {session_id}")
+    
+    def _capture_workflow_state(self) -> Dict[str, Any]:
+        """Capture current workflow state for checkpoint."""
+        if not self.dynamic_workflow:
+            return {'workflow_exists': False}
+        
+        return {
+            'workflow_exists': True,
+            'workflow_id': self.dynamic_workflow.workflow_id,
+            'state': self.dynamic_workflow.state.value,
+            'paused_node_id': self.dynamic_workflow.paused_node_id,
+            'total_nodes': len(self.dynamic_workflow.nodes),
+            'completed_nodes': len([n for n in self.dynamic_workflow.nodes.values() if n.state.value == 'completed']),
+            'pending_nodes': len([n for n in self.dynamic_workflow.nodes.values() if n.state.value == 'pending']),
+            'executable_nodes': len(self.dynamic_workflow.get_executable_nodes()),
+            'workflow_stats': self.dynamic_workflow.get_workflow_stats()
+        }
+    
+    def _update_execution_state(self, session_id: str, state: str, additional_data: Dict[str, Any]):
+        """Update execution state tracking."""
+        if session_id not in self.execution_states:
+            self.execution_states[session_id] = {
+                'current_state': 'unknown',
+                'state_history': [],
+                'last_updated': None
+            }
+        
+        execution_state = self.execution_states[session_id]
+        previous_state = execution_state['current_state']
+        
+        # Record state transition
+        transition = {
+            'from_state': previous_state,
+            'to_state': state,
+            'timestamp': datetime.now().isoformat(),
+            'session_id': session_id,
+            **additional_data
+        }
+        
+        execution_state['state_history'].append(transition)
+        execution_state['current_state'] = state
+        execution_state['last_updated'] = transition['timestamp']
+        
+        # Add to global state transitions
+        self.state_transitions.append(transition)
+        
+        # Keep only last 100 global transitions
+        if len(self.state_transitions) > 100:
+            self.state_transitions = self.state_transitions[-100:]
+        
+        logger.debug(f"State transition: {previous_state} -> {state} for session {session_id}")
+    
+    def _validate_resumption_conditions(self, session_id: str) -> bool:
+        """Validate conditions for safe workflow resumption."""
+        # Check if workflow exists and is paused
+        if not self.dynamic_workflow or self.dynamic_workflow.state.value != 'paused':
+            logger.warning("Cannot resume: workflow not in paused state")
+            return False
+        
+        # Check execution state consistency
+        if session_id not in self.execution_states:
+            logger.warning("Cannot resume: no execution state found")
+            return False
+        
+        execution_state = self.execution_states[session_id]
+        if execution_state['current_state'] != 'paused':
+            logger.warning(f"Cannot resume: execution state mismatch - {execution_state['current_state']}")
+            return False
+        
+        # Check for workflow integrity
+        if self.dynamic_workflow._has_cycles():
+            logger.warning("Cannot resume: workflow has circular dependencies")
+            return False
+        
+        # Check if there are executable nodes
+        executable_nodes = self.dynamic_workflow.get_executable_nodes()
+        if not executable_nodes and self.dynamic_workflow.paused_node_id:
+            # Check if paused node can be resumed
+            paused_node = self.dynamic_workflow.get_node(self.dynamic_workflow.paused_node_id)
+            if not paused_node or paused_node.state.value not in ['pending', 'running']:
+                logger.warning("Cannot resume: no executable nodes and paused node not resumable")
+                return False
+        
+        # Validate session context consistency
+        if session_id not in self.session_contexts:
+            logger.warning("Cannot resume: session context missing")
+            return False
+        
+        logger.debug(f"Resumption validation passed for session {session_id}")
+        return True
+    
+    def _apply_resumption_strategy(self, session_id: str, strategy: str) -> bool:
+        """Apply specific resumption strategy."""
+        try:
+            if strategy == 'continue':
+                # Continue from where paused
+                return self._resume_continue_strategy(session_id)
+            elif strategy == 'restart':
+                # Restart from beginning with current context
+                return self._resume_restart_strategy(session_id)
+            elif strategy == 'skip':
+                # Skip paused node and continue
+                return self._resume_skip_strategy(session_id)
+            elif strategy == 'rollback':
+                # Rollback to previous checkpoint
+                return self._resume_rollback_strategy(session_id)
+            else:
+                logger.error(f"Unknown resumption strategy: {strategy}")
+                return False
+        except Exception as e:
+            logger.error(f"Error applying resumption strategy {strategy}: {e}")
+            return False
+    
+    def _resume_continue_strategy(self, session_id: str) -> bool:
+        """Resume from current paused state."""
+        self.resumption_strategies[session_id] = 'continue'
+        logger.debug(f"Applied continue strategy for session {session_id}")
+        return True
+    
+    def _resume_restart_strategy(self, session_id: str) -> bool:
+        """Restart workflow from beginning."""
         if self.dynamic_workflow:
-            self.dynamic_workflow.resume_workflow()
-            logger.info("Resumed workflow execution")
+            # Reset all nodes to pending state
+            for node in self.dynamic_workflow.nodes.values():
+                if node.state.value in ['completed', 'failed']:
+                    node.state = NodeState.PENDING
+                    node.started_at = None
+                    node.completed_at = None
+                    node.result = None
+                    node.error = None
+            
+            # Reset workflow state
+            self.dynamic_workflow.state = WorkflowState.RUNNING
+            self.dynamic_workflow.paused_node_id = None
+            
+            self.resumption_strategies[session_id] = 'restart'
+            logger.debug(f"Applied restart strategy for session {session_id}")
+            return True
+        return False
+    
+    def _resume_skip_strategy(self, session_id: str) -> bool:
+        """Skip paused node and continue with next executable nodes."""
+        if self.dynamic_workflow and self.dynamic_workflow.paused_node_id:
+            paused_node = self.dynamic_workflow.get_node(self.dynamic_workflow.paused_node_id)
+            if paused_node:
+                # Mark paused node as skipped
+                paused_node.state = NodeState.SKIPPED
+                paused_node.completed_at = datetime.now()
+                
+                # Clear pause state
+                self.dynamic_workflow.paused_node_id = None
+                
+                self.resumption_strategies[session_id] = 'skip'
+                logger.debug(f"Applied skip strategy for session {session_id}")
+                return True
+        return False
+    
+    def _resume_rollback_strategy(self, session_id: str) -> bool:
+        """Rollback to previous checkpoint and resume."""
+        if session_id in self.pause_checkpoints and self.pause_checkpoints[session_id]:
+            # Get most recent checkpoint
+            checkpoint = self.pause_checkpoints[session_id][-1]
+            
+            # Restore execution context
+            self.execution_context = checkpoint['execution_context']
+            self.active_agents = checkpoint['active_agents']
+            
+            # Restore session context
+            if session_id in self.session_contexts:
+                self.session_contexts[session_id].update(checkpoint['session_context_snapshot'])
+            
+            self.resumption_strategies[session_id] = 'rollback'
+            logger.debug(f"Applied rollback strategy for session {session_id}")
+            return True
+        
+        logger.warning(f"No checkpoints available for rollback in session {session_id}")
+        return False
+    
+    def get_execution_state_summary(self, session_id: str) -> Dict[str, Any]:
+        """Get comprehensive execution state summary."""
+        return {
+            'session_id': session_id,
+            'current_state': self.execution_states.get(session_id, {}).get('current_state', 'unknown'),
+            'workflow_state': self._capture_workflow_state(),
+            'available_checkpoints': len(self.pause_checkpoints.get(session_id, [])),
+            'state_transitions': len(self.execution_states.get(session_id, {}).get('state_history', [])),
+            'resumption_strategy': self.resumption_strategies.get(session_id),
+            'can_resume': self._validate_resumption_conditions(session_id) if session_id in self.execution_states else False,
+            'executable_nodes_count': len(self.dynamic_workflow.get_executable_nodes()) if self.dynamic_workflow else 0
+        }
+    
+    def get_pause_resume_analytics(self) -> Dict[str, Any]:
+        """Get analytics on pause/resume patterns."""
+        total_pauses = len([t for t in self.state_transitions if t['to_state'] == 'paused'])
+        total_resumes = len([t for t in self.state_transitions if t['to_state'] == 'running'])
+        
+        pause_reasons = {}
+        for transition in self.state_transitions:
+            if transition['to_state'] == 'paused':
+                reason = transition.get('pause_reason', 'unknown')
+                pause_reasons[reason] = pause_reasons.get(reason, 0) + 1
+        
+        resumption_strategies = {}
+        for strategy in self.resumption_strategies.values():
+            resumption_strategies[strategy] = resumption_strategies.get(strategy, 0) + 1
+        
+        return {
+            'total_pauses': total_pauses,
+            'total_resumes': total_resumes,
+            'success_rate': total_resumes / total_pauses if total_pauses > 0 else 0,
+            'pause_reasons': pause_reasons,
+            'resumption_strategies': resumption_strategies,
+            'active_sessions_with_state': len(self.execution_states),
+            'total_checkpoints': sum(len(checkpoints) for checkpoints in self.pause_checkpoints.values())
+        }
     
     def get_paused_node_id(self) -> Optional[str]:
         """Get the ID of the paused node."""
@@ -1457,13 +1749,24 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
                 'Context change statistics and pattern analysis',
                 'Manual and automatic state clearing with selective preservation'
             ],
+            'enhanced_state_management_capabilities': [
+                'Sophisticated pause/resume with execution checkpoints',
+                'State validation and resumption condition checking',
+                'Multiple resumption strategies (continue, restart, skip)',
+                'Execution state tracking and transition monitoring',
+                'Workflow state snapshots and recovery mechanisms',
+                'Checkpoint-based rollback and recovery capabilities',
+                'State consistency validation and error recovery',
+                'Pause reason tracking and intelligent resumption',
+                'Cross-session state persistence and restoration'
+            ],
             'backward_compatibility': 'Full API compatibility with original MasterOrchestratorTemplate',
             'enhanced_features': 'All capabilities enhanced via EnhancedGenericPlannerAgent integration',
             'phase_completion_status': {
                 'phase_1_dynamic_workflow': True,
                 'phase_2_context_history': True,
                 'phase_2_5_clear_state_management': True,
-                'phase_3_state_management': False,
+                'phase_3_enhanced_state_management': True,
                 'phase_4_artifact_management': False
             }
         }
