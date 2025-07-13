@@ -1,0 +1,262 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "a2a-mcp-framework",
+    "title": "A2A MCP Framework Monitoring",
+    "tags": ["a2a", "mcp", "orchestration", "agents"],
+    "timezone": "browser",
+    "schemaVersion": 38,
+    "version": 1,
+    "refresh": "10s",
+    "panels": [
+      {
+        "id": 1,
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+        "type": "graph",
+        "title": "Orchestration Request Rate",
+        "targets": [
+          {
+            "expr": "rate(orchestration_requests_total[5m])",
+            "legendFormat": "{{domain}} - {{status}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [{"format": "ops", "show": true}, {"show": false}],
+        "legend": {"show": true, "alignAsTable": true, "rightSide": false}
+      },
+      {
+        "id": 2,
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+        "type": "graph",
+        "title": "Task Execution Performance (95th percentile)",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(task_duration_seconds_bucket[5m]))",
+            "legendFormat": "{{specialist}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [{"format": "s", "show": true}, {"show": false}],
+        "legend": {"show": true, "alignAsTable": true, "rightSide": true}
+      },
+      {
+        "id": 3,
+        "gridPos": {"h": 8, "w": 8, "x": 0, "y": 8},
+        "type": "stat",
+        "title": "Active Sessions",
+        "targets": [
+          {
+            "expr": "active_sessions",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "graphMode": "area",
+          "colorMode": "value",
+          "orientation": "auto",
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"]
+          }
+        }
+      },
+      {
+        "id": 4,
+        "gridPos": {"h": 8, "w": 8, "x": 8, "y": 8},
+        "type": "graph",
+        "title": "Error Rate by Component",
+        "targets": [
+          {
+            "expr": "rate(errors_total[5m])",
+            "legendFormat": "{{component}} - {{error_type}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [{"format": "ops", "show": true}, {"show": false}],
+        "legend": {"show": true, "alignAsTable": true}
+      },
+      {
+        "id": 5,
+        "gridPos": {"h": 8, "w": 8, "x": 16, "y": 8},
+        "type": "graph",
+        "title": "Artifact Creation Rate",
+        "targets": [
+          {
+            "expr": "rate(artifacts_created_total[5m])",
+            "legendFormat": "{{type}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [{"format": "ops", "show": true}, {"show": false}]
+      },
+      {
+        "id": 6,
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+        "type": "heatmap",
+        "title": "Orchestration Duration Heatmap",
+        "targets": [
+          {
+            "expr": "orchestration_duration_seconds_bucket",
+            "format": "heatmap",
+            "refId": "A"
+          }
+        ],
+        "dataFormat": "timeseries",
+        "yAxis": {"format": "s", "decimals": 1},
+        "cards": {"cardPadding": 2, "cardRound": 2}
+      },
+      {
+        "id": 7,
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
+        "type": "graph",
+        "title": "Workflow Node States",
+        "targets": [
+          {
+            "expr": "workflow_nodes_active",
+            "legendFormat": "{{state}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [{"format": "short", "show": true}, {"show": false}],
+        "stack": true,
+        "fill": 5
+      },
+      {
+        "id": 8,
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 24},
+        "type": "table",
+        "title": "Top 10 Slowest Orchestrations",
+        "targets": [
+          {
+            "expr": "topk(10, orchestration_duration_seconds)",
+            "format": "table",
+            "instant": true,
+            "refId": "A"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": {},
+              "indexByName": {},
+              "renameByName": {
+                "domain": "Domain",
+                "strategy": "Strategy",
+                "Value": "Duration (s)"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 32},
+        "type": "piechart",
+        "title": "Task Success Rate by Specialist",
+        "targets": [
+          {
+            "expr": "sum by (specialist, status) (increase(tasks_executed_total[1h]))",
+            "legendFormat": "{{specialist}} - {{status}}",
+            "refId": "A"
+          }
+        ],
+        "pieType": "donut",
+        "legendDisplayMode": "table",
+        "legendPlacement": "right"
+      },
+      {
+        "id": 10,
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 32},
+        "type": "bargauge",
+        "title": "Artifact Size Distribution",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.5, rate(artifact_size_bytes_bucket[1h]))",
+            "legendFormat": "50th percentile",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.95, rate(artifact_size_bytes_bucket[1h]))",
+            "legendFormat": "95th percentile",
+            "refId": "B"
+          },
+          {
+            "expr": "histogram_quantile(0.99, rate(artifact_size_bytes_bucket[1h]))",
+            "legendFormat": "99th percentile",
+            "refId": "C"
+          }
+        ],
+        "options": {
+          "displayMode": "gradient",
+          "orientation": "horizontal",
+          "showUnfilled": true
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "decbytes",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 100000},
+                {"color": "red", "value": 1000000}
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "templating": {
+      "list": [
+        {
+          "name": "datasource",
+          "type": "datasource",
+          "query": "prometheus",
+          "current": {},
+          "hide": 0,
+          "includeAll": false,
+          "multi": false,
+          "refresh": 1
+        },
+        {
+          "name": "domain",
+          "type": "query",
+          "datasource": "$datasource",
+          "query": "label_values(orchestration_requests_total, domain)",
+          "current": {},
+          "hide": 0,
+          "includeAll": true,
+          "multi": true,
+          "refresh": 2
+        },
+        {
+          "name": "specialist",
+          "type": "query",
+          "datasource": "$datasource",
+          "query": "label_values(tasks_executed_total, specialist)",
+          "current": {},
+          "hide": 0,
+          "includeAll": true,
+          "multi": true,
+          "refresh": 2
+        }
+      ]
+    },
+    "annotations": {
+      "list": [
+        {
+          "datasource": "$datasource",
+          "enable": true,
+          "name": "Errors",
+          "iconColor": "red",
+          "query": "increase(errors_total[1m]) > 0"
+        }
+      ]
+    },
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    }
+  }
+}

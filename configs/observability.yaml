@@ -1,0 +1,213 @@
+# Observability Configuration for A2A MCP Framework V2.0
+# This file configures OpenTelemetry, Prometheus, and structured logging
+
+# Service identification
+service:
+  name: a2a-mcp-framework
+  version: "2.0.0"
+  environment: ${ENVIRONMENT:development}
+  namespace: a2a
+
+# OpenTelemetry Tracing Configuration
+tracing:
+  enabled: ${TRACING_ENABLED:true}
+  
+  # OTLP Exporter Configuration
+  exporter:
+    endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:localhost:4317}
+    insecure: ${OTEL_EXPORTER_OTLP_INSECURE:true}
+    headers:
+      - key: api-key
+        value: ${OTEL_API_KEY:}
+    
+  # Sampling Configuration
+  sampling:
+    type: ${OTEL_SAMPLING_TYPE:always_on}  # always_on, trace_id_ratio, parent_based
+    ratio: ${OTEL_SAMPLING_RATIO:1.0}
+  
+  # Resource Attributes
+  resource_attributes:
+    deployment.environment: ${ENVIRONMENT:development}
+    service.instance.id: ${HOSTNAME:unknown}
+    framework.version: "2.0.0"
+    
+  # Span Processors
+  processors:
+    - type: batch
+      max_queue_size: 2048
+      scheduled_delay_millis: 5000
+      max_export_batch_size: 512
+    
+  # Instrumentation
+  instrumentation:
+    - logging  # Auto-instrument logs with trace context
+    - aiohttp  # HTTP client instrumentation
+    - asyncio  # Async task instrumentation
+
+# Prometheus Metrics Configuration
+metrics:
+  enabled: ${METRICS_ENABLED:true}
+  
+  # Metrics Server
+  server:
+    port: ${METRICS_PORT:9090}
+    host: ${METRICS_HOST:0.0.0.0}
+    path: /metrics
+  
+  # OTLP Metrics Exporter (optional)
+  otlp_export:
+    enabled: ${OTEL_METRICS_ENABLED:false}
+    endpoint: ${OTEL_METRICS_ENDPOINT:localhost:4317}
+    interval_millis: 30000
+  
+  # Custom Labels (added to all metrics)
+  custom_labels:
+    environment: ${ENVIRONMENT:development}
+    region: ${REGION:us-east-1}
+    
+  # Metric Buckets Configuration
+  histograms:
+    orchestration_duration_seconds:
+      buckets: [0.1, 0.5, 1.0, 2.5, 5.0, 10.0, 30.0, 60.0, 120.0]
+    task_duration_seconds:
+      buckets: [0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0]
+    artifact_size_bytes:
+      buckets: [100, 1000, 10000, 100000, 1000000, 10000000]
+    streaming_duration_seconds:
+      buckets: [0.1, 0.5, 1.0, 5.0, 10.0, 30.0, 60.0]
+
+# Structured Logging Configuration
+logging:
+  # Log Level
+  level: ${LOG_LEVEL:INFO}
+  
+  # Output Format
+  json_format: ${JSON_LOGS:true}
+  
+  # Include Fields
+  include_fields:
+    - timestamp
+    - level
+    - logger
+    - message
+    - module
+    - function
+    - line
+    - trace_id  # OpenTelemetry trace ID
+    - span_id   # OpenTelemetry span ID
+    - session_id
+    - domain
+    - error_type
+    
+  # Log Outputs
+  outputs:
+    - type: console
+      format: json
+    - type: file
+      enabled: ${LOG_TO_FILE:false}
+      path: ${LOG_FILE_PATH:logs/a2a_mcp.log}
+      rotation:
+        max_size_mb: 100
+        max_files: 5
+    
+  # Log Sampling (for high-volume environments)
+  sampling:
+    enabled: ${LOG_SAMPLING_ENABLED:false}
+    rate: ${LOG_SAMPLING_RATE:0.1}  # Sample 10% of logs
+
+# Alerting Configuration (for use with Prometheus AlertManager)
+alerts:
+  - name: HighErrorRate
+    expr: rate(errors_total[5m]) > 0.1
+    for: 5m
+    severity: warning
+    annotations:
+      summary: "High error rate detected"
+      description: "Error rate is above 0.1 per second for 5 minutes"
+  
+  - name: LowSuccessRate
+    expr: |
+      sum(rate(orchestration_requests_total{status="success"}[5m])) /
+      sum(rate(orchestration_requests_total[5m])) < 0.9
+    for: 10m
+    severity: critical
+    annotations:
+      summary: "Low orchestration success rate"
+      description: "Success rate below 90% for 10 minutes"
+  
+  - name: HighOrchestrationLatency
+    expr: |
+      histogram_quantile(0.95, rate(orchestration_duration_seconds_bucket[5m])) > 30
+    for: 5m
+    severity: warning
+    annotations:
+      summary: "High orchestration latency"
+      description: "95th percentile latency above 30 seconds"
+  
+  - name: TooManyActiveSessions
+    expr: active_sessions > 1000
+    for: 1m
+    severity: warning
+    annotations:
+      summary: "Too many active sessions"
+      description: "More than 1000 active sessions detected"
+
+# Dashboard Configuration
+dashboards:
+  grafana:
+    enabled: true
+    folder: "A2A MCP Framework"
+    tags: ["a2a", "mcp", "orchestration"]
+    refresh_interval: "10s"
+    
+# Performance Profiling (optional)
+profiling:
+  enabled: ${PROFILING_ENABLED:false}
+  type: ${PROFILING_TYPE:pyinstrument}  # pyinstrument, cProfile, py-spy
+  output_dir: ${PROFILING_OUTPUT_DIR:profiles/}
+  sample_rate: ${PROFILING_SAMPLE_RATE:0.01}  # Sample 1% of requests
+
+# Health Check Configuration
+health_check:
+  enabled: true
+  endpoint: /health
+  include_details: ${HEALTH_CHECK_DETAILS:true}
+  checks:
+    - name: database
+      critical: true
+    - name: a2a_protocol
+      critical: true
+    - name: planner_agent
+      critical: false
+    - name: mcp_server
+      critical: false
+
+# Feature Flags for Observability
+features:
+  distributed_tracing: true
+  custom_metrics: true
+  structured_logging: true
+  error_tracking: true
+  performance_monitoring: true
+  real_time_streaming_metrics: true
+  session_replay: false  # Future feature
+  
+# Integration Endpoints
+integrations:
+  # Jaeger (if using Jaeger instead of OTLP)
+  jaeger:
+    enabled: ${JAEGER_ENABLED:false}
+    agent_host: ${JAEGER_AGENT_HOST:localhost}
+    agent_port: ${JAEGER_AGENT_PORT:6831}
+  
+  # Datadog (if using Datadog)
+  datadog:
+    enabled: ${DATADOG_ENABLED:false}
+    api_key: ${DATADOG_API_KEY:}
+    site: ${DATADOG_SITE:datadoghq.com}
+    
+  # New Relic (if using New Relic)
+  newrelic:
+    enabled: ${NEWRELIC_ENABLED:false}
+    license_key: ${NEWRELIC_LICENSE_KEY:}
+    app_name: ${NEWRELIC_APP_NAME:a2a-mcp-framework}

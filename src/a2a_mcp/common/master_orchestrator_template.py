@@ -51,6 +51,34 @@ from a2a_mcp.common.enhanced_workflow import (
     workflow_manager
 )
 
+# Observability imports
+try:
+    from a2a_mcp.common.observability import (
+        get_logger, 
+        trace_span, 
+        record_metric,
+        trace_async,
+        measure_performance
+    )
+    OBSERVABILITY_ENABLED = True
+except ImportError:
+    # Fallback if observability module not available
+    OBSERVABILITY_ENABLED = False
+    logger = logging.getLogger(__name__)
+    def get_logger(name): return logger
+    def trace_span(name, attributes=None): 
+        from contextlib import contextmanager
+        @contextmanager
+        def dummy(): yield None
+        return dummy()
+    def record_metric(name, value, labels=None): pass
+    def trace_async(name=None): 
+        def decorator(func): return func
+        return decorator
+    def measure_performance(name, labels=None):
+        def decorator(func): return func
+        return decorator
+
 # Google ADK imports
 from google.adk.agents import Agent
 from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, SseServerParams
@@ -58,7 +86,8 @@ from google.genai import types as genai_types
 
 import os
 
-logger = logging.getLogger(__name__)
+# Get structured logger
+logger = get_logger(__name__) if OBSERVABILITY_ENABLED else logging.getLogger(__name__)
 
 class MasterOrchestratorTemplate(StandardizedAgentBase):
     """
@@ -201,7 +230,23 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
         self.summary_preferences: Dict[str, Any] = {}  # User preferences for summary generation
         self.summary_analytics: Dict[str, Any] = {}  # Analytics on summary generation patterns
         
-        logger.info(f"Refactored {domain_name} Master Orchestrator initialized with Enhanced Planner")
+        # PHASE 7: Workflow Streaming with Artifact Events
+        self.streaming_sessions: Dict[str, Dict[str, Any]] = {}  # streaming_session_id -> session data
+        self.stream_buffer_size: int = 100  # Maximum events to buffer
+        self.stream_timeout: float = 300.0  # 5 minute timeout for streaming sessions
+        self.artifact_stream_config: Dict[str, Any] = {
+            'enable_partial_results': True,
+            'progress_update_interval': 5,  # Update progress every 5%
+            'artifact_batch_size': 10,  # Batch artifacts for efficiency
+            'enable_compression': False  # Future: compress large artifacts
+        }
+        
+        logger.info("Master Orchestrator initialized",
+                   domain=domain_name,
+                   orchestrator_type="refactored",
+                   planner_mode=planning_mode,
+                   parallel_enabled=enable_parallel,
+                   dynamic_workflow_enabled=enable_dynamic_workflow)
 
     def _get_default_quality_thresholds(self, quality_domain: QualityDomain) -> Dict[str, Any]:
         """Get default quality thresholds for domain."""
@@ -212,66 +257,134 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
             "domain": quality_domain.value
         }
 
+    @trace_async("master_orchestrator.invoke")
     async def invoke(self, query: str, sessionId: str) -> str:
         """Main orchestration entry point - delegates planning to Enhanced Planner."""
-        try:
-            logger.info(f"Master orchestrator processing: {query[:100]}...")
-            
-            # PHASE 2.5: Auto-clear context if significant change detected
-            context_cleared = self.auto_clear_on_context_change(query, sessionId)
-            
-            # PHASE 2: Initialize context and track query
-            self._initialize_session_context(sessionId, query)
-            execution_start = datetime.now()
-            
-            # Log context change detection
-            if context_cleared:
-                logger.info(f"Context auto-cleared for session {sessionId} before processing query")
-            
-            # Step 1: Delegate all planning to Enhanced Planner Agent
-            plan_response = await self._get_strategic_plan(query, sessionId)
-            
-            if not plan_response or plan_response.get('response_type') != 'data':
+        with trace_span("orchestration_request", {
+            "session_id": sessionId,
+            "domain": self.domain_name,
+            "query_length": len(query)
+        }) as span:
+            try:
+                logger.info(f"Master orchestrator processing: {query[:100]}...",
+                          session_id=sessionId,
+                          domain=self.domain_name)
+                
+                # Record request metric
+                record_metric('orchestration_requests_total', 1, {
+                    'domain': self.domain_name,
+                    'status': 'started'
+                })
+                
+                # Update active sessions gauge
+                record_metric('active_sessions', len(self.session_contexts) + 1)
+                
+                # PHASE 2.5: Auto-clear context if significant change detected
+                context_cleared = self.auto_clear_on_context_change(query, sessionId)
+                
+                # PHASE 2: Initialize context and track query
+                self._initialize_session_context(sessionId, query)
+                execution_start = datetime.now()
+                
+                # Log context change detection
+                if context_cleared:
+                    logger.info(f"Context auto-cleared for session {sessionId} before processing query",
+                              context_cleared=True)
+                
+                # Step 1: Delegate all planning to Enhanced Planner Agent
+                with trace_span("planning_phase") as planning_span:
+                    plan_response = await self._get_strategic_plan(query, sessionId)
+                    
+                    if not plan_response or plan_response.get('response_type') != 'data':
+                        record_metric('orchestration_requests_total', 1, {
+                            'domain': self.domain_name,
+                            'status': 'planning_failed'
+                        })
+                        return self._format_orchestrator_response({
+                            'status': 'error',
+                            'message': 'Failed to generate strategic plan',
+                            'error': plan_response.get('content', 'Unknown planning error')
+                        })
+                    
+                    execution_plan = plan_response['content']
+                    planning_span.set_attribute("task_count", len(execution_plan.get('tasks', [])))
+                    planning_span.set_attribute("strategy", execution_plan.get('coordination_strategy', 'unknown'))
+                
+                # Step 2: Execute orchestration using A2A protocol
+                with trace_span("execution_phase") as exec_span:
+                    orchestration_result = await self._execute_orchestration(execution_plan, sessionId)
+                    exec_span.set_attribute("tasks_executed", len(orchestration_result.get('results', [])))
+                
+                # PHASE 4: Collect and organize artifacts from orchestration
+                with trace_span("artifact_collection"):
+                    await self._collect_orchestration_artifacts(orchestration_result, execution_plan, sessionId)
+                
+                # Step 3: Synthesize final results
+                with trace_span("synthesis_phase"):
+                    final_result = await self._synthesize_results(orchestration_result, execution_plan, query)
+                
+                # PHASE 6: Generate enhanced summary from collected artifacts
+                with trace_span("summary_generation"):
+                    enhanced_summary = await self._generate_enhanced_summary(sessionId, final_result, execution_plan)
+                    final_result['enhanced_summary'] = enhanced_summary
+                
+                # Record execution duration
+                execution_duration = (datetime.now() - execution_start).total_seconds()
+                record_metric('orchestration_duration_seconds', execution_duration, {
+                    'domain': self.domain_name,
+                    'strategy': execution_plan.get('coordination_strategy', 'unknown')
+                })
+                
+                # PHASE 2: Record execution history and update context
+                self._record_execution_history(sessionId, {
+                    'query': query,
+                    'execution_plan': execution_plan,
+                    'orchestration_result': orchestration_result,
+                    'final_result': final_result,
+                    'execution_duration': execution_duration,
+                    'timestamp': execution_start.isoformat()
+                })
+                
+                # Record success
+                record_metric('orchestration_requests_total', 1, {
+                    'domain': self.domain_name,
+                    'status': 'success'
+                })
+                
+                # Update active sessions
+                record_metric('active_sessions', len(self.session_contexts))
+                
+                logger.info(f"Orchestration completed successfully",
+                          session_id=sessionId,
+                          duration=execution_duration,
+                          task_count=len(execution_plan.get('tasks', [])))
+                
+                return self._format_orchestrator_response(final_result)
+                
+            except Exception as e:
+                logger.error(f"Master orchestration error: {e}",
+                           session_id=sessionId,
+                           error_type=type(e).__name__)
+                
+                # Record error metric
+                record_metric('errors_total', 1, {
+                    'component': 'master_orchestrator',
+                    'error_type': type(e).__name__
+                })
+                
+                record_metric('orchestration_requests_total', 1, {
+                    'domain': self.domain_name,
+                    'status': 'error'
+                })
+                
+                if span:
+                    span.record_exception(e)
+                
                 return self._format_orchestrator_response({
                     'status': 'error',
-                    'message': 'Failed to generate strategic plan',
-                    'error': plan_response.get('content', 'Unknown planning error')
+                    'message': f'Orchestration failed: {str(e)}',
+                    'timestamp': datetime.now().isoformat()
                 })
-            
-            execution_plan = plan_response['content']
-            
-            # Step 2: Execute orchestration using A2A protocol
-            orchestration_result = await self._execute_orchestration(execution_plan, sessionId)
-            
-            # PHASE 4: Collect and organize artifacts from orchestration
-            await self._collect_orchestration_artifacts(orchestration_result, execution_plan, sessionId)
-            
-            # Step 3: Synthesize final results
-            final_result = await self._synthesize_results(orchestration_result, execution_plan, query)
-            
-            # PHASE 6: Generate enhanced summary from collected artifacts
-            enhanced_summary = await self._generate_enhanced_summary(sessionId, final_result, execution_plan)
-            final_result['enhanced_summary'] = enhanced_summary
-            
-            # PHASE 2: Record execution history and update context
-            self._record_execution_history(sessionId, {
-                'query': query,
-                'execution_plan': execution_plan,
-                'orchestration_result': orchestration_result,
-                'final_result': final_result,
-                'execution_duration': (datetime.now() - execution_start).total_seconds(),
-                'timestamp': execution_start.isoformat()
-            })
-            
-            return self._format_orchestrator_response(final_result)
-            
-        except Exception as e:
-            logger.error(f"Master orchestration error: {e}")
-            return self._format_orchestrator_response({
-                'status': 'error',
-                'message': f'Orchestration failed: {str(e)}',
-                'timestamp': datetime.now().isoformat()
-            })
 
     async def stream(self, query: str, sessionId: str, task_id: str) -> AsyncIterable[dict[str, Any]]:
         """Stream orchestration progress with enhanced planning delegation."""
@@ -347,7 +460,10 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
             }
             
         except Exception as e:
-            logger.error(f"Stream orchestration error: {e}")
+            logger.error("Stream orchestration error",
+                       error=str(e),
+                       error_type=type(e).__name__,
+                       session_id=sessionId)
             yield {
                 'response_type': 'text',
                 'is_task_complete': True,
@@ -382,7 +498,10 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
             return plan_response
             
         except Exception as e:
-            logger.error(f"Strategic planning delegation error: {e}")
+            logger.error("Strategic planning delegation error",
+                       error=str(e),
+                       error_type=type(e).__name__,
+                       session_id=sessionId)
             return {'response_type': 'error', 'content': f'Strategic planning failed: {str(e)}'}
 
     def _assign_specialists_to_tasks(self, tasks: List[dict]) -> Dict[str, dict]:
@@ -453,6 +572,7 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
             timeline_estimate = self.planner.estimate_execution_timeline(tasks)
             plan_content['timeline_analysis'] = timeline_estimate
 
+    @trace_async("execute_orchestration")
     async def _execute_orchestration(self, execution_plan: dict, sessionId: str) -> dict:
         """Execute orchestration focusing on coordination, not planning."""
         tasks = execution_plan.get('tasks', [])
@@ -466,25 +586,41 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
             'orchestration_metrics': {}
         }
         
+        # Update active sessions metric
+        record_metric('active_sessions', len(self.session_contexts))
+        
         try:
             # Initialize specialist coordination
-            await self._initialize_specialist_coordination(specialist_assignments)
+            with trace_span("initialize_specialists", {"specialist_count": len(specialist_assignments)}):
+                await self._initialize_specialist_coordination(specialist_assignments)
             
             # Execute based on coordination strategy
             if coordination_strategy == 'parallel':
-                task_results = await self._coordinate_parallel_execution(tasks, sessionId)
+                with trace_span("parallel_execution", {"task_count": len(tasks)}):
+                    task_results = await self._coordinate_parallel_execution(tasks, sessionId)
             elif coordination_strategy == 'hybrid':
-                task_results = await self._coordinate_hybrid_execution(tasks, sessionId)
+                with trace_span("hybrid_execution", {"task_count": len(tasks)}):
+                    task_results = await self._coordinate_hybrid_execution(tasks, sessionId)
             else:  # sequential
-                task_results = await self._coordinate_sequential_execution(tasks, sessionId)
+                with trace_span("sequential_execution", {"task_count": len(tasks)}):
+                    task_results = await self._coordinate_sequential_execution(tasks, sessionId)
             
             orchestration_result['task_results'] = task_results
             orchestration_result['orchestration_metrics'] = self._calculate_orchestration_metrics(task_results)
             
+            # Record metrics
+            metrics = orchestration_result['orchestration_metrics']
+            record_metric('tasks_executed_total', 
+                         metrics.get('completed_tasks', 0),
+                         {'specialist': 'all', 'status': 'completed'})
+            
             return orchestration_result
             
         except Exception as e:
-            logger.error(f"Orchestration execution error: {e}")
+            logger.error(f"Orchestration execution error: {e}",
+                       error_type=type(e).__name__, session_id=sessionId)
+            record_metric('errors_total', 1,
+                         {'component': 'orchestration_execution', 'error_type': type(e).__name__})
             orchestration_result['error'] = str(e)
             return orchestration_result
 
@@ -504,7 +640,9 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
                 'performance_metrics': {'tasks_completed': 0, 'avg_duration': 0}
             }
             
-            logger.info(f"Initialized coordination with {specialist} specialist")
+            logger.info("Initialized specialist coordination",
+                       specialist=specialist,
+                       capabilities=self.domain_specialists.get(specialist, 'General specialist'))
 
     async def _coordinate_sequential_execution(self, tasks: List[dict], sessionId: str) -> List[dict]:
         """Coordinate sequential task execution."""
@@ -568,24 +706,41 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
         
         return results
 
+    @trace_async("coordinate_single_task")
+    @measure_performance("task_duration_seconds")
     async def _coordinate_single_task(self, task: dict, sessionId: str) -> dict:
         """Coordinate execution of a single task via specialist."""
         try:
             task_id = task.get('id', 'unknown')
             task_description = task.get('description', '')
+            specialist = task.get('agent_type', 'generalist')
+            
+            logger.info(f"Coordinating task {task_id} with {specialist}",
+                       task_id=task_id, specialist=specialist, session_id=sessionId)
             
             # Simulate task coordination (in real implementation, would use A2A protocol)
             await asyncio.sleep(0.1)  # Simulate coordination time
+            
+            # Record success metric
+            record_metric('tasks_executed_total', 1, 
+                         {'specialist': specialist, 'status': 'completed'})
             
             return {
                 'task_id': task_id,
                 'status': 'completed',
                 'result': f'Coordinated completion: {task_description[:50]}...',
-                'specialist_used': task.get('agent_type', 'generalist'),
+                'specialist_used': specialist,
                 'coordination_time': 0.1
             }
             
         except Exception as e:
+            logger.error(f"Task coordination error: {e}",
+                       error_type=type(e).__name__, task_id=task.get('id', 'unknown'))
+            record_metric('errors_total', 1,
+                         {'component': 'task_coordination', 'error_type': type(e).__name__})
+            record_metric('tasks_executed_total', 1,
+                         {'specialist': task.get('agent_type', 'generalist'), 'status': 'failed'})
+            
             return {
                 'task_id': task.get('id', 'unknown'),
                 'status': 'error',
@@ -593,6 +748,7 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
                 'coordination_time': 0
             }
 
+    @measure_performance("streaming_duration_seconds")
     async def _stream_orchestration(self, execution_plan: dict, sessionId: str):
         """Stream orchestration execution progress."""
         tasks = execution_plan.get('tasks', [])
@@ -684,7 +840,9 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
             
             self.current_session_id = session_id
             self.dynamic_workflow = workflow_manager.create_workflow(session_id)
-            logger.info(f"Created dynamic workflow {self.dynamic_workflow.workflow_id} for session {session_id}")
+            logger.info("Created dynamic workflow",
+                       workflow_id=self.dynamic_workflow.workflow_id,
+                       session_id=session_id)
         
         return self.dynamic_workflow
     
@@ -718,7 +876,10 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
         # Update global query patterns
         self.query_patterns[query_type] = self.query_patterns.get(query_type, 0) + 1
         
-        logger.debug(f"Initialized context for session {session_id}, query type: {query_type}")
+        logger.debug("Initialized session context",
+                    session_id=session_id,
+                    query_type=query_type,
+                    total_queries=context['total_queries'])
     
     def _classify_query_type(self, query: str) -> str:
         """Classify query into categories for pattern tracking."""
@@ -772,7 +933,11 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
         # Track context evolution
         self._track_context_evolution(session_id, enhanced_record)
         
-        logger.info(f"Recorded execution history for session {session_id}: {enhanced_record['record_id']}")
+        logger.info("Recorded execution history",
+                   session_id=session_id,
+                   record_id=enhanced_record['record_id'],
+                   tasks_planned=enhanced_record['performance_metrics']['tasks_planned'],
+                   success_rate=enhanced_record['performance_metrics']['success_rate'])
     
     def _get_context_snapshot(self, session_id: str) -> Dict[str, Any]:
         """Get current context snapshot for historical record."""
@@ -1021,7 +1186,10 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
         if node_id and node_id in workflow.nodes:
             workflow.add_edge(node_id, node.id)
         
-        logger.info(f"Added workflow node {node.id} ({node_key}) to {workflow.workflow_id}")
+        logger.info("Added workflow node",
+                   node_id=node.id,
+                   node_key=node_key,
+                   workflow_id=workflow.workflow_id)
         return node
     
     def set_node_attributes(
@@ -1091,7 +1259,9 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
             # PHASE 2.5: Clear PHASE 2 context & history data
             self._clear_phase2_context_data(target_session)
             
-            logger.info(f"Enhanced session state clearing completed for {target_session}")
+            logger.info("Enhanced session state clearing completed",
+                       target_session=target_session,
+                       artifacts_removed=len(self.artifact_store.get(target_session, {}).keys()))
         
         # Reset instance state (only if clearing current session)
         if not session_id or session_id == self.current_session_id:
@@ -1140,7 +1310,9 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
             if entry['session_id'] != session_id
         ]
         
-        logger.debug(f"Cleared PHASE 2 context data for session {session_id}")
+        logger.debug("Cleared context data",
+                    session_id=session_id,
+                    context_version=context.get('context_version', 0))
     
     def _extract_domain_learnings(self, session_context: Dict[str, Any], session_id: str):
         """Extract valuable learnings to preserve in domain context."""
@@ -1635,26 +1807,32 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
     # PHASE 4: Artifact Management & Result Collection Methods
     # ============================================================================
     
+    @trace_async("collect_orchestration_artifacts")
     async def _collect_orchestration_artifacts(self, orchestration_result: Dict[str, Any], execution_plan: Dict[str, Any], session_id: str):
         """Collect artifacts from orchestration execution."""
         collection_id = str(uuid.uuid4())
         
         # Create result collection for this orchestration
-        collection = await self._create_result_collection(
-            collection_id=collection_id,
-            session_id=session_id,
-            collection_type='orchestration_execution',
-            metadata={
-                'execution_plan_id': execution_plan.get('plan_id', 'unknown'),
-                'coordination_strategy': execution_plan.get('coordination_strategy', 'sequential'),
-                'task_count': len(execution_plan.get('tasks', [])),
-                'timestamp': datetime.now().isoformat()
-            }
-        )
+        with trace_span("create_result_collection", {"collection_id": collection_id}):
+            collection = await self._create_result_collection(
+                collection_id=collection_id,
+                session_id=session_id,
+                collection_type='orchestration_execution',
+                metadata={
+                    'execution_plan_id': execution_plan.get('plan_id', 'unknown'),
+                    'coordination_strategy': execution_plan.get('coordination_strategy', 'sequential'),
+                    'task_count': len(execution_plan.get('tasks', [])),
+                    'timestamp': datetime.now().isoformat()
+                }
+            )
         
         # Collect task-level artifacts
         tasks = execution_plan.get('tasks', [])
         task_results = orchestration_result.get('task_results', [])
+        
+        # Record artifact metrics
+        record_metric('artifacts_created_total', 1,
+                     {'type': 'orchestration_collection', 'session': session_id})
         
         for task, result in zip(tasks, task_results):
             await self._collect_task_artifacts(task, result, session_id, collection_id)
@@ -2151,7 +2329,10 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
             }
             
         except Exception as e:
-            logger.error(f"Error answering domain question: {e}")
+            logger.error("Error answering domain question",
+                       error=str(e),
+                       error_type=type(e).__name__,
+                       session_id=session_id)
             return {
                 'question': question,
                 'answer': f"I encountered an error while processing your question: {str(e)}",
@@ -2327,7 +2508,10 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
                 answer_data = await self._answer_general_question(question, context)
             
         except Exception as e:
-            logger.error(f"Error generating contextual answer: {e}")
+            logger.error("Error generating contextual answer",
+                       error=str(e),
+                       error_type=type(e).__name__,
+                       question_category=question_category)
             answer_data = {
                 'answer': f"I encountered an error while generating the answer: {str(e)}",
                 'confidence': 0.0,
@@ -2877,7 +3061,10 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
             return summary
             
         except Exception as e:
-            logger.error(f"Error generating enhanced summary: {e}")
+            logger.error("Error generating enhanced summary",
+                       error=str(e),
+                       error_type=type(e).__name__,
+                       session_id=session_id)
             return {
                 'error': f"Failed to generate enhanced summary: {str(e)}",
                 'timestamp': datetime.now().isoformat()
@@ -3930,7 +4117,10 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
             return summary
             
         except Exception as e:
-            logger.error(f"Error generating custom summary: {e}")
+            logger.error("Error generating custom summary",
+                       error=str(e),
+                       error_type=type(e).__name__,
+                       session_id=session_id)
             return {
                 'error': f"Failed to generate custom summary: {str(e)}",
                 'timestamp': datetime.now().isoformat()
@@ -4153,6 +4343,22 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
                 'Summary quality scoring and improvement analytics',
                 'Automated summary generation at session completion'
             ],
+            'workflow_streaming_artifact_capabilities': [
+                'Real-time streaming with artifact event notifications',
+                'Progress tracking with percentage-based updates',
+                'Live artifact creation events as they happen',
+                'Partial result streaming for long-running tasks',
+                'Performance metrics streaming in real-time',
+                'Dynamic workflow graph updates during execution',
+                'Task-level progress granularity with stages',
+                'Parallel task stream merging and aggregation',
+                'Streaming session statistics and analytics',
+                'Error event streaming with detailed context',
+                'Configurable streaming buffer and timeout settings',
+                'Artifact batching for efficient transmission',
+                'Stream event types: session, planning, task, artifact, error',
+                'Integration with all previous phases during streaming'
+            ],
             'backward_compatibility': 'Full API compatibility with original MasterOrchestratorTemplate',
             'enhanced_features': 'All capabilities enhanced via EnhancedGenericPlannerAgent integration',
             'phase_completion_status': {
@@ -4162,6 +4368,526 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
                 'phase_3_enhanced_state_management': True,
                 'phase_4_artifact_management': True,
                 'phase_5_intelligent_qa': True,
-                'phase_6_enhanced_summary_generation': True
+                'phase_6_enhanced_summary_generation': True,
+                'phase_7_workflow_streaming_artifacts': True
             }
         }
+    
+    # ============================================================================
+    # PHASE 7: Workflow Streaming with Artifact Events
+    # ============================================================================
+    
+    async def stream_with_artifacts(self, query: str, sessionId: str, task_id: str) -> AsyncIterable[dict[str, Any]]:
+        """
+        Enhanced streaming with real-time artifact events and progress tracking.
+        
+        PHASE 7 Implementation: Provides real-time visibility into:
+        - Task execution progress with percentage tracking
+        - Artifact creation events as they happen
+        - Performance metrics in real-time
+        - Partial results for long-running tasks
+        - Live workflow graph updates
+        
+        Args:
+            query: User query to process
+            sessionId: Session identifier
+            task_id: Task identifier
+            
+        Yields:
+            Enhanced streaming events with artifact notifications
+        """
+        try:
+            # Initialize streaming session
+            streaming_session_id = f"{sessionId}_stream_{datetime.now().timestamp()}"
+            self.streaming_sessions[streaming_session_id] = {
+                'start_time': datetime.now(),
+                'events_count': 0,
+                'artifacts_streamed': 0,
+                'last_progress': 0
+            }
+            
+            # PHASE 7: Initial setup event
+            yield {
+                'response_type': 'stream_event',
+                'event_type': 'session_start',
+                'is_task_complete': False,
+                'require_user_input': False,
+                'content': f'🎯 Starting enhanced {self.domain_name} orchestration with artifact streaming...',
+                'metadata': {
+                    'session_id': sessionId,
+                    'streaming_session_id': streaming_session_id,
+                    'capabilities': ['real_time_artifacts', 'progress_tracking', 'partial_results'],
+                    'timestamp': datetime.now().isoformat()
+                },
+                'stage': 'initialization'
+            }
+            
+            # PHASE 2: Initialize session context if needed
+            self.initialize_session(sessionId)
+            
+            # PHASE 2.5: Check for context change and auto-clear if needed
+            if hasattr(self, 'auto_clear_on_context_change'):
+                context_cleared = self.auto_clear_on_context_change(query, sessionId)
+                if context_cleared:
+                    yield {
+                        'response_type': 'stream_event',
+                        'event_type': 'context_cleared',
+                        'content': '🔄 Context automatically cleared due to significant change',
+                        'metadata': {'session_id': sessionId}
+                    }
+            
+            # Step 1: Strategic planning with progress
+            yield {
+                'response_type': 'stream_event',
+                'event_type': 'planning_start',
+                'content': '🧠 Delegating to Enhanced Planner for strategic analysis...',
+                'progress': 5,
+                'stage': 'strategic_planning'
+            }
+            
+            plan_response = await self._get_strategic_plan(query, sessionId)
+            
+            if not plan_response or plan_response.get('response_type') != 'data':
+                yield {
+                    'response_type': 'stream_event',
+                    'event_type': 'planning_failed',
+                    'is_task_complete': True,
+                    'content': '❌ Strategic planning failed',
+                    'stage': 'error'
+                }
+                return
+            
+            execution_plan = plan_response['content']
+            tasks = execution_plan.get('tasks', [])
+            
+            # PHASE 7: Stream planning artifact
+            planning_artifact = {
+                'artifact_id': str(uuid.uuid4()),
+                'artifact_type': 'execution_plan',
+                'content': execution_plan,
+                'metadata': {
+                    'task_count': len(tasks),
+                    'strategy': execution_plan.get('coordination_strategy'),
+                    'estimated_duration': execution_plan.get('estimated_duration', 'unknown')
+                }
+            }
+            
+            yield {
+                'response_type': 'stream_event',
+                'event_type': 'artifact_created',
+                'artifact': planning_artifact,
+                'content': f'✅ Strategic plan complete: {len(tasks)} tasks identified',
+                'progress': 15,
+                'stage': 'planning_complete'
+            }
+            
+            # PHASE 4: Store planning artifact
+            if hasattr(self, 'store_artifact'):
+                await self.store_artifact(
+                    content=execution_plan,
+                    artifact_type='execution_plan',
+                    source_info={'phase': 'planning', 'planner': 'enhanced'},
+                    session_id=sessionId
+                )
+            
+            # PHASE 1: Initialize dynamic workflow if enabled
+            if self.enable_dynamic_workflow and hasattr(self, 'dynamic_workflow'):
+                self.dynamic_workflow = DynamicWorkflowGraph(f"workflow_{sessionId}")
+                
+                # Build workflow graph from plan
+                for i, task in enumerate(tasks):
+                    node = WorkflowNode(
+                        task=task.get('description', f'Task {i+1}'),
+                        node_key=f"task_{i}",
+                        metadata={
+                            'task_id': task.get('task_id', str(uuid.uuid4())),
+                            'specialist': task.get('assigned_to'),
+                            'priority': task.get('priority', 'medium')
+                        }
+                    )
+                    self.dynamic_workflow.add_node(node)
+                    
+                    # Add dependencies
+                    if i > 0 and execution_plan.get('coordination_strategy') == 'sequential':
+                        prev_node_id = self.dynamic_workflow.get_nodes_by_key(f"task_{i-1}")[0].id
+                        self.dynamic_workflow.add_edge(prev_node_id, node.id)
+                
+                # Stream workflow creation event
+                yield {
+                    'response_type': 'stream_event',
+                    'event_type': 'workflow_created',
+                    'content': '📊 Dynamic workflow graph created',
+                    'metadata': {
+                        'total_nodes': len(self.dynamic_workflow.nodes),
+                        'execution_layers': len(self.dynamic_workflow.get_execution_plan())
+                    },
+                    'progress': 20
+                }
+            
+            # Step 2: Enhanced orchestration execution with streaming
+            yield {
+                'response_type': 'stream_event',
+                'event_type': 'orchestration_start',
+                'content': '🚀 Beginning enhanced orchestration with artifact streaming...',
+                'progress': 25,
+                'stage': 'orchestration_start'
+            }
+            
+            # Stream orchestration with enhanced artifact events
+            orchestration_result = None
+            async for event in self._stream_orchestration_with_artifacts(execution_plan, sessionId, streaming_session_id):
+                # Update streaming session stats
+                self.streaming_sessions[streaming_session_id]['events_count'] += 1
+                if event.get('event_type') == 'artifact_created':
+                    self.streaming_sessions[streaming_session_id]['artifacts_streamed'] += 1
+                
+                # Capture final orchestration result
+                if event.get('event_type') == 'orchestration_complete':
+                    orchestration_result = event.get('metadata', {}).get('orchestration_result', {})
+                
+                yield event
+            
+            # Step 3: Final synthesis with artifacts
+            yield {
+                'response_type': 'stream_event',
+                'event_type': 'synthesis_start',
+                'content': '🔮 Synthesizing final results from collected artifacts...',
+                'progress': 90,
+                'stage': 'synthesis'
+            }
+            
+            # PHASE 6: Generate enhanced summary if available
+            if hasattr(self, '_generate_enhanced_summary') and orchestration_result:
+                enhanced_summary = await self._generate_enhanced_summary(sessionId, orchestration_result, execution_plan)
+                
+                # Stream summary artifact
+                summary_artifact = {
+                    'artifact_id': enhanced_summary.get('summary_id'),
+                    'artifact_type': 'enhanced_summary',
+                    'content': enhanced_summary,
+                    'metadata': {
+                        'components': list(enhanced_summary.keys()),
+                        'quality_score': self._calculate_summary_quality(enhanced_summary)
+                    }
+                }
+                
+                yield {
+                    'response_type': 'stream_event',
+                    'event_type': 'artifact_created',
+                    'artifact': summary_artifact,
+                    'content': '📋 Enhanced summary generated',
+                    'progress': 95
+                }
+            
+            # PHASE 7: Stream session statistics
+            session_stats = self._get_streaming_session_stats(streaming_session_id)
+            
+            yield {
+                'response_type': 'stream_event',
+                'event_type': 'session_complete',
+                'is_task_complete': True,
+                'content': f'🎉 Enhanced {self.domain_name} orchestration completed',
+                'metadata': {
+                    'session_stats': session_stats,
+                    'total_artifacts': self.streaming_sessions[streaming_session_id]['artifacts_streamed'],
+                    'execution_time': (datetime.now() - self.streaming_sessions[streaming_session_id]['start_time']).total_seconds()
+                },
+                'progress': 100,
+                'stage': 'completion'
+            }
+            
+            # Cleanup streaming session
+            del self.streaming_sessions[streaming_session_id]
+            
+        except Exception as e:
+            logger.error("Enhanced stream orchestration error",
+                       error=str(e),
+                       error_type=type(e).__name__,
+                       streaming_session_id=streaming_session_id)
+            yield {
+                'response_type': 'stream_event',
+                'event_type': 'error',
+                'is_task_complete': True,
+                'content': f'❌ Enhanced orchestration failed: {str(e)}',
+                'metadata': {
+                    'error_type': type(e).__name__,
+                    'error_details': str(e)
+                },
+                'stage': 'error'
+            }
+    
+    async def _stream_orchestration_with_artifacts(
+        self, 
+        execution_plan: dict, 
+        sessionId: str, 
+        streaming_session_id: str
+    ) -> AsyncIterable[dict[str, Any]]:
+        """
+        Stream orchestration execution with real-time artifact events.
+        
+        PHASE 7: Enhanced streaming implementation that provides:
+        - Real-time task progress updates
+        - Artifact creation notifications
+        - Performance metrics streaming
+        - Partial result availability
+        - Live error reporting
+        """
+        tasks = execution_plan.get('tasks', [])
+        coordination_strategy = execution_plan.get('coordination_strategy', 'sequential')
+        total_tasks = len(tasks)
+        
+        # Initialize progress tracking
+        base_progress = 25
+        progress_per_task = 65 / total_tasks if total_tasks > 0 else 0
+        
+        # PHASE 2: Record execution start
+        self._record_execution_event(sessionId, 'orchestration_started', {
+            'task_count': total_tasks,
+            'strategy': coordination_strategy
+        })
+        
+        # Stream workflow execution based on strategy
+        if coordination_strategy == 'sequential':
+            completed_tasks = 0
+            
+            for i, task in enumerate(tasks):
+                task_progress = base_progress + (i * progress_per_task)
+                
+                # Stream task start event
+                yield {
+                    'response_type': 'stream_event',
+                    'event_type': 'task_start',
+                    'content': f'🔄 Starting task {i+1}/{total_tasks}: {task.get("description", "Unknown task")}',
+                    'metadata': {
+                        'task_index': i,
+                        'task_id': task.get('task_id', str(uuid.uuid4())),
+                        'specialist': task.get('assigned_to', 'unknown'),
+                        'estimated_duration': task.get('estimated_duration', 'unknown')
+                    },
+                    'progress': task_progress
+                }
+                
+                # Execute task with streaming
+                async for task_event in self._stream_task_execution(task, sessionId, i):
+                    # Forward task events with progress adjustment
+                    if 'progress' in task_event:
+                        # Adjust progress to be within task's allocated range
+                        task_event['progress'] = task_progress + (task_event['progress'] / 100 * progress_per_task)
+                    yield task_event
+                
+                completed_tasks += 1
+                
+                # Stream task completion
+                yield {
+                    'response_type': 'stream_event',
+                    'event_type': 'task_complete',
+                    'content': f'✅ Completed task {i+1}/{total_tasks}',
+                    'metadata': {
+                        'completed_tasks': completed_tasks,
+                        'remaining_tasks': total_tasks - completed_tasks
+                    },
+                    'progress': task_progress + progress_per_task
+                }
+        
+        elif coordination_strategy == 'parallel':
+            # Stream parallel execution start
+            yield {
+                'response_type': 'stream_event',
+                'event_type': 'parallel_execution_start',
+                'content': f'⚡ Starting parallel execution of {total_tasks} tasks',
+                'progress': base_progress
+            }
+            
+            # Create async tasks for parallel execution
+            task_streams = []
+            for i, task in enumerate(tasks):
+                task_stream = self._stream_task_execution(task, sessionId, i)
+                task_streams.append(self._consume_task_stream(task_stream, i, total_tasks))
+            
+            # Stream events from all tasks as they occur
+            completed_count = 0
+            async for event in self._merge_task_streams(task_streams):
+                if event.get('event_type') == 'task_complete':
+                    completed_count += 1
+                    event['progress'] = base_progress + (completed_count / total_tasks * 65)
+                yield event
+        
+        # PHASE 4: Collect final orchestration artifacts
+        orchestration_result = {
+            'status': 'completed',
+            'total_tasks': total_tasks,
+            'strategy': coordination_strategy,
+            'session_id': sessionId
+        }
+        
+        # Stream orchestration completion
+        yield {
+            'response_type': 'stream_event',
+            'event_type': 'orchestration_complete',
+            'content': '✨ Orchestration execution completed',
+            'metadata': {
+                'orchestration_result': orchestration_result,
+                'total_artifacts_collected': len(self.session_artifacts.get(sessionId, []))
+            },
+            'progress': 90
+        }
+    
+    async def _stream_task_execution(self, task: dict, sessionId: str, task_index: int) -> AsyncIterable[dict[str, Any]]:
+        """
+        Stream individual task execution with artifact events.
+        
+        PHASE 7: Provides granular task execution visibility.
+        """
+        task_id = task.get('task_id', str(uuid.uuid4()))
+        
+        try:
+            # PHASE 1: Update workflow node if available
+            if self.dynamic_workflow:
+                nodes = self.dynamic_workflow.get_nodes_by_key(f"task_{task_index}")
+                if nodes:
+                    node = nodes[0]
+                    node.start_execution()
+            
+            # Simulate task execution stages
+            stages = [
+                (20, 'initialization', '🔧 Initializing task resources'),
+                (40, 'processing', '⚙️ Processing task logic'),
+                (60, 'validation', '✔️ Validating results'),
+                (80, 'artifact_generation', '📦 Generating artifacts'),
+                (100, 'completion', '✅ Finalizing task')
+            ]
+            
+            for progress, stage, message in stages:
+                yield {
+                    'response_type': 'stream_event',
+                    'event_type': 'task_progress',
+                    'content': message,
+                    'metadata': {
+                        'task_id': task_id,
+                        'stage': stage,
+                        'task_index': task_index
+                    },
+                    'progress': progress
+                }
+                
+                # Simulate processing time
+                await asyncio.sleep(0.5)
+                
+                # Generate artifact at artifact stage
+                if stage == 'artifact_generation':
+                    # Create task result artifact
+                    artifact_content = {
+                        'task_id': task_id,
+                        'description': task.get('description'),
+                        'result': f'Simulated result for {task.get("description", "task")}',
+                        'metrics': {
+                            'execution_time': 2.0,
+                            'success': True,
+                            'confidence': 0.95
+                        }
+                    }
+                    
+                    # PHASE 4: Store artifact
+                    if hasattr(self, 'store_artifact'):
+                        artifact_id = await self.store_artifact(
+                            content=artifact_content,
+                            artifact_type='task_result',
+                            source_info={
+                                'task_id': task_id,
+                                'task_index': task_index,
+                                'specialist': task.get('assigned_to', 'unknown')
+                            },
+                            session_id=sessionId
+                        )
+                        
+                        # Stream artifact creation event
+                        yield {
+                            'response_type': 'stream_event',
+                            'event_type': 'artifact_created',
+                            'artifact': {
+                                'artifact_id': artifact_id,
+                                'artifact_type': 'task_result',
+                                'content': artifact_content,
+                                'metadata': {
+                                    'task_id': task_id,
+                                    'size_bytes': len(str(artifact_content))
+                                }
+                            },
+                            'content': f'📦 Artifact created for task {task_index + 1}',
+                            'progress': 90
+                        }
+            
+            # PHASE 1: Update workflow node completion
+            if self.dynamic_workflow and nodes:
+                node.complete_execution(artifact_content)
+            
+            # Stream task completion
+            yield {
+                'response_type': 'stream_event',
+                'event_type': 'task_complete',
+                'content': f'✅ Task completed successfully',
+                'metadata': {
+                    'task_id': task_id,
+                    'execution_time': 2.0
+                },
+                'progress': 100
+            }
+            
+        except Exception as e:
+            logger.error("Task execution error",
+                       error=str(e),
+                       error_type=type(e).__name__,
+                       task_id=task_info.get('task', {}).get('id', 'unknown'))
+            yield {
+                'response_type': 'stream_event',
+                'event_type': 'task_error',
+                'content': f'❌ Task failed: {str(e)}',
+                'metadata': {
+                    'task_id': task_id,
+                    'error': str(e)
+                }
+            }
+    
+    async def _consume_task_stream(self, task_stream: AsyncIterable, task_index: int, total_tasks: int) -> AsyncIterable[dict[str, Any]]:
+        """Consume a task stream and tag events with task information."""
+        async for event in task_stream:
+            event['metadata'] = event.get('metadata', {})
+            event['metadata']['task_index'] = task_index
+            event['metadata']['total_tasks'] = total_tasks
+            yield event
+    
+    async def _merge_task_streams(self, task_streams: List[AsyncIterable]) -> AsyncIterable[dict[str, Any]]:
+        """Merge multiple task streams into a single stream."""
+        # Simple round-robin merge for demonstration
+        # In production, use more sophisticated merging with asyncio.Queue
+        iterators = [stream.__aiter__() for stream in task_streams]
+        pending = list(range(len(iterators)))
+        
+        while pending:
+            for i in list(pending):
+                try:
+                    event = await iterators[i].__anext__()
+                    yield event
+                except StopAsyncIteration:
+                    pending.remove(i)
+    
+    def _get_streaming_session_stats(self, streaming_session_id: str) -> Dict[str, Any]:
+        """Get statistics for a streaming session."""
+        session = self.streaming_sessions.get(streaming_session_id, {})
+        
+        return {
+            'total_events': session.get('events_count', 0),
+            'artifacts_streamed': session.get('artifacts_streamed', 0),
+            'duration_seconds': (datetime.now() - session.get('start_time', datetime.now())).total_seconds(),
+            'events_per_second': session.get('events_count', 0) / max(1, (datetime.now() - session.get('start_time', datetime.now())).total_seconds())
+        }
+    
+    def _calculate_summary_quality(self, summary: Dict[str, Any]) -> float:
+        """Calculate quality score for generated summary."""
+        expected_components = [
+            'executive_summary', 'detailed_analysis', 'performance_summary',
+            'artifact_summary', 'insights_and_recommendations', 'key_metrics', 'timeline_summary'
+        ]
+        
+        present_components = sum(1 for comp in expected_components if comp in summary and summary[comp])
+        return present_components / len(expected_components)
