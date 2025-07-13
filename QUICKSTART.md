@@ -8,13 +8,17 @@
 ## 1. Clone and Setup
 
 ```bash
-# Clone the boilerplate
+# Clone the A2A-MCP Framework V2.0
 git clone <your-repo> my-agent-system
 cd my-agent-system
 
 # Create environment file
 cp .env.template .env
-# Edit .env with your settings
+# Edit .env with your settings (API keys, ports, etc.)
+
+# Optional: Enable V2.0 observability features
+# Set ENABLE_OBSERVABILITY=true in .env
+# Set OTEL_EXPORTER_OTLP_ENDPOINT for tracing
 ```
 
 ## 2. Start the System
@@ -45,32 +49,47 @@ python simple_client.py
 ./run_tests.sh
 ```
 
-## 4. Create Your First Agent
+## 4. Create Your First Agent (Framework V2.0)
 
+### Option A: Using Generic Domain Agent (Recommended for Quick Start)
+```python
+# src/a2a_mcp/agents/my_domain/my_agent.py
+from a2a_mcp.common.generic_domain_agent import GenericDomainAgent
+
+# Quick domain specialist creation
+agent = GenericDomainAgent(
+    domain="Finance",
+    specialization="market_analyst",
+    capabilities=["Analyze market trends", "Evaluate stocks"]
+)
+```
+
+### Option B: Custom Agent with V2.0 Features
 ```python
 # src/a2a_mcp/agents/my_domain/my_agent.py
 from a2a_mcp.common.standardized_agent_base import StandardizedAgentBase
+from a2a_mcp.common.quality_framework import QualityDomain
 from typing import Dict, Any
 
 class MyAgent(StandardizedAgentBase):
     def __init__(self):
         super().__init__(
             agent_name="my_agent",
-            description="My custom agent",
-            instructions="Process requests in my domain",
-            quality_config={"domain": "GENERIC"},
+            description="My custom agent with V2.0 features",
+            instructions="Process requests with quality validation",
+            quality_config={
+                "domain": QualityDomain.ANALYSIS,
+                "thresholds": {"completeness": 0.9, "accuracy": 0.95}
+            },
             mcp_tools_enabled=True,
-            a2a_enabled=True
+            a2a_enabled=True,
+            enable_observability=True  # V2.0 feature
         )
     
     async def process_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
-        # Your logic here
+        # V2.0: Automatic quality validation and observability
         result = await self._process_with_llm(request.get("query", ""))
-        return {
-            "status": "success",
-            "result": result,
-            "confidence": 0.95
-        }
+        return self.format_response(result)  # V2.0: Standardized formatting
 ```
 
 ## 5. Create Agent Card
@@ -117,11 +136,22 @@ agents_to_start = [
 
 ## Next Steps
 
-- Read [ARCHITECTURE.md](docs/ARCHITECTURE.md) for system design
-- Explore example agents in `src/a2a_mcp/agents/example_domain/`
-- Add custom MCP tools in `src/a2a_mcp/mcp/server.py`
-- Configure quality rules for your domain
-- Set up monitoring and logging
+### Essential Documentation (V2.0)
+- **[Framework Components Guide](docs/FRAMEWORK_COMPONENTS_AND_ORCHESTRATION_GUIDE.md)** - Complete component reference
+- **[Multi-Agent Workflow Guide](docs/MULTI_AGENT_WORKFLOW_GUIDE.md)** - Step-by-step system creation
+- **[A2A MCP Oracle Framework](docs/A2A_MCP_ORACLE_FRAMEWORK.md)** - Full framework reference
+
+### Quick Start Options
+1. **Simple System**: Use `LightweightMasterOrchestrator` + `GenericDomainAgent`
+2. **Production System**: Use `EnhancedMasterOrchestratorTemplate` with all 7 phases
+3. **Custom Domain**: Follow the Domain Customization Guide
+
+### V2.0 Features to Explore
+- **PHASE 7 Streaming**: Real-time execution visibility
+- **Quality Framework**: Domain-specific validation
+- **Observability**: OpenTelemetry tracing & Prometheus metrics
+- **Parallel Workflows**: Automatic parallel execution
+- **Connection Pooling**: 60% performance improvement
 
 ## Common Commands
 

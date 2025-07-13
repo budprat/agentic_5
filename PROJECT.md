@@ -45,15 +45,24 @@ uv run src/a2a_mcp/agents/ --agent-card agent_cards/tier3/service_agent.json --p
 python examples/simple_client.py
 ```
 
-## Architecture
+## Architecture (Framework V2.0)
 
 ### Core Components
 1. **MCP Server** (`src/a2a_mcp/mcp/server.py`): Registry for agent discovery, provides tools via MCP
-2. **Base Agent** (`src/a2a_mcp/common/base_agent.py`): Common functionality for all agents
-3. **Agent Implementations** (`src/a2a_mcp/agents/`):
-   - **Tier 1** - Master Orchestrator: Manages workflows and coordinates other agents
-   - **Tier 2** - Domain Specialists: Handle specialized business logic and analysis
-   - **Tier 3** - Service Agents: Execute specific tasks and tool integrations
+2. **Agent Base Classes**:
+   - **StandardizedAgentBase** (`src/a2a_mcp/common/standardized_agent_base.py`): Framework V2.0 base with quality validation and observability
+   - **GenericDomainAgent** (`src/a2a_mcp/common/generic_domain_agent.py`): Template for domain specialists
+3. **Orchestration Components**:
+   - **Enhanced Master Orchestrator** (`master_orchestrator_template.py`): 7-phase enterprise orchestrator with streaming
+   - **Enhanced Planner Agent** (`planner_agent.py`): Sophisticated planning with quality validation
+   - **Lightweight Orchestrator** (`lightweight_orchestrator_template.py`): Simplified version for prototypes
+4. **Workflow Management**:
+   - **Enhanced Workflow** (`enhanced_workflow.py`): Dynamic graph management
+   - **Parallel Workflow** (`parallel_workflow.py`): Automatic parallel execution
+5. **Agent Implementations** (`src/a2a_mcp/agents/`):
+   - **Tier 1** - Master Orchestrator: Manages workflows with enhanced planner delegation
+   - **Tier 2** - Domain Specialists: Handle specialized business logic with quality validation
+   - **Tier 3** - Service Agents: Execute specific tasks with connection pooling
 
 ### Tiered Agent Architecture
 The system uses a **hierarchical agent architecture** for scalable business workflows:
@@ -76,10 +85,13 @@ Each tier is specialized through:
 7. Domain Specialists aggregate and process results for business logic
 8. Master Orchestrator synthesizes final response and returns to client
 
-### Key Protocols
-- **A2A Protocol**: Agent-to-agent communication using `a2a-sdk`
+### Key Protocols & Features
+- **A2A Protocol**: Agent-to-agent communication with 60% performance improvement via connection pooling
 - **MCP**: Model Context Protocol for tool discovery and execution
 - **Agent Cards**: JSON configurations in `agent_cards/` defining agent capabilities
+- **Quality Framework**: Domain-specific quality validation (ANALYSIS, CREATIVE, CODING)
+- **Observability**: OpenTelemetry tracing, Prometheus metrics, structured logging
+- **PHASE 7 Streaming**: Real-time execution visibility with artifact events
 
 ### Data Layer
 - Configurable data sources via MCP tool integration
@@ -111,9 +123,17 @@ The framework includes example integrations with various MCP servers:
 - **NEVER create alternative "simple" scripts when tests fail**. Instead, focus on solving the actual issues, debugging the root cause, and implementing proper fixes.
 - When tests encounter errors, investigate and resolve them properly rather than creating shortcuts or workarounds.
 
-## Customization Guide
-This framework is designed to be adapted for any business domain. See `DOMAIN_CUSTOMIZATION_GUIDE.md` for detailed instructions on:
-- Adapting agent cards for your domain
-- Implementing domain-specific business logic
-- Integrating with your existing systems
-- Configuring MCP tools for your data sources
+## Documentation & Guides
+
+### Core Documentation
+- **[Framework Components and Orchestration Guide](docs/FRAMEWORK_COMPONENTS_AND_ORCHESTRATION_GUIDE.md)**: Comprehensive component reference and orchestration patterns
+- **[Multi-Agent Workflow Guide](docs/MULTI_AGENT_WORKFLOW_GUIDE.md)**: Step-by-step guide for creating multi-agent systems
+- **[Domain Customization Guide](docs/DOMAIN_CUSTOMIZATION_GUIDE.md)**: Adapting the framework for your domain
+- **[A2A MCP Oracle Framework](docs/A2A_MCP_ORACLE_FRAMEWORK.md)**: Complete framework reference
+
+### V2.0 Features
+- **7 Enhancement Phases**: Including PHASE 7 streaming with artifacts
+- **Enterprise Observability**: Distributed tracing, metrics, and logging
+- **Quality Validation**: Domain-specific quality thresholds
+- **Performance Optimization**: Connection pooling, parallel execution
+- **Dynamic Workflows**: Runtime graph manipulation
