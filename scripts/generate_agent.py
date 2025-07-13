@@ -4,7 +4,7 @@ A2A MCP Framework V2.0 - Agent Boilerplate Generator
 
 Generates boilerplate code for new agents following the established tier-based template rules:
 - Tier 1: MasterOrchestratorTemplate 
-- Tier 2: StandardizedAgentBase
+- Tier 2: GenericDomainAgent
 - Tier 3: ADKServiceAgent or StandardizedAgentBase (user choice)
 
 Usage:
@@ -149,23 +149,23 @@ if __name__ == "__main__":
         }
     
     def generate_tier2_specialist(self, name: str, domain: str, port: int) -> Dict[str, str]:
-        """Generate Tier 2 Domain Specialist using StandardizedAgentBase."""
+        """Generate Tier 2 Domain Specialist using GenericDomainAgent."""
         class_name = f"{domain.title()}Specialist"
         filename = f"{domain.lower()}_specialist.py"
         
         code = f'''# ABOUTME: {name} - Tier 2 Domain Specialist for {domain} expertise
-# ABOUTME: Uses StandardizedAgentBase for comprehensive domain analysis and knowledge synthesis
+# ABOUTME: Uses GenericDomainAgent for comprehensive domain analysis and knowledge synthesis
 
-from a2a_mcp.common.standardized_agent_base import StandardizedAgentBase
+from a2a_mcp.common.standardized_agent_base import GenericDomainAgent
 from a2a_mcp.common.quality_framework import QualityDomain
 from typing import Dict, Any, AsyncIterable
 
 
-class {class_name}(StandardizedAgentBase):
+class {class_name}(GenericDomainAgent):
     """
     {name} - Domain specialist for {domain} expertise.
     
-    Framework V2.0 Tier 2 agent using StandardizedAgentBase with full framework
+    Framework V2.0 Tier 2 agent using GenericDomainAgent with full framework
     capabilities including MCP tools, A2A communication, and quality validation.
     """
     
@@ -292,7 +292,7 @@ if __name__ == "__main__":
                 "author": "Framework Team",
                 "domain": domain,
                 "tier": 2,
-                "template": "StandardizedAgentBase"
+                "template": "GenericDomainAgent"
             }
         }
         
@@ -646,7 +646,7 @@ Examples:
         print(f"   Template: MasterOrchestratorTemplate")
     elif args.tier == 2:
         generated = generator.generate_tier2_specialist(args.name, args.domain, args.port)
-        print(f"   Template: StandardizedAgentBase")
+        print(f"   Template: GenericDomainAgent")
     elif args.tier == 3:
         template_name = "ADKServiceAgent" if args.template == "adk" else "StandardizedAgentBase"
         generated = generator.generate_tier3_service(args.name, args.domain, args.port, args.template)
