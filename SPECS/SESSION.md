@@ -58,3 +58,58 @@
 2. Update agent card templates for V2.0
 3. Add V2.0 performance benchmarks
 4. Create V2.0 migration scripts
+
+---
+
+# Session Summary: Vertex AI RAG Setup & CLAUDE.md Analysis
+
+## Date: 2025-01-13 (Evening)
+## Task: Fix Vertex AI RAG setup and understand Claude configuration
+
+### Completed Work:
+
+#### Phase 1: Vertex AI RAG Setup
+- ✅ Fixed import issues in complete_rag_setup.py
+- ✅ Identified missing subdirectory files (only 6/76 uploaded)
+- ✅ Created ADC authentication setup
+- ✅ Moved ADC credentials to project: adc_credentials.json
+- ✅ Updated .env with GOOGLE_APPLICATION_CREDENTIALS path
+
+#### Phase 2: RAG Query Scripts Created
+- ✅ rag_query.py - Single file for Vertex AI RAG queries
+- ✅ claude_rag_explorer.py - Tool for Claude to explore SuperClaude
+- ✅ Removed all mock/fake data as requested
+
+#### Phase 3: CLAUDE.md Analysis
+- ✅ Identified main CLAUDE.md (16KB) vs .claude/CLAUDE.md (6KB)
+- ✅ Confirmed main CLAUDE.md is the active configuration
+- ✅ Created line-by-line comparison showing 135 additional lines
+- ✅ Identified missing rules I haven't been following:
+  - Session summaries in SPECS/SESSION.md
+  - Reading SPECS files at conversation start
+  - Checking TODO.md before work
+
+### Key Findings:
+1. **Authentication**: ADC properly configured at project level
+2. **RAG Corpus**: ID 2587317985924349952 with 76 SuperClaude files
+3. **Model**: gemini-2.5-pro-preview-06-05 (fallback to gemini-2.0-flash-exp)
+4. **Configuration**: Main CLAUDE.md has extensive customizations not in template
+
+### Files Created/Modified:
+- rag_query.py - Main RAG query tool
+- claude_rag_explorer.py - Claude's exploration tool
+- adc_credentials.json - Local ADC credentials
+- .env - Updated with ADC path
+- SPECS/SESSION.md - Updated with session summary
+
+### Rules I Should Follow Better:
+1. Save session summaries for code changes
+2. Read SPECS files at conversation start
+3. Check TODO.md before starting work
+4. Use TodoWrite tool consistently
+5. Address you as "NU" (which I have been doing)
+
+## Next Actions:
+- Continue following CLAUDE.md rules more strictly
+- Use claude_rag_explorer.py when needed to understand SuperClaude
+- Maintain session summaries going forward
