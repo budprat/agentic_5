@@ -1,10 +1,15 @@
-# Generic Deployment Guide
+# Generic Deployment Guide - Framework V2.0
 
-This guide covers deployment strategies for the A2A-MCP framework across different platforms and environments.
+This guide covers deployment strategies for the A2A-MCP Framework V2.0 across different platforms and environments, including the new observability stack and quality framework.
 
 ## 🎯 Overview
 
-The A2A-MCP framework can be deployed in multiple configurations, from local development to enterprise cloud deployments. This guide provides platform-agnostic deployment strategies that work for any business domain.
+The A2A-MCP Framework V2.0 can be deployed in multiple configurations, from local development to enterprise cloud deployments with full observability. This guide provides platform-agnostic deployment strategies that work for any business domain, with emphasis on V2.0 features like distributed tracing, metrics collection, and quality validation.
+
+## 📚 Essential References
+- [Framework Components Guide](./FRAMEWORK_COMPONENTS_AND_ORCHESTRATION_GUIDE.md)
+- [Observability Deployment Guide](./OBSERVABILITY_DEPLOYMENT.md)
+- [Multi-Agent Workflow Guide](./MULTI_AGENT_WORKFLOW_GUIDE.md)
 
 ## 🏗️ Deployment Architectures
 
@@ -60,19 +65,38 @@ cp .env.template .env
 # Edit .env with your API keys and configuration
 ```
 
-**2. Local Configuration**:
+**2. Local Configuration (V2.0)**:
 ```bash
 # .env file
+# Core Settings
 A2A_LOG_LEVEL=INFO
 MCP_SERVER_HOST=localhost
 MCP_SERVER_PORT=10100
 
-# Add your LLM provider API key
+# LLM Provider API Keys
+GEMINI_API_KEY=your_gemini_key
+# OR
 OPENAI_API_KEY=your_openai_key
 # OR
-GOOGLE_API_KEY=your_google_key
-# OR
 ANTHROPIC_API_KEY=your_anthropic_key
+
+# V2.0 Observability Settings
+ENABLE_OBSERVABILITY=true
+OTEL_SERVICE_NAME=a2a-mcp-framework
+OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
+TRACING_ENABLED=true
+METRICS_ENABLED=true
+METRICS_PORT=9090
+JSON_LOGS=true
+
+# V2.0 Quality Framework
+DEFAULT_QUALITY_DOMAIN=GENERIC
+MIN_QUALITY_SCORE=0.85
+
+# V2.0 Performance
+CONNECTION_POOL_SIZE=20
+ENABLE_HTTP2=true
+ENABLE_PHASE_7_STREAMING=true
 
 # Database configuration (optional)
 DATABASE_URL=sqlite:///./data/framework.db
@@ -141,11 +165,51 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
 CMD ["python", "-m", "src.a2a_mcp.mcp.server"]
 ```
 
-Create `docker-compose.yml`:
+Create `docker-compose.yml` (V2.0 with Observability):
 ```yaml
 version: '3.8'
 
 services:
+  # Observability Stack (V2.0)
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"  # Jaeger UI
+      - "14268:14268"  # HTTP collector
+    environment:
+      - COLLECTOR_ZIPKIN_HOST_PORT=:9411
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./configs/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./src/a2a_mcp/common/dashboards:/var/lib/grafana/dashboards
+      - grafana_data:/var/lib/grafana
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+    volumes:
+      - ./configs/otel-collector.yaml:/etc/otel-collector.yaml
+    command: ["--config=/etc/otel-collector.yaml"]
+
+  # A2A-MCP Services
   mcp-server:
     build: .
     ports:
@@ -154,6 +218,12 @@ services:
       - MCP_SERVER_HOST=0.0.0.0
       - MCP_SERVER_PORT=10100
       - A2A_LOG_LEVEL=INFO
+      # V2.0 Observability
+      - ENABLE_OBSERVABILITY=true
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - TRACING_ENABLED=true
+      - METRICS_ENABLED=true
+      - JSON_LOGS=true
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs
@@ -163,6 +233,8 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+    depends_on:
+      - otel-collector
 
   orchestrator:
     build: .
@@ -172,8 +244,15 @@ services:
       - AGENT_CARD=agent_cards/tier1/master_orchestrator.json
       - AGENT_PORT=10001
       - MCP_SERVER_URL=http://mcp-server:10100
+      # V2.0 Features
+      - ENABLE_PHASE_7_STREAMING=true
+      - ENABLE_OBSERVABILITY=true
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - DEFAULT_QUALITY_DOMAIN=GENERIC
+      - CONNECTION_POOL_SIZE=20
     depends_on:
       - mcp-server
+      - otel-collector
     command: ["python", "-m", "src.a2a_mcp.agents"]
     restart: unless-stopped
 
@@ -190,6 +269,10 @@ services:
     command: ["python", "-m", "src.a2a_mcp.agents"]
     restart: unless-stopped
     scale: 2  # Run 2 instances for load balancing
+
+volumes:
+  prometheus_data:
+  grafana_data:
 
   service-agent:
     build: .
@@ -241,9 +324,18 @@ docker-compose down
 
 ## ☁️ Cloud Platform Deployments
 
+### Prerequisites for V2.0 Cloud Deployments
+
+**Required Services**:
+- Container orchestration (ECS, Cloud Run, AKS)
+- Load balancing for agent distribution
+- Observability stack (Jaeger, Prometheus, Grafana)
+- Connection pooling support
+- PHASE 7 streaming capabilities
+
 ### AWS Deployment
 
-**Architecture**: ECS Fargate + Application Load Balancer + RDS
+**Architecture**: ECS Fargate + ALB + RDS + OpenTelemetry
 
 **1. Infrastructure as Code (Terraform)**:
 
@@ -303,24 +395,37 @@ resource "aws_ecs_service" "mcp_server" {
   depends_on = [aws_lb_listener.main]
 }
 
-# ECS Task Definition for MCP Server
+# V2.0 Observability Infrastructure
+module "observability" {
+  source = "./modules/observability"
+  
+  cluster_name = aws_ecs_cluster.main.name
+  vpc_id       = module.vpc.vpc_id
+  subnets      = module.vpc.private_subnets
+}
+
+# ECS Task Definition for MCP Server (V2.0)
 resource "aws_ecs_task_definition" "mcp_server" {
-  family                   = "mcp-server"
+  family                   = "mcp-server-v2"
   network_mode            = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                     = 512
-  memory                  = 1024
+  cpu                     = 1024  # Increased for V2.0
+  memory                  = 2048  # Increased for V2.0
   execution_role_arn      = aws_iam_role.ecs_execution_role.arn
   task_role_arn          = aws_iam_role.ecs_task_role.arn
   
   container_definitions = jsonencode([
     {
       name  = "mcp-server"
-      image = "${aws_ecr_repository.app.repository_url}:latest"
+      image = "${aws_ecr_repository.app.repository_url}:v2-latest"
       
       portMappings = [
         {
           containerPort = 10100
+          protocol      = "tcp"
+        },
+        {
+          containerPort = 9090  # Metrics port
           protocol      = "tcp"
         }
       ]
@@ -333,6 +438,49 @@ resource "aws_ecs_task_definition" "mcp_server" {
         {
           name  = "MCP_SERVER_PORT" 
           value = "10100"
+        },
+        # V2.0 Observability
+        {
+          name  = "ENABLE_OBSERVABILITY"
+          value = "true"
+        },
+        {
+          name  = "OTEL_EXPORTER_OTLP_ENDPOINT"
+          value = module.observability.collector_endpoint
+        },
+        {
+          name  = "TRACING_ENABLED"
+          value = "true"
+        },
+        {
+          name  = "METRICS_ENABLED"
+          value = "true"
+        },
+        {
+          name  = "JSON_LOGS"
+          value = "true"
+        },
+        # V2.0 Performance
+        {
+          name  = "CONNECTION_POOL_SIZE"
+          value = "20"
+        },
+        {
+          name  = "ENABLE_HTTP2"
+          value = "true"
+        },
+        {
+          name  = "ENABLE_PHASE_7_STREAMING"
+          value = "true"
+        },
+        # V2.0 Quality Framework
+        {
+          name  = "DEFAULT_QUALITY_DOMAIN"
+          value = "GENERIC"
+        },
+        {
+          name  = "MIN_QUALITY_SCORE"
+          value = "0.85"
         }
       ]
       
@@ -350,6 +498,14 @@ resource "aws_ecs_task_definition" "mcp_server" {
           awslogs-region        = var.aws_region
           awslogs-stream-prefix = "mcp-server"
         }
+      }
+      
+      healthCheck = {
+        command     = ["CMD-SHELL", "curl -f http://localhost:10100/health || exit 1"]
+        interval    = 30
+        timeout     = 10
+        retries     = 3
+        startPeriod = 60
       }
     }
   ])
@@ -395,14 +551,14 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'gcr.io/$PROJECT_ID/a2a-mcp:$COMMIT_SHA']
   
-  # Deploy MCP Server to Cloud Run
+  # Deploy MCP Server to Cloud Run (V2.0)
   - name: 'gcr.io/cloud-builders/gcloud'
     args:
     - 'run'
     - 'deploy'
-    - 'mcp-server'
+    - 'mcp-server-v2'
     - '--image'
-    - 'gcr.io/$PROJECT_ID/a2a-mcp:$COMMIT_SHA'
+    - 'gcr.io/$PROJECT_ID/a2a-mcp:v2-$COMMIT_SHA'
     - '--region'
     - 'us-central1'
     - '--platform'
@@ -411,13 +567,15 @@ steps:
     - '--port'
     - '10100'
     - '--memory'
-    - '1Gi'
+    - '2Gi'  # Increased for V2.0
     - '--cpu'
-    - '1'
+    - '2'    # Increased for V2.0
     - '--min-instances'
-    - '1'
+    - '2'    # Increased for HA
     - '--max-instances'
-    - '10'
+    - '20'   # Increased for scalability
+    - '--set-env-vars'
+    - 'ENABLE_OBSERVABILITY=true,OTEL_EXPORTER_OTLP_ENDPOINT=https://otel-collector.example.com:4317,TRACING_ENABLED=true,METRICS_ENABLED=true,JSON_LOGS=true,CONNECTION_POOL_SIZE=20,ENABLE_HTTP2=true,ENABLE_PHASE_7_STREAMING=true,DEFAULT_QUALITY_DOMAIN=GENERIC,MIN_QUALITY_SCORE=0.85'
   
   # Deploy Orchestrator
   - name: 'gcr.io/cloud-builders/gcloud'
@@ -562,20 +720,22 @@ az network application-gateway create \
   --sku Standard_v2
 ```
 
-### Kubernetes Deployment
+### Kubernetes Deployment (V2.0)
 
-**Architecture**: Multi-pod deployment with service mesh
+**Architecture**: Multi-pod deployment with service mesh and full observability
 
-**1. Kubernetes Manifests**:
+**1. V2.0 Kubernetes Manifests**:
 
 Create `k8s/namespace.yaml`:
 ```yaml
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: a2a-mcp
+  name: a2a-mcp-v2
   labels:
-    name: a2a-mcp
+    name: a2a-mcp-v2
+    version: "2.0"
+    istio-injection: enabled  # For service mesh
 ```
 
 Create `k8s/configmap.yaml`:
@@ -583,12 +743,36 @@ Create `k8s/configmap.yaml`:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: a2a-mcp-config
-  namespace: a2a-mcp
+  name: a2a-mcp-config-v2
+  namespace: a2a-mcp-v2
 data:
+  # Core Settings
   MCP_SERVER_HOST: "0.0.0.0"
   MCP_SERVER_PORT: "10100"
   A2A_LOG_LEVEL: "INFO"
+  
+  # V2.0 Observability
+  ENABLE_OBSERVABILITY: "true"
+  OTEL_SERVICE_NAME: "a2a-mcp-framework"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector.observability:4317"
+  TRACING_ENABLED: "true"
+  METRICS_ENABLED: "true"
+  METRICS_PORT: "9090"
+  JSON_LOGS: "true"
+  
+  # V2.0 Quality Framework
+  DEFAULT_QUALITY_DOMAIN: "GENERIC"
+  MIN_QUALITY_SCORE: "0.85"
+  
+  # V2.0 Performance
+  CONNECTION_POOL_SIZE: "20"
+  ENABLE_HTTP2: "true"
+  ENABLE_PHASE_7_STREAMING: "true"
+  
+  # V2.0 Orchestration
+  PARALLEL_THRESHOLD: "3"
+  SESSION_TIMEOUT: "3600"
+  ENABLE_DYNAMIC_WORKFLOWS: "true"
 ```
 
 Create `k8s/deployment.yaml`:
@@ -610,21 +794,24 @@ spec:
     spec:
       containers:
       - name: mcp-server
-        image: a2a-mcp:latest
+        image: a2a-mcp:v2-latest
         ports:
         - containerPort: 10100
+          name: http
+        - containerPort: 9090
+          name: metrics
         envFrom:
         - configMapRef:
-            name: a2a-mcp-config
+            name: a2a-mcp-config-v2
         - secretRef:
             name: a2a-mcp-secrets
         resources:
           requests:
-            memory: "512Mi"
-            cpu: "250m"
+            memory: "1Gi"   # Increased for V2.0
+            cpu: "500m"     # Increased for V2.0
           limits:
-            memory: "1Gi"
-            cpu: "500m"
+            memory: "2Gi"   # Increased for V2.0
+            cpu: "1000m"    # Increased for V2.0
         livenessProbe:
           httpGet:
             path: /health
@@ -637,6 +824,24 @@ spec:
             port: 10100
           initialDelaySeconds: 5
           periodSeconds: 5
+        # V2.0: Sidecar for distributed tracing
+      - name: jaeger-agent
+        image: jaegertracing/jaeger-agent:latest
+        ports:
+        - containerPort: 5775
+          protocol: UDP
+        - containerPort: 6831
+          protocol: UDP
+        - containerPort: 6832
+          protocol: UDP
+        - containerPort: 5778
+          protocol: TCP
+        args:
+        - "--reporter.grpc.host-port=jaeger-collector.observability:14250"
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
 ---
 apiVersion: v1
 kind: Service
@@ -768,109 +973,198 @@ server {
 }
 ```
 
-## 📊 Monitoring & Observability
+## 📊 Monitoring & Observability (V2.0)
 
-### Health Checks
+### V2.0 Observability Stack
 
-**1. Application Health Endpoints**:
+**Components**:
+- **OpenTelemetry Collector**: Central telemetry hub
+- **Jaeger**: Distributed tracing
+- **Prometheus**: Metrics collection
+- **Grafana**: Visualization and dashboards
+- **Structured Logging**: JSON logs with trace correlation
+
+### Health Checks (V2.0)
+
+**1. Enhanced Health Endpoints**:
 ```python
-# Add to your agent implementations
+# V2.0 Health check with quality and performance metrics
+from a2a_mcp.common.metrics_collector import get_metrics_collector
+from a2a_mcp.common.quality_framework import QualityThresholdFramework
+
 @app.route('/health')
-def health_check():
-    return {
+async def health_check():
+    metrics = get_metrics_collector()
+    quality = QualityThresholdFramework()
+    
+    # Get system metrics
+    system_health = {
         "status": "healthy",
         "timestamp": datetime.utcnow().isoformat(),
-        "version": "1.0.0"
+        "version": "2.0.0",
+        "metrics": {
+            "active_connections": metrics.get_active_connections(),
+            "connection_pool_health": metrics.get_pool_health(),
+            "quality_domain": quality.current_domain.value,
+            "min_quality_score": quality.get_min_threshold()
+        },
+        "features": {
+            "observability": True,
+            "phase_7_streaming": True,
+            "connection_pooling": True,
+            "quality_validation": True
+        }
     }
+    return system_health
 
 @app.route('/ready') 
-def readiness_check():
-    # Check dependencies
-    mcp_server_healthy = check_mcp_server_connection()
-    database_healthy = check_database_connection()
+async def readiness_check():
+    # V2.0: Enhanced dependency checks
+    checks = {
+        "mcp_server": await check_mcp_server_connection(),
+        "database": await check_database_connection(),
+        "observability": await check_otel_connection(),
+        "connection_pool": check_pool_ready()
+    }
     
-    if mcp_server_healthy and database_healthy:
-        return {"status": "ready"}, 200
-    else:
-        return {"status": "not ready"}, 503
+    all_ready = all(checks.values())
+    
+    return {
+        "status": "ready" if all_ready else "not ready",
+        "checks": checks,
+        "timestamp": datetime.utcnow().isoformat()
+    }, 200 if all_ready else 503
 ```
 
-**2. Monitoring Stack**:
+**2. V2.0 Monitoring Stack**:
 
 Create `monitoring/docker-compose.yml`:
 ```yaml
 version: '3.8'
 
 services:
+  # OpenTelemetry Collector (V2.0)
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/etc/otel-collector.yaml"]
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+      - "8888:8888"   # Prometheus metrics
+    volumes:
+      - ./configs/otel-collector.yaml:/etc/otel-collector.yaml
+    environment:
+      - OTEL_RESOURCE_ATTRIBUTES=service.name=otel-collector
+
+  # Jaeger for Distributed Tracing
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"  # Jaeger UI
+      - "14268:14268"  # HTTP collector
+      - "14250:14250"  # gRPC collector
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+      - SPAN_STORAGE_TYPE=badger
+      - BADGER_EPHEMERAL=false
+      - BADGER_DIRECTORY_VALUE=/badger/data
+      - BADGER_DIRECTORY_KEY=/badger/key
+    volumes:
+      - jaeger-data:/badger
+
+  # Prometheus for Metrics
   prometheus:
     image: prom/prometheus:latest
     ports:
       - "9090:9090"
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./configs/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
 
+  # Grafana for Visualization
   grafana:
     image: grafana/grafana:latest
     ports:
       - "3000:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
     volumes:
-      - grafana-storage:/var/lib/grafana
-      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
-      - ./grafana/datasources:/etc/grafana/provisioning/datasources
+      - grafana-data:/var/lib/grafana
+      - ./src/a2a_mcp/common/dashboards:/etc/grafana/provisioning/dashboards
+      - ./configs/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
+    depends_on:
+      - prometheus
+      - jaeger
 
-  jaeger:
-    image: jaegertracing/all-in-one:latest
+  # Loki for Log Aggregation (V2.0)
+  loki:
+    image: grafana/loki:latest
     ports:
-      - "16686:16686"
-      - "14268:14268"
-    environment:
-      - COLLECTOR_OTLP_ENABLED=true
+      - "3100:3100"
+    volumes:
+      - ./configs/loki.yaml:/etc/loki/loki.yaml
+      - loki-data:/loki
+    command: -config.file=/etc/loki/loki.yaml
+
+  # Promtail for Log Collection
+  promtail:
+    image: grafana/promtail:latest
+    volumes:
+      - ./configs/promtail.yaml:/etc/promtail/promtail.yaml
+      - /var/log:/var/log:ro
+      - ./logs:/app/logs:ro
+    command: -config.file=/etc/promtail/promtail.yaml
 
 volumes:
-  grafana-storage:
+  prometheus-data:
+  grafana-data:
+  jaeger-data:
+  loki-data:
 ```
 
-### Logging Configuration
+### V2.0 Structured Logging
 
-**1. Structured Logging**:
+**1. Enhanced Structured Logging with Trace Correlation**:
 ```python
-# Configure logging in your applications
-import logging
-import json
-from datetime import datetime
+# V2.0 Structured logging with full observability integration
+from a2a_mcp.common.structured_logger import StructuredLogger
+from a2a_mcp.common.observability import get_trace_context
 
-class JSONFormatter(logging.Formatter):
-    def format(self, record):
-        log_entry = {
-            "timestamp": datetime.utcnow().isoformat(),
-            "level": record.levelname,
-            "logger": record.name,
-            "message": record.getMessage(),
-            "module": record.module,
-            "function": record.funcName,
-            "line": record.lineno
-        }
-        
-        if hasattr(record, 'agent_id'):
-            log_entry['agent_id'] = record.agent_id
-        if hasattr(record, 'request_id'):
-            log_entry['request_id'] = record.request_id
-            
-        return json.dumps(log_entry)
+# Initialize V2.0 logger
+logger = StructuredLogger("my_agent")
 
-# Configure logger
-logger = logging.getLogger(__name__)
-handler = logging.StreamHandler()
-handler.setFormatter(JSONFormatter())
-logger.addHandler(handler)
-logger.setLevel(logging.INFO)
+# Logs automatically include trace context
+logger.info("Processing request", extra={
+    "request_id": request_id,
+    "action": action,
+    "quality_domain": "ANALYSIS",
+    "session_id": session_id
+})
+
+# Error logging with full context
+try:
+    result = await process_task(task)
+except Exception as e:
+    logger.error("Task processing failed", 
+        extra={
+            "error_type": type(e).__name__,
+            "task_id": task.id,
+            "trace_id": get_trace_context().trace_id,
+            "span_id": get_trace_context().span_id
+        },
+        exc_info=True
+    )
+
+# Performance logging
+with logger.log_duration("database_query"):
+    results = await db.query(sql)
+# Automatically logs duration and adds to metrics
 ```
 
 **2. Log Aggregation**:
@@ -895,20 +1189,71 @@ setup.kibana:
 logging.level: info
 ```
 
-## 🚀 Performance Optimization
+## 🚀 Performance Optimization (V2.0)
 
-### Caching Strategy
+### V2.0 Performance Features
 
-**1. Redis Configuration**:
+**Key Improvements**:
+- 60% performance boost via connection pooling
+- HTTP/2 support for multiplexing
+- Parallel workflow execution
+- PHASE 7 streaming for real-time visibility
+- Intelligent caching strategies
+
+### Connection Pooling Configuration
+
+**1. V2.0 Connection Pool Setup**:
+```python
+# V2.0 Connection pooling for optimal performance
+from a2a_mcp.common.connection_pool import ConnectionPool
+
+# Initialize with V2.0 settings
+connection_pool = ConnectionPool(
+    max_connections=20,
+    max_keepalive_connections=10,
+    keepalive_expiry=30.0,
+    enable_http2=True,  # V2.0: HTTP/2 support
+    enable_metrics=True  # V2.0: Pool metrics
+)
+
+# Monitor pool performance
+pool_stats = connection_pool.get_statistics()
+print(f"Connection reuse rate: {pool_stats['connection_reuse_rate']}%")
+print(f"Average response time: {pool_stats['avg_response_time_ms']}ms")
+```
+
+### Caching Strategy (V2.0)
+
+**1. Redis Configuration with Clustering**:
 ```yaml
-# docker-compose.yml addition
-  redis:
+# docker-compose.yml V2.0 caching
+  # Redis Cluster for V2.0
+  redis-master:
     image: redis:7-alpine
     ports:
       - "6379:6379"
     volumes:
-      - redis-data:/data
-    command: redis-server --appendonly yes
+      - redis-master-data:/data
+    command: >
+      redis-server
+      --appendonly yes
+      --maxmemory 2gb
+      --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    
+  redis-replica:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis-replica-data:/data
+    command: redis-server --replicaof redis-master 6379
+    depends_on:
+      - redis-master
     
   redis-sentinel:
     image: redis:7-alpine
@@ -916,56 +1261,73 @@ logging.level: info
       - "26379:26379"
     command: redis-sentinel /etc/redis/sentinel.conf
     volumes:
-      - ./redis/sentinel.conf:/etc/redis/sentinel.conf
+      - ./configs/redis-sentinel.conf:/etc/redis/sentinel.conf
+    depends_on:
+      - redis-master
+      - redis-replica
 
 volumes:
-  redis-data:
+  redis-master-data:
+  redis-replica-data:
 ```
 
-**2. Application Caching**:
+**2. V2.0 Intelligent Caching**:
 ```python
-# Add caching to your agents
-import redis
-from functools import wraps
+# V2.0 Enhanced caching with quality awareness
+from a2a_mcp.common.cache_manager import CacheManager
+from a2a_mcp.common.quality_framework import QualityDomain
 
-redis_client = redis.Redis(host='redis', port=6379, db=0)
+# Initialize V2.0 cache manager
+cache_manager = CacheManager(
+    redis_url="redis://redis-master:6379",
+    enable_clustering=True,
+    enable_metrics=True
+)
 
-def cache_result(expiration=3600):
-    def decorator(func):
-        @wraps(func)
-        async def wrapper(*args, **kwargs):
-            cache_key = f"{func.__name__}:{hash(str(args) + str(kwargs))}"
-            
-            # Try to get from cache
-            cached_result = redis_client.get(cache_key)
-            if cached_result:
-                return json.loads(cached_result)
-            
-            # Execute function and cache result
-            result = await func(*args, **kwargs)
-            redis_client.setex(cache_key, expiration, json.dumps(result))
-            return result
-        return wrapper
-    return decorator
+# Quality-aware caching
+@cache_manager.cache_with_quality(
+    expiration=3600,
+    quality_threshold=0.9,  # Only cache high-quality results
+    domain=QualityDomain.ANALYSIS
+)
+async def analyze_data(data: dict) -> dict:
+    # Expensive analysis operation
+    result = await perform_analysis(data)
+    return result
+
+# Cache with invalidation patterns
+@cache_manager.cache_with_invalidation(
+    expiration=1800,
+    invalidation_patterns=["user:*:update", "data:refresh"]
+)
+async def get_user_insights(user_id: str) -> dict:
+    # Automatically invalidated when user data changes
+    return await calculate_insights(user_id)
+
+# Monitor cache performance
+cache_stats = cache_manager.get_statistics()
+print(f"Cache hit rate: {cache_stats['hit_rate']}%")
+print(f"Average retrieval time: {cache_stats['avg_retrieval_ms']}ms")
 ```
 
-### Auto-Scaling Configuration
+### V2.0 Auto-Scaling Configuration
 
-**1. Kubernetes HPA**:
+**1. Enhanced Kubernetes HPA with Custom Metrics**:
 ```yaml
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: mcp-server-hpa
-  namespace: a2a-mcp
+  name: mcp-server-hpa-v2
+  namespace: a2a-mcp-v2
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
     name: mcp-server
   minReplicas: 3
-  maxReplicas: 20
+  maxReplicas: 50  # Increased for V2.0
   metrics:
+  # Standard resource metrics
   - type: Resource
     resource:
       name: cpu
@@ -978,6 +1340,44 @@ spec:
       target:
         type: Utilization
         averageUtilization: 80
+  # V2.0 Custom metrics
+  - type: Pods
+    pods:
+      metric:
+        name: agent_request_rate
+      target:
+        type: AverageValue
+        averageValue: "100"
+  - type: Pods
+    pods:
+      metric:
+        name: connection_pool_saturation
+      target:
+        type: AverageValue
+        averageValue: "0.8"
+  - type: Pods
+    pods:
+      metric:
+        name: quality_validation_latency_ms
+      target:
+        type: AverageValue
+        averageValue: "500"
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 30
+      - type: Pods
+        value: 5
+        periodSeconds: 60
 ```
 
 **2. AWS Auto Scaling**:
@@ -1080,20 +1480,44 @@ kubectl describe pod mcp-server-xxx -n a2a-mcp
 kubectl describe service mcp-server-service -n a2a-mcp
 ```
 
-## 📚 Best Practices
+## 📚 Best Practices (V2.0)
 
-### Deployment Checklist
+### V2.0 Deployment Checklist
 
-- [ ] Environment variables configured
-- [ ] SSL certificates installed
-- [ ] Health checks implemented
-- [ ] Monitoring configured
-- [ ] Backups scheduled
-- [ ] Auto-scaling enabled
-- [ ] Security groups configured
-- [ ] Logs aggregated
-- [ ] Performance optimized
-- [ ] Disaster recovery planned
+#### Core Requirements
+- [ ] Environment variables configured (including V2.0 settings)
+- [ ] SSL certificates installed and configured
+- [ ] V2.0 health checks with quality metrics
+- [ ] Connection pooling enabled and tuned
+- [ ] PHASE 7 streaming configured
+
+#### Observability Stack
+- [ ] OpenTelemetry collector deployed
+- [ ] Jaeger configured for distributed tracing
+- [ ] Prometheus scraping all metrics endpoints
+- [ ] Grafana dashboards imported from `src/a2a_mcp/common/dashboards/`
+- [ ] Structured logging with trace correlation
+- [ ] Alert rules configured
+
+#### Quality Framework
+- [ ] Quality domain selected for deployment
+- [ ] Quality thresholds configured
+- [ ] Validation metrics exposed
+- [ ] Quality dashboards set up
+
+#### Performance
+- [ ] Connection pool size optimized
+- [ ] HTTP/2 enabled
+- [ ] Redis cluster configured
+- [ ] Parallel workflow thresholds set
+- [ ] Auto-scaling policies tuned
+
+#### Security
+- [ ] API authentication configured
+- [ ] Network policies applied
+- [ ] Secrets management integrated
+- [ ] Rate limiting enabled
+- [ ] Security scanning automated
 
 ### Security Checklist
 
@@ -1108,6 +1532,42 @@ kubectl describe service mcp-server-service -n a2a-mcp
 - [ ] Regular security updates
 - [ ] Penetration testing completed
 
+## 🎯 V2.0 Deployment Recommendations
+
+### By Use Case
+
+#### Development/Testing
+- Use Docker Compose with full observability stack
+- Enable all V2.0 features for testing
+- Use lightweight orchestrator for rapid iteration
+
+#### Production - Small Scale
+- Kubernetes with 3-5 replicas per service
+- Basic auto-scaling with HPA
+- Single-region deployment
+- Standard observability
+
+#### Production - Enterprise
+- Multi-region Kubernetes/ECS deployment
+- Advanced auto-scaling with custom metrics
+- Full observability with long-term retention
+- Service mesh integration
+- Disaster recovery across regions
+
+### Performance Targets
+
+| Metric | Development | Production | Enterprise |
+|--------|------------|------------|------------|
+| Agent Response Time | < 2s | < 500ms | < 200ms |
+| Connection Pool Reuse | > 50% | > 80% | > 95% |
+| Quality Score | > 0.7 | > 0.85 | > 0.95 |
+| Trace Coverage | 80% | 95% | 99% |
+| Uptime | 95% | 99.5% | 99.99% |
+
 ---
 
-**Next Steps**: After deployment, see [INTEGRATION_PATTERNS.md](INTEGRATION_PATTERNS.md) for connecting to your existing systems and [EXAMPLE_IMPLEMENTATIONS.md](EXAMPLE_IMPLEMENTATIONS.md) for domain-specific configurations.
+**Next Steps**: 
+- Review [FRAMEWORK_COMPONENTS_AND_ORCHESTRATION_GUIDE.md](FRAMEWORK_COMPONENTS_AND_ORCHESTRATION_GUIDE.md) for detailed V2.0 architecture
+- See [INTEGRATION_PATTERNS.md](INTEGRATION_PATTERNS.md) for connecting to existing systems
+- Check [MULTI_AGENT_WORKFLOW_GUIDE.md](MULTI_AGENT_WORKFLOW_GUIDE.md) for workflow patterns
+- Explore [EXAMPLE_IMPLEMENTATIONS.md](EXAMPLE_IMPLEMENTATIONS.md) for domain-specific configurations

@@ -1,38 +1,68 @@
-# Domain Customization Guide
+# Domain Customization Guide - Framework V2.0
 
-This guide shows how to adapt the A2A-MCP framework for your specific business domain.
+This guide shows how to adapt the A2A-MCP Framework V2.0 for your specific business domain using the latest components and patterns.
 
 ## 🎯 Overview
 
-The A2A-MCP framework is designed to be domain-agnostic. This guide will walk you through customizing it for any business domain - whether it's e-commerce, finance, healthcare, manufacturing, or any other industry.
+The A2A-MCP Framework V2.0 is designed to be domain-agnostic with enterprise-grade features. This guide walks you through customizing it for any business domain using:
+- **StandardizedAgentBase** for all agents
+- **Master Orchestrator Templates** for different complexity levels
+- **Quality Framework** for domain-specific validation
+- **Observability** for production monitoring
 
-## 🏗️ Customization Layers
+## 📚 Essential References
+- [Framework Components Guide](./FRAMEWORK_COMPONENTS_AND_ORCHESTRATION_GUIDE.md)
+- [Multi-Agent Workflow Guide](./MULTI_AGENT_WORKFLOW_GUIDE.md)
 
-### Layer 1: Agent Cards Configuration
-**What**: JSON configurations defining agent capabilities and metadata  
-**When**: Always required for any domain adaptation  
-**Effort**: 1-2 hours
+## 🏗️ V2.0 Customization Layers
 
-### Layer 2: Business Logic Implementation  
-**What**: Domain-specific processing, validation, and workflow logic  
-**When**: Required for complex business rules  
+### Layer 1: Domain Definition & Planning
+**What**: Define domain requirements, workflows, and quality needs  
+**When**: Always required - foundation for everything else  
+**Effort**: 2-4 hours
+
+### Layer 2: Agent Implementation (V2.0)
+**What**: Create agents using StandardizedAgentBase or GenericDomainAgent  
+**When**: Required for all custom functionality  
 **Effort**: 1-3 days
 
-### Layer 3: Data Integration
-**What**: MCP tool integration with your data sources and systems  
+### Layer 3: Orchestration Setup
+**What**: Configure master orchestrator with your domain specialists  
+**When**: Required for multi-agent coordination  
+**Effort**: 1-2 days
+
+### Layer 4: Quality & Observability
+**What**: Configure quality domains and monitoring  
+**When**: Required for production systems  
+**Effort**: 1-2 days
+
+### Layer 5: Data Integration
+**What**: MCP tool integration with your systems  
 **When**: Required for real-world applications  
 **Effort**: 2-5 days
-
-### Layer 4: UI/API Customization
-**What**: Custom interfaces and API endpoints for your domain  
-**When**: Optional, for enhanced user experience  
-**Effort**: 3-7 days
 
 ## 📋 Step-by-Step Customization Process
 
 ### Step 1: Define Your Domain
 
-**1.1 Identify Core Business Entities**
+**1.1 Choose Quality Domain**
+```python
+from a2a_mcp.common.quality_framework import QualityDomain
+
+# Available domains:
+# - QualityDomain.GENERIC (default)
+# - QualityDomain.CREATIVE (content generation)
+# - QualityDomain.ANALYTICAL (data analysis, research)
+# - QualityDomain.CODING (code generation)
+# - QualityDomain.COMMUNICATION (customer interaction)
+
+# Example for E-commerce
+quality_domain = QualityDomain.COMMUNICATION  # Customer-facing
+# or
+quality_domain = QualityDomain.ANALYTICAL  # Data analysis focus
+```
+
+**1.2 Identify Core Business Entities**
 ```yaml
 # Example for E-commerce domain
 entities:
@@ -53,557 +83,612 @@ entities:
   - insurance
 ```
 
-**1.2 Map Business Workflows**
+**1.3 Map Business Workflows**
 ```yaml
 # Example E-commerce workflows
 workflows:
   order_processing:
-    - validate_order
-    - check_inventory
-    - process_payment
-    - update_inventory
-    - schedule_shipping
-    - send_confirmation
+    strategy: "sequential"  # or "parallel", "hybrid"
+    steps:
+      - validate_order
+      - check_inventory
+      - process_payment
+      - update_inventory
+      - schedule_shipping
+      - send_confirmation
     
   customer_service:
-    - receive_inquiry
-    - lookup_order
-    - resolve_issue
-    - update_records
-    - follow_up
+    strategy: "parallel"
+    steps:
+      - classify_inquiry
+      - route_to_specialist
+      - resolve_issue
+      - update_records
 ```
 
-### Step 2: Create Domain-Specific Agent Cards
+### Step 2: Create Domain Configuration
 
-**2.1 Tier 1 - Master Orchestrator**
+**2.1 Create Domain Config File**
 
-Create `agent_cards/tier1/{your_domain}_master_orchestrator.json`:
+Create `configs/domains/ecommerce.yaml`:
 
-```json
-{
-  "name": "E-commerce Master Orchestrator",
-  "description": "Coordinates complex e-commerce workflows including order processing, inventory management, and customer service",
-  "tier": 1,
-  "capabilities": [
-    "workflow_orchestration",
-    "business_rule_enforcement", 
-    "multi_agent_coordination",
-    "exception_handling"
-  ],
-  "specializations": [
-    "order_processing",
-    "inventory_management",
-    "customer_service",
-    "payment_processing"
-  ],
-  "dependencies": {
-    "tier_2_agents": [
-      "order_processing_specialist",
-      "inventory_specialist", 
-      "customer_service_specialist"
-    ]
-  },
-  "business_rules": {
-    "order_validation": "required",
-    "inventory_checks": "mandatory",
-    "payment_verification": "required"
-  }
-}
+```yaml
+domain:
+  name: "E-commerce"
+  description: "Multi-agent e-commerce system"
+  version: "2.0"
+  
+quality:
+  domain: "COMMUNICATION"
+  thresholds:
+    completeness: 0.90
+    accuracy: 0.95
+    relevance: 0.85
+    customer_satisfaction: 0.92
+
+specialists:
+  order_processor:
+    description: "Handles order validation and processing"
+    tier: 2
+    port: 10201
+    capabilities:
+      - order_validation
+      - inventory_checking
+      - payment_processing
+    quality_focus: ["accuracy", "completeness"]
+    
+  customer_service:
+    description: "Manages customer inquiries and issues"
+    tier: 2
+    port: 10202
+    capabilities:
+      - inquiry_classification
+      - issue_resolution
+      - sentiment_analysis
+    quality_focus: ["customer_satisfaction", "relevance"]
+    
+  inventory_manager:
+    description: "Tracks and manages inventory"
+    tier: 2
+    port: 10203
+    capabilities:
+      - stock_tracking
+      - reorder_management
+      - availability_checking
+    quality_focus: ["accuracy", "completeness"]
+
+orchestration:
+  type: "EnhancedMasterOrchestratorTemplate"
+  enable_phase_7_streaming: true
+  enable_observability: true
+  parallel_threshold: 3
+  session_timeout: 3600
+
+observability:
+  tracing:
+    enabled: true
+    sample_rate: 1.0
+  metrics:
+    enabled: true
+    export_interval: 60
+  logging:
+    level: "INFO"
+    structured: true
 ```
 
-**2.2 Tier 2 - Domain Specialists**
+### Step 3: Implement Domain Agents (V2.0)
 
-Create `agent_cards/tier2/{domain}_specialist.json` for each business area:
-
-```json
-{
-  "name": "Order Processing Specialist",
-  "description": "Handles order validation, processing, and fulfillment workflows",
-  "tier": 2,
-  "capabilities": [
-    "order_validation",
-    "inventory_checking",
-    "payment_processing",
-    "fulfillment_coordination"
-  ],
-  "specializations": [
-    "b2b_orders",
-    "b2c_orders", 
-    "subscription_orders",
-    "bulk_orders"
-  ],
-  "dependencies": {
-    "tier_3_agents": [
-      "payment_service",
-      "inventory_service",
-      "shipping_service"
-    ]
-  },
-  "validation_rules": {
-    "min_order_value": 0.01,
-    "max_order_items": 100,
-    "customer_verification": "required"
-  }
-}
-```
-
-**2.3 Tier 3 - Service Agents**
-
-Create `agent_cards/tier3/{service}_agent.json` for each external service:
-
-```json
-{
-  "name": "Payment Processing Service",
-  "description": "Handles payment transactions and verification",
-  "tier": 3,
-  "capabilities": [
-    "payment_processing",
-    "refund_handling",
-    "fraud_detection",
-    "compliance_checking"
-  ],
-  "tools": [
-    "stripe_mcp",
-    "paypal_mcp",
-    "fraud_detection_mcp"
-  ],
-  "response_format": {
-    "type": "structured",
-    "schema": "payment_result"
-  }
-}
-```
-
-### Step 3: Implement Domain-Specific Business Logic
-
-**3.1 Create Domain Models**
-
-Create `src/a2a_mcp/domains/{your_domain}/models.py`:
+**3.1 Quick Implementation with GenericDomainAgent**
 
 ```python
-# ABOUTME: Domain-specific data models and business entities
-# ABOUTME: Defines the core business objects for the domain
+# src/a2a_mcp/agents/ecommerce/specialists.py
+from a2a_mcp.common.generic_domain_agent import GenericDomainAgent
+from a2a_mcp.common.quality_framework import QualityDomain
 
-from dataclasses import dataclass
-from datetime import datetime
-from typing import Optional, List
-from decimal import Decimal
-
-@dataclass
-class Order:
-    """E-commerce order model"""
-    order_id: str
-    customer_id: str
-    items: List['OrderItem']
-    total_amount: Decimal
-    status: str = "pending"
-    created_at: datetime = None
+def create_ecommerce_specialists(config):
+    """Create all domain specialists using V2.0 templates."""
+    specialists = {}
     
-    def validate(self) -> bool:
-        """Validate order business rules"""
-        if self.total_amount <= 0:
-            return False
-        if not self.items:
-            return False
-        return True
-
-@dataclass  
-class OrderItem:
-    """Order line item"""
-    product_id: str
-    quantity: int
-    unit_price: Decimal
+    # Order Processing Specialist
+    specialists['order_processor'] = GenericDomainAgent(
+        domain="E-commerce",
+        specialization="order_processor",
+        capabilities=[
+            "Validate customer orders",
+            "Check product availability",
+            "Process payments securely",
+            "Coordinate with shipping"
+        ],
+        quality_domain=QualityDomain.ANALYTICAL,
+        tools=["database_query", "payment_gateway", "inventory_check"],
+        custom_instructions="""
+        You are an order processing specialist. Always:
+        1. Validate order details thoroughly
+        2. Check inventory before confirming
+        3. Ensure payment security
+        4. Provide clear status updates
+        """
+    )
     
-    @property
-    def total_price(self) -> Decimal:
-        return self.quantity * self.unit_price
-```
-
-**3.2 Create Domain Business Rules**
-
-Create `src/a2a_mcp/domains/{your_domain}/rules.py`:
-
-```python
-# ABOUTME: Business rules and validation logic for the domain
-# ABOUTME: Implements domain-specific constraints and policies
-
-from typing import Dict, Any, List
-from .models import Order, OrderItem
-
-class EcommerceBusinessRules:
-    """E-commerce specific business rules"""
-    
-    def __init__(self):
-        self.max_order_value = Decimal("10000.00")
-        self.max_items_per_order = 50
-        
-    def validate_order(self, order: Order) -> Dict[str, Any]:
-        """Validate order against business rules"""
-        errors = []
-        
-        # Check order value limits
-        if order.total_amount > self.max_order_value:
-            errors.append(f"Order value exceeds maximum of {self.max_order_value}")
-            
-        # Check item count limits  
-        if len(order.items) > self.max_items_per_order:
-            errors.append(f"Order exceeds maximum of {self.max_items_per_order} items")
-            
-        # Check inventory availability
-        unavailable_items = self.check_inventory_availability(order.items)
-        if unavailable_items:
-            errors.append(f"Items not in stock: {unavailable_items}")
-            
-        return {
-            "valid": len(errors) == 0,
-            "errors": errors
+    # Customer Service Specialist
+    specialists['customer_service'] = GenericDomainAgent(
+        domain="E-commerce",
+        specialization="customer_service",
+        capabilities=[
+            "Handle customer inquiries",
+            "Resolve order issues",
+            "Process returns and refunds",
+            "Analyze customer sentiment"
+        ],
+        quality_domain=QualityDomain.COMMUNICATION,
+        tools=["order_lookup", "customer_history", "sentiment_analysis"],
+        quality_thresholds={
+            "customer_satisfaction": 0.92,
+            "response_relevance": 0.90
         }
-        
-    def check_inventory_availability(self, items: List[OrderItem]) -> List[str]:
-        """Check if items are available in inventory"""
-        # Implement inventory checking logic
-        return []
+    )
+    
+    return specialists
 ```
 
-**3.3 Create Domain Workflows**
-
-Create `src/a2a_mcp/domains/{your_domain}/workflows.py`:
+**3.2 Custom Implementation with StandardizedAgentBase**
 
 ```python
-# ABOUTME: Domain-specific workflow definitions and orchestration
-# ABOUTME: Implements business process flows and coordination logic
+# src/a2a_mcp/agents/ecommerce/order_processor.py
+from a2a_mcp.common.standardized_agent_base import StandardizedAgentBase
+from a2a_mcp.common.quality_framework import QualityDomain
+from a2a_mcp.common.observability import trace_async
+from a2a_mcp.common.response_formatter import ResponseFormatter
+from typing import Dict, Any
+import json
 
-from typing import Dict, Any, List
-from a2a_mcp.common.workflow import BaseWorkflow
-from .models import Order
-from .rules import EcommerceBusinessRules
-
-class OrderProcessingWorkflow(BaseWorkflow):
-    """E-commerce order processing workflow"""
+class OrderProcessingAgent(StandardizedAgentBase):
+    """V2.0 Order Processing Agent with full enterprise features."""
     
     def __init__(self):
-        super().__init__()
-        self.business_rules = EcommerceBusinessRules()
+        super().__init__(
+            agent_name="E-commerce Order Processor",
+            description="Handles complex order processing with validation",
+            instructions=self._get_order_processing_instructions(),
+            content_types=['text', 'application/json'],
+            quality_config={
+                "domain": QualityDomain.ANALYTICAL,
+                "thresholds": {
+                    "completeness": 0.95,
+                    "accuracy": 0.98,
+                    "consistency": 0.90
+                }
+            },
+            mcp_tools_enabled=True,
+            a2a_enabled=True,
+            enable_observability=True
+        )
         
-    async def execute(self, order_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Execute the order processing workflow"""
+    def _get_order_processing_instructions(self) -> str:
+        return """
+        You are an expert order processing agent for an e-commerce platform.
         
-        # Step 1: Parse and validate order
-        order = self.parse_order(order_data)
-        validation_result = self.business_rules.validate_order(order)
+        Your responsibilities:
+        1. Validate all order details (customer, products, shipping, payment)
+        2. Check inventory availability in real-time
+        3. Process payments securely through payment gateway
+        4. Update inventory after successful payment
+        5. Schedule shipping and generate tracking
+        6. Send confirmation to customer
         
-        if not validation_result["valid"]:
+        Quality standards:
+        - All validations must be thorough (95%+ completeness)
+        - Payment processing must be 100% accurate
+        - Customer communication must be clear and professional
+        
+        Use available MCP tools:
+        - inventory_check: Check product availability
+        - payment_process: Process payment transactions
+        - shipping_schedule: Schedule shipment
+        - notification_send: Send customer notifications
+        """
+    
+    @trace_async
+    async def process_request(self, message: Dict[str, Any]) -> Dict[str, Any]:
+        """Process order with full V2.0 features."""
+        try:
+            action = message.get("action")
+            data = message.get("data", {})
+            
+            self.logger.info("Processing order request", extra={
+                "action": action,
+                "order_id": data.get("order_id"),
+                "trace_id": self.get_trace_id()
+            })
+            
+            if action == "process_order":
+                result = await self._process_order(data)
+            elif action == "validate_order":
+                result = await self._validate_order(data)
+            elif action == "check_order_status":
+                result = await self._check_order_status(data)
+            else:
+                result = {"error": "Unknown action", "status": "failed"}
+            
+            # V2.0: Automatic quality validation and formatting
+            return self.format_response(result)
+            
+        except Exception as e:
+            self.logger.error(f"Order processing error: {e}", 
+                            extra={"trace_id": self.get_trace_id()},
+                            exc_info=True)
+            return self.format_error_response(str(e))
+    
+    async def _process_order(self, order_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Process complete order with quality checks."""
+        order_id = order_data.get("order_id")
+        
+        # Step 1: Validate order
+        validation = await self._validate_order(order_data)
+        if not validation["valid"]:
             return {
                 "status": "failed",
-                "errors": validation_result["errors"]
+                "reason": "validation_failed",
+                "details": validation["errors"]
             }
-            
-        # Step 2: Process payment
-        payment_result = await self.process_payment(order)
-        if not payment_result["success"]:
-            return {
-                "status": "failed", 
-                "error": "Payment processing failed"
-            }
-            
-        # Step 3: Update inventory
-        inventory_result = await self.update_inventory(order)
-        if not inventory_result["success"]:
-            # Compensate: refund payment
-            await self.refund_payment(payment_result["transaction_id"])
+        
+        # Step 2: Check inventory (parallel for multiple items)
+        inventory_checks = await self._check_inventory_parallel(
+            order_data["items"]
+        )
+        if not all(check["available"] for check in inventory_checks):
             return {
                 "status": "failed",
-                "error": "Inventory update failed"
+                "reason": "insufficient_inventory",
+                "unavailable_items": [
+                    item for item, check in zip(order_data["items"], inventory_checks)
+                    if not check["available"]
+                ]
             }
-            
-        # Step 4: Schedule fulfillment
-        fulfillment_result = await self.schedule_fulfillment(order)
+        
+        # Step 3: Process payment
+        payment_result = await self.use_mcp_tool("payment_process", {
+            "amount": order_data["total_amount"],
+            "payment_method": order_data["payment_method"],
+            "customer_id": order_data["customer_id"]
+        })
+        
+        if payment_result["status"] != "success":
+            return {
+                "status": "failed",
+                "reason": "payment_failed",
+                "payment_error": payment_result.get("error")
+            }
+        
+        # Step 4: Update inventory
+        await self._update_inventory(order_data["items"])
+        
+        # Step 5: Schedule shipping
+        shipping = await self.use_mcp_tool("shipping_schedule", {
+            "order_id": order_id,
+            "items": order_data["items"],
+            "shipping_address": order_data["shipping_address"],
+            "shipping_method": order_data["shipping_method"]
+        })
+        
+        # Step 6: Send confirmation
+        await self.use_mcp_tool("notification_send", {
+            "type": "order_confirmation",
+            "order_id": order_id,
+            "customer_email": order_data["customer_email"],
+            "tracking_number": shipping["tracking_number"]
+        })
         
         return {
             "status": "success",
-            "order_id": order.order_id,
-            "payment_id": payment_result["transaction_id"],
-            "fulfillment_id": fulfillment_result["fulfillment_id"]
+            "order_id": order_id,
+            "tracking_number": shipping["tracking_number"],
+            "estimated_delivery": shipping["estimated_delivery"],
+            "payment_confirmation": payment_result["transaction_id"]
+        }
+    
+    async def _check_inventory_parallel(self, items: list) -> list:
+        """Check inventory for multiple items in parallel."""
+        import asyncio
+        
+        tasks = [
+            self.use_mcp_tool("inventory_check", {
+                "product_id": item["product_id"],
+                "quantity": item["quantity"]
+            })
+            for item in items
+        ]
+        
+        return await asyncio.gather(*tasks)
+```
+
+### Step 4: Create Master Orchestrator
+
+```python
+# src/a2a_mcp/agents/ecommerce/orchestrator.py
+from a2a_mcp.common.master_orchestrator_template import EnhancedMasterOrchestratorTemplate
+from a2a_mcp.common.quality_framework import QualityDomain
+
+def create_ecommerce_orchestrator(config):
+    """Create V2.0 orchestrator for e-commerce domain."""
+    
+    orchestrator = EnhancedMasterOrchestratorTemplate(
+        domain_name="E-commerce",
+        domain_description="Comprehensive e-commerce operations platform",
+        domain_specialists={
+            "order_processor": "Handles order validation and processing",
+            "customer_service": "Manages customer inquiries and support",
+            "inventory_manager": "Tracks and manages product inventory",
+            "shipping_coordinator": "Coordinates shipping and delivery",
+            "payment_processor": "Handles payment transactions"
+        },
+        quality_domain=QualityDomain.COMMUNICATION,
+        enable_phase_7_streaming=True,
+        enable_observability=True,
+        quality_thresholds={
+            "completeness": 0.92,
+            "accuracy": 0.96,
+            "customer_satisfaction": 0.90
+        },
+        parallel_threshold=3,  # Parallel execution for 3+ independent tasks
+        session_timeout=3600
+    )
+    
+    return orchestrator
+```
+
+### Step 5: Configure MCP Tools
+
+```python
+# src/a2a_mcp/mcp/ecommerce_tools.py
+from a2a_mcp.common.generic_mcp_server_template import GenericMCPServerTemplate
+
+class EcommerceMCPServer(GenericMCPServerTemplate):
+    """MCP server with e-commerce specific tools."""
+    
+    def __init__(self):
+        tools = {
+            "inventory_check": self.inventory_check,
+            "payment_process": self.payment_process,
+            "shipping_schedule": self.shipping_schedule,
+            "order_lookup": self.order_lookup,
+            "customer_history": self.customer_history,
+            "notification_send": self.notification_send
+        }
+        
+        super().__init__(
+            server_name="E-commerce MCP Server",
+            version="2.0",
+            tools=tools
+        )
+    
+    async def inventory_check(self, product_id: str, quantity: int) -> dict:
+        """Check product availability."""
+        # Integration with inventory system
+        # This would connect to your actual inventory database
+        available = await self.db.check_inventory(product_id, quantity)
+        return {
+            "product_id": product_id,
+            "requested": quantity,
+            "available": available,
+            "in_stock": available >= quantity
+        }
+    
+    async def payment_process(self, amount: float, payment_method: dict, 
+                             customer_id: str) -> dict:
+        """Process payment transaction."""
+        # Integration with payment gateway
+        # This would connect to Stripe, PayPal, etc.
+        result = await self.payment_gateway.process(
+            amount=amount,
+            method=payment_method,
+            customer=customer_id
+        )
+        return {
+            "status": result.status,
+            "transaction_id": result.transaction_id,
+            "amount_charged": result.amount
         }
 ```
 
-### Step 4: Configure MCP Tool Integration
-
-**4.1 Define Domain-Specific Tools**
-
-Create `.mcp.json` configuration for your domain tools:
-
-```json
-{
-  "mcpServers": {
-    "ecommerce_database": {
-      "command": "python",
-      "args": ["mcp_servers/ecommerce_db_server.py"],
-      "description": "E-commerce database access"
-    },
-    "payment_gateway": {
-      "command": "python", 
-      "args": ["mcp_servers/payment_server.py"],
-      "description": "Payment processing integration"
-    },
-    "inventory_system": {
-      "command": "python",
-      "args": ["mcp_servers/inventory_server.py"], 
-      "description": "Inventory management system"
-    },
-    "shipping_api": {
-      "command": "python",
-      "args": ["mcp_servers/shipping_server.py"],
-      "description": "Shipping and logistics API"
-    }
-  }
-}
-```
-
-**4.2 Implement MCP Server for Domain Data**
-
-Create `mcp_servers/ecommerce_db_server.py`:
+### Step 6: Create Launch Configuration
 
 ```python
-# ABOUTME: MCP server providing access to e-commerce database
-# ABOUTME: Implements tools for querying orders, products, customers
-
+# launch/launch_ecommerce.py
+from a2a_mcp.common.agent_runner import AgentRunner
+from a2a_mcp.agents.ecommerce.specialists import create_ecommerce_specialists
+from a2a_mcp.agents.ecommerce.orchestrator import create_ecommerce_orchestrator
+from a2a_mcp.common.config_manager import ConfigManager
 import asyncio
-from mcp.server import Server
-from mcp.types import TextContent, Tool
-import sqlite3
 
-app = Server("ecommerce-db")
-
-@app.list_tools()
-async def list_tools() -> list[Tool]:
-    return [
-        Tool(
-            name="query_orders",
-            description="Query orders by various criteria",
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "customer_id": {"type": "string"},
-                    "status": {"type": "string"},
-                    "date_range": {"type": "object"}
-                }
-            }
-        ),
-        Tool(
-            name="query_products", 
-            description="Query products and inventory",
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "product_id": {"type": "string"},
-                    "category": {"type": "string"},
-                    "in_stock": {"type": "boolean"}
-                }
-            }
+async def launch_ecommerce_system():
+    """Launch complete e-commerce multi-agent system."""
+    
+    # Load configuration
+    config = ConfigManager()
+    domain_config = config.load_domain_config("ecommerce")
+    
+    # Create orchestrator
+    orchestrator = create_ecommerce_orchestrator(domain_config)
+    orchestrator_runner = AgentRunner(
+        agent=orchestrator,
+        port=10200,
+        enable_health_check=True
+    )
+    
+    # Create specialists
+    specialists = create_ecommerce_specialists(domain_config)
+    specialist_runners = []
+    
+    for name, agent in specialists.items():
+        port = domain_config["specialists"][name]["port"]
+        runner = AgentRunner(
+            agent=agent,
+            port=port,
+            enable_health_check=True
         )
-    ]
-
-@app.call_tool()
-async def call_tool(name: str, arguments: dict) -> list[TextContent]:
-    if name == "query_orders":
-        # Implement order querying logic
-        results = query_orders_db(arguments)
-        return [TextContent(type="text", text=f"Orders found: {results}")]
-        
-    elif name == "query_products":
-        # Implement product querying logic
-        results = query_products_db(arguments)
-        return [TextContent(type="text", text=f"Products found: {results}")]
-        
-    raise ValueError(f"Unknown tool: {name}")
-
-def query_orders_db(criteria: dict):
-    """Query orders from database"""
-    # Implement actual database querying
-    return []
-
-def query_products_db(criteria: dict):
-    """Query products from database"""
-    # Implement actual database querying
-    return []
+        specialist_runners.append(runner)
+    
+    # Start all agents
+    await orchestrator_runner.start()
+    for runner in specialist_runners:
+        await runner.start()
+    
+    print("E-commerce system launched successfully!")
+    print(f"Orchestrator: http://localhost:10200")
+    print(f"Grafana Dashboard: http://localhost:3000")
+    
+    # Keep running
+    await asyncio.Event().wait()
 
 if __name__ == "__main__":
-    asyncio.run(app.run())
+    asyncio.run(launch_ecommerce_system())
 ```
 
-### Step 5: Create Domain-Specific Agent Instructions
-
-**5.1 Create Instruction Templates**
-
-Create `src/a2a_mcp/domains/{your_domain}/instructions.py`:
+### Step 7: Test Your Domain
 
 ```python
-# ABOUTME: Domain-specific instruction templates for agents
-# ABOUTME: Provides specialized prompts and decision trees
+# tests/test_ecommerce_domain.py
+import pytest
+from a2a_mcp.common.generic_a2a_client import GenericA2AClient
 
-ECOMMERCE_MASTER_ORCHESTRATOR_INSTRUCTIONS = """
-You are the E-commerce Master Orchestrator, responsible for coordinating complex e-commerce workflows.
+@pytest.fixture
+async def ecommerce_client():
+    client = GenericA2AClient(base_url="http://localhost:10200")
+    yield client
+    await client.close()
 
-Your responsibilities:
-1. Order Processing: Validate, process, and fulfill customer orders
-2. Inventory Management: Ensure accurate inventory tracking and availability
-3. Customer Service: Handle inquiries, returns, and support requests
-4. Business Rules: Enforce e-commerce policies and compliance
+async def test_order_processing(ecommerce_client):
+    """Test complete order processing workflow."""
+    
+    # Submit order
+    response = await ecommerce_client.send_request({
+        "action": "process_order",
+        "data": {
+            "order_id": "ORD-12345",
+            "customer_id": "CUST-789",
+            "items": [
+                {"product_id": "PROD-001", "quantity": 2, "price": 29.99},
+                {"product_id": "PROD-002", "quantity": 1, "price": 49.99}
+            ],
+            "total_amount": 109.97,
+            "shipping_address": {
+                "street": "123 Main St",
+                "city": "New York",
+                "state": "NY",
+                "zip": "10001"
+            },
+            "payment_method": {
+                "type": "credit_card",
+                "last_four": "1234"
+            }
+        }
+    })
+    
+    assert response["status"] == "success"
+    assert "tracking_number" in response
+    assert "payment_confirmation" in response
 
-DECISION TREE for Order Processing:
-├── Order Received
-│   ├── Validate Order → Invalid? → Return Error
-│   └── Valid Order → Continue
-├── Check Inventory → Out of Stock? → Notify Customer
-├── Process Payment → Failed? → Cancel Order
-├── Update Inventory → Update Failed? → Refund Payment
-└── Schedule Fulfillment → Success
-
-When processing orders, always:
-- Validate order against business rules
-- Check inventory availability before payment
-- Process payment before inventory updates
-- Implement compensation for failures
-- Provide clear status updates
-
-Output format: Return structured JSON with order status, processing steps, and any errors.
-"""
-
-ORDER_PROCESSING_SPECIALIST_INSTRUCTIONS = """
-You are the Order Processing Specialist focused on order validation and fulfillment.
-
-Chain-of-thought process:
-1. ORDER_VALIDATION: Check order completeness and business rules
-2. INVENTORY_CHECK: Verify product availability and quantities
-3. CUSTOMER_VERIFICATION: Validate customer information and payment method
-4. BUSINESS_RULES: Apply domain-specific constraints and policies
-5. FULFILLMENT_PLANNING: Determine shipping method and timeline
-
-Always ensure:
-- Order meets minimum/maximum value requirements
-- All products are in stock with sufficient quantities
-- Customer information is complete and verified
-- Payment method is valid and authorized
-- Shipping address is deliverable
-
-Return detailed order processing results with status and next steps.
-"""
+async def test_customer_service(ecommerce_client):
+    """Test customer service inquiry."""
+    
+    response = await ecommerce_client.send_request({
+        "action": "customer_inquiry",
+        "data": {
+            "inquiry_type": "order_status",
+            "order_id": "ORD-12345",
+            "customer_message": "Where is my order?"
+        }
+    })
+    
+    assert response["status"] == "success"
+    assert response["quality_metadata"]["customer_satisfaction"] >= 0.9
 ```
 
-## 🛠️ Domain Examples
+## 🎨 Domain Examples
 
-### E-commerce Platform
-
-**Key Agents**:
-- Order Processing Orchestrator
-- Inventory Management Specialist  
-- Payment Processing Service
-- Shipping Coordination Service
-- Customer Service Agent
-
-**Workflows**:
-- Order fulfillment
-- Return processing
-- Inventory replenishment
-- Customer support
-
-### Financial Services
-
-**Key Agents**:
-- Transaction Processing Orchestrator
-- Risk Assessment Specialist
-- Compliance Validation Service
-- Fraud Detection Service
-- Notification Service
-
-**Workflows**:
-- Payment processing
-- Loan application
-- Account management
-- Regulatory reporting
-
-### Healthcare Management
-
-**Key Agents**:
-- Patient Care Orchestrator
-- Appointment Scheduling Specialist
-- Medical Records Service
-- Insurance Verification Service
-- Billing Processing Service
-
-**Workflows**:
-- Patient registration
-- Appointment scheduling
-- Treatment planning
-- Insurance processing
-
-### Manufacturing Operations
-
-**Key Agents**:
-- Production Planning Orchestrator
-- Quality Control Specialist
-- Supply Chain Service
-- Equipment Monitoring Service
-- Compliance Tracking Service
-
-**Workflows**:
-- Production scheduling
-- Quality assurance
-- Supply chain optimization
-- Equipment maintenance
-
-## 🎯 Best Practices
-
-### Agent Design
-- **Single Responsibility**: Each agent should have a clear, focused purpose
-- **Domain Expertise**: Agents should embody deep knowledge of their business area
-- **Loose Coupling**: Minimize dependencies between agents
-- **Clear Interfaces**: Use well-defined input/output contracts
-
-### Business Logic
-- **Centralized Rules**: Keep business rules in dedicated modules
-- **Validation Layers**: Implement multiple validation checkpoints
-- **Error Handling**: Plan for failure scenarios and compensation
-- **Audit Trails**: Track all business operations for compliance
-
-### Data Integration
-- **MCP First**: Use MCP tools for all external system access
-- **Schema Validation**: Validate data at system boundaries
-- **Connection Pooling**: Optimize database and API connections
-- **Caching Strategy**: Cache frequently accessed business data
-
-### Testing Strategy
-- **Business Scenarios**: Test real-world business workflows
-- **Edge Cases**: Test boundary conditions and error scenarios
-- **Integration Tests**: Test full agent collaboration flows
-- **Performance Tests**: Validate under expected load
-
-## 🚀 Quick Start Templates
-
-Use these templates to rapidly bootstrap your domain:
-
-```bash
-# Generate domain template
-python scripts/generate_domain.py --domain=your_domain --entities=entity1,entity2
-
-# Create agent cards
-python scripts/create_agent_cards.py --domain=your_domain --tier=1,2,3
-
-# Generate MCP servers
-python scripts/create_mcp_servers.py --domain=your_domain --services=service1,service2
-
-# Set up testing
-python scripts/setup_domain_tests.py --domain=your_domain
+### Finance Domain
+```yaml
+specialists:
+  market_analyst: "Analyzes market trends and indicators"
+  risk_assessor: "Evaluates investment risks"
+  portfolio_manager: "Optimizes portfolio allocation"
+  compliance_checker: "Ensures regulatory compliance"
+quality_domain: ANALYTICAL
 ```
 
-## 📚 Additional Resources
+### Healthcare Domain
+```yaml
+specialists:
+  patient_intake: "Handles patient registration and history"
+  symptom_analyzer: "Analyzes symptoms and suggests next steps"
+  appointment_scheduler: "Manages appointment booking"
+  prescription_manager: "Handles prescription workflows"
+quality_domain: COMMUNICATION  # Patient-facing
+```
 
-- [INTEGRATION_PATTERNS.md](INTEGRATION_PATTERNS.md) - Common integration patterns
-- [EXAMPLE_IMPLEMENTATIONS.md](EXAMPLE_IMPLEMENTATIONS.md) - Complete domain examples  
-- [GENERIC_DEPLOYMENT_GUIDE.md](GENERIC_DEPLOYMENT_GUIDE.md) - Deployment strategies
-- [Framework Architecture Guide](docs/ARCHITECTURE.md) - Technical details
+### Manufacturing Domain
+```yaml
+specialists:
+  production_planner: "Plans production schedules"
+  quality_inspector: "Monitors quality metrics"
+  inventory_tracker: "Tracks raw materials and products"
+  maintenance_scheduler: "Schedules equipment maintenance"
+quality_domain: ANALYTICAL
+```
 
----
+## 📊 Monitoring Your Domain
 
-**Next Steps**: After customizing your domain, see [INTEGRATION_PATTERNS.md](INTEGRATION_PATTERNS.md) for connecting to your existing systems.
+### 1. Domain-Specific Metrics
+```python
+# Add custom metrics for your domain
+from a2a_mcp.common.metrics_collector import get_metrics_collector
+
+metrics = get_metrics_collector()
+
+# E-commerce specific metrics
+metrics.record_custom_metric("orders_processed", 1)
+metrics.record_custom_metric("average_order_value", 109.97)
+metrics.record_custom_metric("cart_abandonment_rate", 0.15)
+```
+
+### 2. Custom Dashboards
+Create domain-specific Grafana dashboards:
+- Order processing pipeline visualization
+- Customer satisfaction trends
+- Inventory levels monitoring
+- Payment success rates
+
+### 3. Quality Monitoring
+```python
+# Monitor domain-specific quality metrics
+quality_metrics = {
+    "order_accuracy": 0.98,
+    "delivery_on_time": 0.95,
+    "customer_satisfaction": 0.92
+}
+
+metrics.record_quality_validation(
+    domain="E-commerce",
+    status="passed",
+    scores=quality_metrics
+)
+```
+
+## 🚀 Best Practices
+
+1. **Start Simple**: Use GenericDomainAgent for quick prototypes
+2. **Iterate**: Add complexity as you understand requirements
+3. **Monitor Early**: Enable observability from the start
+4. **Test Thoroughly**: Create domain-specific test scenarios
+5. **Document**: Keep your domain configuration well-documented
+6. **Validate Quality**: Set appropriate thresholds for your domain
+
+## 📚 Next Steps
+
+1. Review [Framework Components Guide](./FRAMEWORK_COMPONENTS_AND_ORCHESTRATION_GUIDE.md) for detailed component documentation
+2. Follow [Multi-Agent Workflow Guide](./MULTI_AGENT_WORKFLOW_GUIDE.md) for workflow patterns
+3. Check `examples/domains/` for more domain examples
+4. Set up monitoring using [Observability Deployment Guide](./OBSERVABILITY_DEPLOYMENT.md)
+
+The A2A-MCP Framework V2.0 provides all the tools needed to build sophisticated domain-specific multi-agent systems with enterprise-grade features!
