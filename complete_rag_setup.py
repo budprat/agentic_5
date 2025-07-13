@@ -35,8 +35,9 @@ BUCKET_NAME = "sankhya-gen-lang-client-0871164439"
 GCS_FOLDER_PATH = "sankhya"
 EMBEDDING_MODEL = "text-embedding-005"
 MODEL_ID = "gemini-2.5-pro-preview-06-05"
-CHUNK_SIZE = 500
-CHUNK_OVERLAP = 50
+# Use notebook's chunking configuration
+CHUNK_SIZE = 1024
+CHUNK_OVERLAP = 256
 
 # Supported file extensions for code indexing
 SUPPORTED_EXTENSIONS = [
@@ -189,7 +190,7 @@ def setup_rag_corpus():
     try:
         # Import required libraries
         import vertexai
-        from vertexai.preview import rag
+        from vertexai import rag  # Use non-preview like working notebook
         from google import genai
         from google.genai.types import (
             GenerateContentConfig, 
@@ -218,6 +219,13 @@ def setup_rag_corpus():
         rag_corpus = rag.create_corpus(
             display_name=rag_corpus_display_name,
             description=f"Codebase files from {GITHUB_URL}",
+            backend_config=rag.RagVectorDbConfig(
+                rag_embedding_model_config=rag.RagEmbeddingModelConfig(
+                    vertex_prediction_endpoint=rag.VertexPredictionEndpoint(
+                        publisher_model=EMBEDDING_MODEL
+                    )
+                )
+            )
         )
         log(f"Created corpus: {rag_corpus.display_name}")
         log(f"Corpus resource name: {rag_corpus.name}")
@@ -231,9 +239,13 @@ def setup_rag_corpus():
             import_response = rag.import_files(
                 corpus_name=rag_corpus.name,
                 paths=[gcs_import_uri],
-                chunk_size=CHUNK_SIZE,
-                chunk_overlap=CHUNK_OVERLAP,
-                max_embedding_requests_per_min=100,  # Lower QPM to avoid quota
+                transformation_config=rag.TransformationConfig(
+                    chunking_config=rag.ChunkingConfig(
+                        chunk_size=CHUNK_SIZE,
+                        chunk_overlap=CHUNK_OVERLAP
+                    )
+                ),
+                # Note: NOT using max_embedding_requests_per_min like notebook
             )
             log("File import initiated successfully!")
             log("Import operation started. Files will be processed at 100 embeddings/minute.")
@@ -269,9 +281,7 @@ def create_query_tool(corpus_name):
     return Tool(
         retrieval=Retrieval(
             vertex_rag_store=VertexRagStore(
-                rag_resources=[{
-                    "rag_corpus": corpus_name
-                }],
+                rag_corpora=[corpus_name],  # List format like notebook
                 similarity_top_k=10,
                 vector_distance_threshold=0.5,
             )
