@@ -178,6 +178,15 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
         self.state_transitions: List[Dict[str, Any]] = []  # Track state transition events
         self.resumption_strategies: Dict[str, str] = {}  # session_id -> resumption strategy
         
+        # PHASE 4: Artifact Management & Result Collection
+        self.artifact_store: Dict[str, Dict[str, Any]] = {}  # artifact_id -> artifact data
+        self.session_artifacts: Dict[str, List[str]] = {}  # session_id -> [artifact_ids]
+        self.task_artifacts: Dict[str, List[str]] = {}  # task_id -> [artifact_ids]
+        self.artifact_relationships: Dict[str, List[str]] = {}  # artifact_id -> [related_artifact_ids]
+        self.result_collections: Dict[str, Dict[str, Any]] = {}  # collection_id -> collection metadata
+        self.artifact_search_index: Dict[str, List[str]] = {}  # keyword -> [artifact_ids]
+        self.artifact_templates: Dict[str, Dict[str, Any]] = {}  # template_name -> template config
+        
         logger.info(f"Refactored {domain_name} Master Orchestrator initialized with Enhanced Planner")
 
     def _get_default_quality_thresholds(self, quality_domain: QualityDomain) -> Dict[str, Any]:
@@ -219,6 +228,9 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
             
             # Step 2: Execute orchestration using A2A protocol
             orchestration_result = await self._execute_orchestration(execution_plan, sessionId)
+            
+            # PHASE 4: Collect and organize artifacts from orchestration
+            await self._collect_orchestration_artifacts(orchestration_result, execution_plan, sessionId)
             
             # Step 3: Synthesize final results
             final_result = await self._synthesize_results(orchestration_result, execution_plan, query)
@@ -1601,6 +1613,491 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
             'total_checkpoints': sum(len(checkpoints) for checkpoints in self.pause_checkpoints.values())
         }
     
+    # ============================================================================
+    # PHASE 4: Artifact Management & Result Collection Methods
+    # ============================================================================
+    
+    async def _collect_orchestration_artifacts(self, orchestration_result: Dict[str, Any], execution_plan: Dict[str, Any], session_id: str):
+        """Collect artifacts from orchestration execution."""
+        collection_id = str(uuid.uuid4())
+        
+        # Create result collection for this orchestration
+        collection = await self._create_result_collection(
+            collection_id=collection_id,
+            session_id=session_id,
+            collection_type='orchestration_execution',
+            metadata={
+                'execution_plan_id': execution_plan.get('plan_id', 'unknown'),
+                'coordination_strategy': execution_plan.get('coordination_strategy', 'sequential'),
+                'task_count': len(execution_plan.get('tasks', [])),
+                'timestamp': datetime.now().isoformat()
+            }
+        )
+        
+        # Collect task-level artifacts
+        tasks = execution_plan.get('tasks', [])
+        task_results = orchestration_result.get('task_results', [])
+        
+        for task, result in zip(tasks, task_results):
+            await self._collect_task_artifacts(task, result, session_id, collection_id)
+        
+        # Collect orchestration-level artifacts
+        await self._collect_orchestration_metadata_artifacts(orchestration_result, session_id, collection_id)
+        
+        logger.info(f"Collected artifacts for orchestration in collection {collection_id}")
+    
+    async def _create_result_collection(self, collection_id: str, session_id: str, collection_type: str, metadata: Dict[str, Any]) -> Dict[str, Any]:
+        """Create a new result collection."""
+        collection = {
+            'collection_id': collection_id,
+            'session_id': session_id,
+            'collection_type': collection_type,
+            'created_at': datetime.now().isoformat(),
+            'artifact_ids': [],
+            'metadata': metadata,
+            'tags': [],
+            'status': 'active'
+        }
+        
+        self.result_collections[collection_id] = collection
+        
+        # Associate with session
+        if session_id not in self.session_artifacts:
+            self.session_artifacts[session_id] = []
+        
+        logger.debug(f"Created result collection {collection_id} for session {session_id}")
+        return collection
+    
+    async def _collect_task_artifacts(self, task: Dict[str, Any], result: Dict[str, Any], session_id: str, collection_id: str):
+        """Collect artifacts from individual task execution."""
+        task_id = task.get('id', 'unknown')
+        
+        # Create task result artifact
+        if result.get('result'):
+            artifact_id = await self.store_artifact(
+                content=result['result'],
+                artifact_type='task_result',
+                source_info={
+                    'task_id': task_id,
+                    'task_description': task.get('description', ''),
+                    'specialist_used': result.get('specialist_used', 'unknown'),
+                    'execution_status': result.get('status', 'unknown')
+                },
+                session_id=session_id,
+                collection_id=collection_id
+            )
+            
+            # Associate artifact with task
+            if task_id not in self.task_artifacts:
+                self.task_artifacts[task_id] = []
+            self.task_artifacts[task_id].append(artifact_id)
+        
+        # Collect task execution metadata
+        if result.get('coordination_time') or result.get('status'):
+            metadata_artifact_id = await self.store_artifact(
+                content={
+                    'execution_metadata': {
+                        'coordination_time': result.get('coordination_time', 0),
+                        'status': result.get('status', 'unknown'),
+                        'error': result.get('error'),
+                        'specialist_used': result.get('specialist_used')
+                    }
+                },
+                artifact_type='task_metadata',
+                source_info={
+                    'task_id': task_id,
+                    'metadata_type': 'execution_metrics'
+                },
+                session_id=session_id,
+                collection_id=collection_id
+            )
+            
+            if task_id not in self.task_artifacts:
+                self.task_artifacts[task_id] = []
+            self.task_artifacts[task_id].append(metadata_artifact_id)
+    
+    async def _collect_orchestration_metadata_artifacts(self, orchestration_result: Dict[str, Any], session_id: str, collection_id: str):
+        """Collect orchestration-level metadata artifacts."""
+        # Collect orchestration metrics
+        metrics = orchestration_result.get('orchestration_metrics', {})
+        if metrics:
+            await self.store_artifact(
+                content=metrics,
+                artifact_type='orchestration_metrics',
+                source_info={
+                    'metrics_type': 'orchestration_summary',
+                    'execution_strategy': orchestration_result.get('execution_strategy', 'unknown')
+                },
+                session_id=session_id,
+                collection_id=collection_id
+            )
+        
+        # Collect specialist coordination data
+        specialist_data = orchestration_result.get('specialist_coordination', {})
+        if specialist_data:
+            await self.store_artifact(
+                content=specialist_data,
+                artifact_type='specialist_coordination',
+                source_info={
+                    'coordination_type': 'specialist_management',
+                    'specialists_count': len(specialist_data)
+                },
+                session_id=session_id,
+                collection_id=collection_id
+            )
+    
+    async def store_artifact(
+        self, 
+        content: Any, 
+        artifact_type: str, 
+        source_info: Dict[str, Any], 
+        session_id: str,
+        collection_id: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ) -> str:
+        """Store an artifact with comprehensive metadata."""
+        artifact_id = str(uuid.uuid4())
+        
+        # Prepare artifact data
+        artifact = {
+            'artifact_id': artifact_id,
+            'content': content,
+            'artifact_type': artifact_type,
+            'source_info': source_info,
+            'session_id': session_id,
+            'collection_id': collection_id,
+            'created_at': datetime.now().isoformat(),
+            'tags': tags or [],
+            'metadata': metadata or {},
+            'content_size': self._calculate_content_size(content),
+            'content_hash': self._calculate_content_hash(content),
+            'relationships': []
+        }
+        
+        # Store in artifact store
+        self.artifact_store[artifact_id] = artifact
+        
+        # Associate with session
+        if session_id not in self.session_artifacts:
+            self.session_artifacts[session_id] = []
+        self.session_artifacts[session_id].append(artifact_id)
+        
+        # Associate with collection
+        if collection_id and collection_id in self.result_collections:
+            self.result_collections[collection_id]['artifact_ids'].append(artifact_id)
+        
+        # Update search index
+        self._update_artifact_search_index(artifact_id, artifact)
+        
+        # Auto-detect relationships
+        await self._detect_artifact_relationships(artifact_id)
+        
+        logger.debug(f"Stored artifact {artifact_id} (type: {artifact_type}, session: {session_id})")
+        return artifact_id
+    
+    def _calculate_content_size(self, content: Any) -> int:
+        """Calculate approximate content size in bytes."""
+        try:
+            import json
+            if isinstance(content, (dict, list)):
+                return len(json.dumps(content, default=str).encode('utf-8'))
+            elif isinstance(content, str):
+                return len(content.encode('utf-8'))
+            else:
+                return len(str(content).encode('utf-8'))
+        except Exception:
+            return 0
+    
+    def _calculate_content_hash(self, content: Any) -> str:
+        """Calculate content hash for deduplication."""
+        try:
+            import hashlib
+            import json
+            
+            if isinstance(content, (dict, list)):
+                content_str = json.dumps(content, sort_keys=True, default=str)
+            else:
+                content_str = str(content)
+            
+            return hashlib.md5(content_str.encode('utf-8')).hexdigest()
+        except Exception:
+            return 'unknown'
+    
+    def _update_artifact_search_index(self, artifact_id: str, artifact: Dict[str, Any]):
+        """Update search index for artifact discovery."""
+        # Extract searchable keywords
+        keywords = set()
+        
+        # From artifact type
+        keywords.add(artifact['artifact_type'])
+        
+        # From tags
+        keywords.update(artifact.get('tags', []))
+        
+        # From source info
+        source_info = artifact.get('source_info', {})
+        for key, value in source_info.items():
+            if isinstance(value, str) and len(value) < 50:  # Avoid indexing large text
+                keywords.add(value.lower())
+        
+        # From content (limited extraction)
+        content = artifact.get('content', {})
+        if isinstance(content, dict):
+            for key in content.keys():
+                if isinstance(key, str) and len(key) < 30:
+                    keywords.add(key.lower())
+        
+        # Update index
+        for keyword in keywords:
+            if keyword not in self.artifact_search_index:
+                self.artifact_search_index[keyword] = []
+            if artifact_id not in self.artifact_search_index[keyword]:
+                self.artifact_search_index[keyword].append(artifact_id)
+    
+    async def _detect_artifact_relationships(self, artifact_id: str):
+        """Detect relationships between artifacts."""
+        artifact = self.artifact_store.get(artifact_id)
+        if not artifact:
+            return
+        
+        relationships = []
+        
+        # Find artifacts from same session
+        session_id = artifact['session_id']
+        session_artifacts = self.session_artifacts.get(session_id, [])
+        
+        for other_artifact_id in session_artifacts:
+            if other_artifact_id == artifact_id:
+                continue
+            
+            other_artifact = self.artifact_store.get(other_artifact_id)
+            if not other_artifact:
+                continue
+            
+            # Check for task sequence relationships
+            if self._are_artifacts_task_related(artifact, other_artifact):
+                relationships.append(other_artifact_id)
+            
+            # Check for content similarity relationships
+            if self._are_artifacts_content_similar(artifact, other_artifact):
+                relationships.append(other_artifact_id)
+        
+        # Store relationships
+        if relationships:
+            self.artifact_relationships[artifact_id] = relationships
+            artifact['relationships'] = relationships
+    
+    def _are_artifacts_task_related(self, artifact1: Dict[str, Any], artifact2: Dict[str, Any]) -> bool:
+        """Check if artifacts are related through task execution."""
+        source1 = artifact1.get('source_info', {})
+        source2 = artifact2.get('source_info', {})
+        
+        # Same task ID
+        if source1.get('task_id') and source1.get('task_id') == source2.get('task_id'):
+            return True
+        
+        # Same specialist
+        if source1.get('specialist_used') and source1.get('specialist_used') == source2.get('specialist_used'):
+            return True
+        
+        return False
+    
+    def _are_artifacts_content_similar(self, artifact1: Dict[str, Any], artifact2: Dict[str, Any]) -> bool:
+        """Check if artifacts have similar content."""
+        # Simple hash-based similarity
+        hash1 = artifact1.get('content_hash')
+        hash2 = artifact2.get('content_hash')
+        
+        if hash1 and hash2 and hash1 == hash2:
+            return True
+        
+        # Type-based similarity
+        type1 = artifact1.get('artifact_type')
+        type2 = artifact2.get('artifact_type')
+        
+        if type1 and type2 and type1 == type2:
+            return True
+        
+        return False
+    
+    def search_artifacts(
+        self, 
+        query: str = None, 
+        artifact_type: str = None, 
+        session_id: str = None,
+        collection_id: str = None,
+        tags: List[str] = None,
+        limit: int = 50
+    ) -> List[Dict[str, Any]]:
+        """Search artifacts with multiple criteria."""
+        matching_artifacts = []
+        
+        # Get candidate artifact IDs
+        candidate_ids = set()
+        
+        if query:
+            # Search by keywords
+            query_keywords = query.lower().split()
+            for keyword in query_keywords:
+                if keyword in self.artifact_search_index:
+                    candidate_ids.update(self.artifact_search_index[keyword])
+        else:
+            # If no query, start with all artifacts
+            candidate_ids = set(self.artifact_store.keys())
+        
+        # Filter candidates
+        for artifact_id in candidate_ids:
+            artifact = self.artifact_store.get(artifact_id)
+            if not artifact:
+                continue
+            
+            # Apply filters
+            if artifact_type and artifact.get('artifact_type') != artifact_type:
+                continue
+            
+            if session_id and artifact.get('session_id') != session_id:
+                continue
+            
+            if collection_id and artifact.get('collection_id') != collection_id:
+                continue
+            
+            if tags:
+                artifact_tags = set(artifact.get('tags', []))
+                if not any(tag in artifact_tags for tag in tags):
+                    continue
+            
+            matching_artifacts.append(artifact)
+        
+        # Sort by creation time (newest first)
+        matching_artifacts.sort(key=lambda x: x.get('created_at', ''), reverse=True)
+        
+        return matching_artifacts[:limit]
+    
+    def get_artifact(self, artifact_id: str) -> Optional[Dict[str, Any]]:
+        """Get artifact by ID."""
+        return self.artifact_store.get(artifact_id)
+    
+    def get_session_artifacts(self, session_id: str) -> List[Dict[str, Any]]:
+        """Get all artifacts for a session."""
+        artifact_ids = self.session_artifacts.get(session_id, [])
+        return [self.artifact_store[aid] for aid in artifact_ids if aid in self.artifact_store]
+    
+    def get_task_artifacts(self, task_id: str) -> List[Dict[str, Any]]:
+        """Get all artifacts for a specific task."""
+        artifact_ids = self.task_artifacts.get(task_id, [])
+        return [self.artifact_store[aid] for aid in artifact_ids if aid in self.artifact_store]
+    
+    def get_collection_artifacts(self, collection_id: str) -> List[Dict[str, Any]]:
+        """Get all artifacts in a collection."""
+        collection = self.result_collections.get(collection_id)
+        if not collection:
+            return []
+        
+        artifact_ids = collection.get('artifact_ids', [])
+        return [self.artifact_store[aid] for aid in artifact_ids if aid in self.artifact_store]
+    
+    def get_related_artifacts(self, artifact_id: str) -> List[Dict[str, Any]]:
+        """Get artifacts related to a specific artifact."""
+        related_ids = self.artifact_relationships.get(artifact_id, [])
+        return [self.artifact_store[aid] for aid in related_ids if aid in self.artifact_store]
+    
+    def get_artifact_analytics(self) -> Dict[str, Any]:
+        """Get comprehensive artifact analytics."""
+        total_artifacts = len(self.artifact_store)
+        
+        # Analyze by type
+        type_distribution = {}
+        size_distribution = {'small': 0, 'medium': 0, 'large': 0}
+        
+        for artifact in self.artifact_store.values():
+            artifact_type = artifact.get('artifact_type', 'unknown')
+            type_distribution[artifact_type] = type_distribution.get(artifact_type, 0) + 1
+            
+            # Size analysis
+            size = artifact.get('content_size', 0)
+            if size < 1024:  # < 1KB
+                size_distribution['small'] += 1
+            elif size < 102400:  # < 100KB
+                size_distribution['medium'] += 1
+            else:
+                size_distribution['large'] += 1
+        
+        return {
+            'total_artifacts': total_artifacts,
+            'total_sessions_with_artifacts': len(self.session_artifacts),
+            'total_tasks_with_artifacts': len(self.task_artifacts),
+            'total_collections': len(self.result_collections),
+            'type_distribution': type_distribution,
+            'size_distribution': size_distribution,
+            'search_index_keywords': len(self.artifact_search_index),
+            'total_relationships': sum(len(rels) for rels in self.artifact_relationships.values()),
+            'avg_artifacts_per_session': total_artifacts / len(self.session_artifacts) if self.session_artifacts else 0
+        }
+    
+    def cleanup_artifacts(self, session_id: str = None, older_than_hours: int = None):
+        """Clean up artifacts based on criteria."""
+        artifacts_to_remove = []
+        
+        for artifact_id, artifact in self.artifact_store.items():
+            should_remove = False
+            
+            # Session-based cleanup
+            if session_id and artifact.get('session_id') == session_id:
+                should_remove = True
+            
+            # Time-based cleanup
+            if older_than_hours:
+                created_at = datetime.fromisoformat(artifact.get('created_at', '1970-01-01T00:00:00'))
+                if (datetime.now() - created_at).total_seconds() > (older_than_hours * 3600):
+                    should_remove = True
+            
+            if should_remove:
+                artifacts_to_remove.append(artifact_id)
+        
+        # Remove artifacts
+        for artifact_id in artifacts_to_remove:
+            self._remove_artifact(artifact_id)
+        
+        logger.info(f"Cleaned up {len(artifacts_to_remove)} artifacts")
+        return len(artifacts_to_remove)
+    
+    def _remove_artifact(self, artifact_id: str):
+        """Remove artifact and all references."""
+        artifact = self.artifact_store.get(artifact_id)
+        if not artifact:
+            return
+        
+        # Remove from store
+        del self.artifact_store[artifact_id]
+        
+        # Remove from session artifacts
+        session_id = artifact.get('session_id')
+        if session_id in self.session_artifacts:
+            self.session_artifacts[session_id] = [aid for aid in self.session_artifacts[session_id] if aid != artifact_id]
+        
+        # Remove from task artifacts
+        for task_id, artifact_ids in self.task_artifacts.items():
+            self.task_artifacts[task_id] = [aid for aid in artifact_ids if aid != artifact_id]
+        
+        # Remove from collections
+        collection_id = artifact.get('collection_id')
+        if collection_id in self.result_collections:
+            collection = self.result_collections[collection_id]
+            collection['artifact_ids'] = [aid for aid in collection.get('artifact_ids', []) if aid != artifact_id]
+        
+        # Remove from search index
+        for keyword, artifact_ids in self.artifact_search_index.items():
+            self.artifact_search_index[keyword] = [aid for aid in artifact_ids if aid != artifact_id]
+        
+        # Remove relationships
+        if artifact_id in self.artifact_relationships:
+            del self.artifact_relationships[artifact_id]
+        
+        # Remove from other artifacts' relationships
+        for other_artifact_id, related_ids in self.artifact_relationships.items():
+            self.artifact_relationships[other_artifact_id] = [aid for aid in related_ids if aid != artifact_id]
+    
     def get_paused_node_id(self) -> Optional[str]:
         """Get the ID of the paused node."""
         if self.dynamic_workflow:
@@ -1760,6 +2257,20 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
                 'Pause reason tracking and intelligent resumption',
                 'Cross-session state persistence and restoration'
             ],
+            'artifact_management_capabilities': [
+                'Comprehensive artifact collection and storage during orchestration',
+                'Task-level and orchestration-level result preservation',
+                'Metadata-rich artifact tracking with source information',
+                'Intelligent artifact relationship detection and linking',
+                'Multi-criteria artifact search and discovery system',
+                'Result collection organization and management',
+                'Content-based deduplication and hash verification',
+                'Session and task-based artifact organization',
+                'Artifact search indexing and keyword-based retrieval',
+                'Automated cleanup and lifecycle management',
+                'Analytics and reporting on artifact patterns',
+                'Cross-artifact relationship mapping and analysis'
+            ],
             'backward_compatibility': 'Full API compatibility with original MasterOrchestratorTemplate',
             'enhanced_features': 'All capabilities enhanced via EnhancedGenericPlannerAgent integration',
             'phase_completion_status': {
@@ -1767,6 +2278,6 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
                 'phase_2_context_history': True,
                 'phase_2_5_clear_state_management': True,
                 'phase_3_enhanced_state_management': True,
-                'phase_4_artifact_management': False
+                'phase_4_artifact_management': True
             }
         }
