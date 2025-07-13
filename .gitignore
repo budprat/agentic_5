@@ -163,6 +163,7 @@ mcp_*.pid
 # ============================================
 # Application logs
 logs/
+log*
 *.log
 *.log.*
 *.log.gz
