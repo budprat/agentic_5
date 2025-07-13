@@ -19,33 +19,37 @@ class ServerConfig(BaseModel):
     url: str
 
 
-# Agent configuration types  
-@dataclass
-class AgentCard:
-    """Agent configuration card for A2A agents.
-    
-    This represents the configuration and metadata for an agent,
-    loaded from JSON files and used to instantiate agents.
-    """
-    name: str
-    type: str
-    description: str
-    version: str
-    capabilities: List[str]
-    port: Optional[int] = None
-    tier: Optional[int] = None
-    instructions: Optional[str] = None
-    config: Optional[Dict[str, Any]] = None
-    metadata: Optional[Dict[str, Any]] = None
-    auth_required: Optional[bool] = False
-    auth_schemes: Optional[List[Dict[str, Any]]] = None
-    
-    def __post_init__(self):
-        """Validate and set defaults after initialization."""
-        if self.config is None:
-            self.config = {}
-        if self.metadata is None:
-            self.metadata = {}
+# Agent configuration types - prefer A2A library version if available
+try:
+    from a2a.types import AgentCard
+except ImportError:
+    # Fallback to local implementation if A2A library not available
+    @dataclass
+    class AgentCard:
+        """Agent configuration card for A2A agents.
+        
+        This represents the configuration and metadata for an agent,
+        loaded from JSON files and used to instantiate agents.
+        """
+        name: str
+        type: str
+        description: str
+        version: str
+        capabilities: List[str]
+        port: Optional[int] = None
+        tier: Optional[int] = None
+        instructions: Optional[str] = None
+        config: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None
+        auth_required: Optional[bool] = False
+        auth_schemes: Optional[List[Dict[str, Any]]] = None
+        
+        def __post_init__(self):
+            """Validate and set defaults after initialization."""
+            if self.config is None:
+                self.config = {}
+            if self.metadata is None:
+                self.metadata = {}
 
 
 # Task and workflow types

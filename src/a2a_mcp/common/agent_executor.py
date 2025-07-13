@@ -4,8 +4,14 @@
 import logging
 from typing import Optional, Any
 
-from a2a_mcp.server.events import EventQueue
-from a2a_mcp.server.tasks import TaskUpdater
+# Using A2A library imports instead of internal server
+try:
+    from a2a.server.events import EventQueue
+    from a2a.server.tasks import TaskUpdater
+except ImportError:
+    # Fallback to internal implementations if A2A library not available
+    from a2a_mcp.server.events import EventQueue
+    from a2a_mcp.server.tasks import TaskUpdater
 from a2a_mcp.common.types import (
     DataPart,
     InvalidParamsError,
