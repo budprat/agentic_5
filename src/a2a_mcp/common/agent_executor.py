@@ -2,17 +2,11 @@
 # ABOUTME: Provides unified interface for executing agents with proper task and event management
 
 import logging
-from typing import Optional, Any
 
-# Using A2A library imports instead of internal server
-try:
-    from a2a.server.events import EventQueue
-    from a2a.server.tasks import TaskUpdater
-except ImportError:
-    # Fallback to internal implementations if A2A library not available
-    from a2a_mcp.server.events import EventQueue
-    from a2a_mcp.server.tasks import TaskUpdater
-from a2a_mcp.common.types import (
+from a2a.server.agent_execution import AgentExecutor, RequestContext
+from a2a.server.events import EventQueue
+from a2a.server.tasks import TaskUpdater
+from a2a.types import (
     DataPart,
     InvalidParamsError,
     SendStreamingMessageSuccessResponse,
@@ -23,64 +17,16 @@ from a2a_mcp.common.types import (
     TextPart,
     UnsupportedOperationError,
 )
-from a2a_mcp.utils import new_agent_text_message, new_task
-from a2a_mcp.utils.errors import ServerError
+from a2a.utils import new_agent_text_message, new_task
+from a2a.utils.errors import ServerError
 from a2a_mcp.common.base_agent import BaseAgent
 
 
 logger = logging.getLogger(__name__)
 
 
-class RequestContext:
-    """Context for agent execution requests."""
-    
-    def __init__(self, message: Any, current_task: Optional[Task] = None):
-        self.message = message
-        self.current_task = current_task
-        self._user_input = None
-    
-    def get_user_input(self) -> str:
-        """Extract user input from the message."""
-        if self._user_input:
-            return self._user_input
-            
-        # Extract from message based on structure
-        if hasattr(self.message, 'query'):
-            self._user_input = self.message.query
-        elif hasattr(self.message, 'content'):
-            self._user_input = self.message.content
-        elif hasattr(self.message, 'text'):
-            self._user_input = self.message.text
-        elif isinstance(self.message, dict):
-            self._user_input = self.message.get('query', 
-                                                self.message.get('content',
-                                                self.message.get('text', '')))
-        else:
-            self._user_input = str(self.message)
-            
-        return self._user_input
-
-
-class AgentExecutor:
-    """Abstract base class for agent executors."""
-    
-    async def execute(
-        self,
-        context: RequestContext,
-        event_queue: EventQueue,
-    ) -> None:
-        """Execute an agent with the given context."""
-        raise NotImplementedError
-    
-    async def cancel(
-        self, request: RequestContext, event_queue: EventQueue
-    ) -> Optional[Task]:
-        """Cancel an ongoing execution."""
-        raise NotImplementedError
-
-
 class GenericAgentExecutor(AgentExecutor):
-    """AgentExecutor used by the travel agents."""
+    """AgentExecutor used by the Framework V2.0 agents."""
 
     def __init__(self, agent: BaseAgent):
         self.agent = agent
@@ -159,77 +105,5 @@ class GenericAgentExecutor(AgentExecutor):
 
     async def cancel(
         self, request: RequestContext, event_queue: EventQueue
-    ) -> Optional[Task]:
-        raise ServerError(error=UnsupportedOperationError())
-
-
-# Legacy executor for backward compatibility
-class LegacyAgentExecutor(AgentExecutor):
-    """Legacy executor that adapts to the old interface."""
-    
-    def __init__(self, agent: Optional[Any] = None, agent_registry: Optional[dict] = None):
-        """Initialize with optional agent or registry."""
-        self.agent = agent
-        self.agent_registry = agent_registry or {}
-        self._agent_instances = {}
-    
-    def register_agent(self, name: str, agent: Any):
-        """Register an agent instance."""
-        self.agent_registry[name] = agent
-    
-    async def execute(
-        self,
-        agent_name: str,
-        query: str,
-        context_id: str,
-        task_id: str,
-        on_progress: Optional[Any] = None
-    ) -> Any:
-        """Legacy execute method for compatibility."""
-        # Get agent
-        agent = await self._get_agent(agent_name)
-        
-        # Create mock context and event queue
-        message = {'query': query, 'agent_name': agent_name}
-        task = Task(
-            id=task_id,
-            contextId=context_id,
-            state=TaskState.working,
-            message=message
-        )
-        context = RequestContext(message, task)
-        
-        # Simple event queue that calls progress callback
-        class SimpleEventQueue:
-            async def enqueue_event(self, event):
-                if on_progress:
-                    await on_progress(event)
-        
-        event_queue = SimpleEventQueue()
-        
-        # Create executor and run
-        executor = GenericAgentExecutor(agent)
-        await executor.execute(context, event_queue)
-        
-        # Return final result
-        return {"status": "completed", "task_id": task_id}
-    
-    async def _get_agent(self, agent_name: str) -> BaseAgent:
-        """Get agent by name."""
-        # Use primary agent if provided and name matches
-        if self.agent and hasattr(self.agent, 'agent_name') and self.agent.agent_name == agent_name:
-            return self.agent
-            
-        # Check registry
-        if agent_name in self.agent_registry:
-            return self.agent_registry[agent_name]
-            
-        # Check instances cache
-        if agent_name in self._agent_instances:
-            return self._agent_instances[agent_name]
-            
-        raise ValueError(f"Agent {agent_name} not found")
-    
-    async def cancel(self, request: RequestContext, event_queue: EventQueue) -> Optional[Task]:
-        """Cancel is not supported in legacy mode."""
+    ) -> Task | None:
         raise ServerError(error=UnsupportedOperationError())
