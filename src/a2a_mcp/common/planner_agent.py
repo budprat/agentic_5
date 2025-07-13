@@ -56,7 +56,7 @@ class GenericPlannerAgent(BaseAgent):
         )
 
         # Use custom prompt or default to generic planner instructions
-        planning_prompt = custom_prompt or self._get_generic_planning_prompt()
+        planning_prompt = custom_prompt or prompts.GENERIC_PLANNER_COT_INSTRUCTIONS
 
         self.graph = create_react_agent(
             self.model,
