@@ -98,6 +98,8 @@ class EnhancedGenericPlannerAgent(BaseAgent):
         self.planning_history = []
         self.failure_count = 0
         self.last_health_check = None
+        
+        logger.info(f"Enhanced {self.domain} Planner initialized with {self.planning_mode} mode")
 
     def _init_planner(self, planning_prompt: str):
         """Initialize LangGraph planner with enhanced error handling."""
@@ -571,3 +573,109 @@ Always provide a complete task list when you have sufficient information.
         hints.append(f'Apply {self.domain.lower()} domain expertise and standards')
         
         return hints or ['Follow standard execution procedures']
+
+    def set_planning_mode(self, mode: Literal['simple', 'sophisticated']) -> dict:
+        """Allow users to change planning mode at runtime."""
+        old_mode = self.planning_mode
+        self.planning_mode = mode
+        
+        # Reinitialize planner with new mode
+        if mode == 'sophisticated':
+            new_prompt = self._get_enhanced_planning_prompt()
+        else:
+            new_prompt = prompts.GENERIC_PLANNER_COT_INSTRUCTIONS
+        
+        try:
+            self._init_planner(new_prompt)
+            logger.info(f"Planning mode changed from {old_mode} to {mode}")
+            
+            return {
+                'success': True,
+                'old_mode': old_mode,
+                'new_mode': mode,
+                'message': f'Planning mode successfully changed to {mode}',
+                'capabilities': self._get_mode_capabilities(mode)
+            }
+        except Exception as e:
+            # Rollback on failure
+            self.planning_mode = old_mode
+            logger.error(f"Failed to change planning mode: {e}")
+            
+            return {
+                'success': False,
+                'old_mode': old_mode,
+                'attempted_mode': mode,
+                'error': str(e),
+                'message': f'Failed to change planning mode, reverted to {old_mode}'
+            }
+
+    def get_available_modes(self) -> dict:
+        """Get information about available planning modes."""
+        return {
+            'current_mode': self.planning_mode,
+            'available_modes': {
+                'simple': {
+                    'description': 'Basic task planning with generic prompts',
+                    'features': ['Chain-of-thought reasoning', 'Basic task breakdown', 'Universal domain support'],
+                    'best_for': 'Quick planning, simple requests, general use cases'
+                },
+                'sophisticated': {
+                    'description': 'Advanced planning with domain specialists and quality validation',
+                    'features': [
+                        'Domain-specific analysis', 'Specialist recommendations', 
+                        'Dependency analysis', 'Quality scoring', 'Risk assessment',
+                        'Coordination strategy optimization'
+                    ],
+                    'best_for': 'Complex projects, enterprise planning, domain-specific expertise required'
+                }
+            },
+            'mode_switching': 'Available via set_planning_mode() method'
+        }
+
+    def _get_mode_capabilities(self, mode: str) -> List[str]:
+        """Get capabilities for a specific planning mode."""
+        if mode == 'sophisticated':
+            return [
+                'Domain-specific planning prompts',
+                'Specialist assignment recommendations', 
+                'Quality framework integration',
+                'Dependency analysis',
+                'Coordination strategy optimization',
+                'Risk assessment and mitigation',
+                'Enterprise-grade planning standards'
+            ]
+        else:
+            return [
+                'Universal domain support',
+                'Basic chain-of-thought reasoning',
+                'Simple task breakdown',
+                'Generic planning approach',
+                'Fast execution'
+            ]
+
+    def invoke_with_mode(self, query: str, sessionId: str, mode: Literal['simple', 'sophisticated'] = None) -> str:
+        """Invoke planner with optional temporary mode override."""
+        original_mode = None
+        
+        # Temporarily switch mode if requested
+        if mode and mode != self.planning_mode:
+            original_mode = self.planning_mode
+            mode_change_result = self.set_planning_mode(mode)
+            if not mode_change_result['success']:
+                logger.warning(f"Failed to switch to {mode} mode, using {self.planning_mode}")
+        
+        try:
+            # Execute planning
+            result = self.invoke(query, sessionId)
+            
+            # Restore original mode if we switched
+            if original_mode:
+                self.set_planning_mode(original_mode)
+            
+            return result
+            
+        except Exception as e:
+            # Ensure we restore mode even on error
+            if original_mode:
+                self.set_planning_mode(original_mode)
+            raise
