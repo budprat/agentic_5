@@ -187,6 +187,14 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
         self.artifact_search_index: Dict[str, List[str]] = {}  # keyword -> [artifact_ids]
         self.artifact_templates: Dict[str, Dict[str, Any]] = {}  # template_name -> template config
         
+        # PHASE 5: Intelligent Q&A based on Domain Context
+        self.qa_knowledge_base: Dict[str, Dict[str, Any]] = {}  # question_id -> qa_entry
+        self.domain_knowledge: Dict[str, Any] = {}  # Accumulated domain knowledge
+        self.qa_patterns: Dict[str, int] = {}  # question_pattern -> frequency
+        self.context_vectors: Dict[str, List[float]] = {}  # context_id -> vector representation
+        self.qa_templates: Dict[str, str] = {}  # qa_type -> response template
+        self.expert_responses: Dict[str, Dict[str, Any]] = {}  # response_id -> expert response data
+        
         logger.info(f"Refactored {domain_name} Master Orchestrator initialized with Enhanced Planner")
 
     def _get_default_quality_thresholds(self, quality_domain: QualityDomain) -> Dict[str, Any]:
@@ -2098,6 +2106,734 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
         for other_artifact_id, related_ids in self.artifact_relationships.items():
             self.artifact_relationships[other_artifact_id] = [aid for aid in related_ids if aid != artifact_id]
     
+    # ============================================================================
+    # PHASE 5: Intelligent Q&A Based on Domain Context Methods
+    # ============================================================================
+    
+    async def answer_domain_question(self, question: str, session_id: str, context_scope: str = 'session') -> Dict[str, Any]:
+        """Answer questions using accumulated domain context and artifacts."""
+        try:
+            # Classify question type
+            question_type = self._classify_question_type(question)
+            
+            # Build context for answering
+            context = await self._build_qa_context(question, session_id, context_scope)
+            
+            # Generate answer based on question type and context
+            answer_data = await self._generate_contextual_answer(question, question_type, context, session_id)
+            
+            # Store Q&A for learning
+            qa_id = await self._store_qa_interaction(question, answer_data, session_id, context)
+            
+            # Update domain knowledge
+            self._update_domain_knowledge(question, answer_data, context)
+            
+            return {
+                'question': question,
+                'answer': answer_data['answer'],
+                'confidence': answer_data['confidence'],
+                'question_type': question_type,
+                'context_scope': context_scope,
+                'sources': answer_data['sources'],
+                'qa_id': qa_id,
+                'follow_up_suggestions': answer_data.get('follow_up_suggestions', []),
+                'timestamp': datetime.now().isoformat()
+            }
+            
+        except Exception as e:
+            logger.error(f"Error answering domain question: {e}")
+            return {
+                'question': question,
+                'answer': f"I encountered an error while processing your question: {str(e)}",
+                'confidence': 0.0,
+                'question_type': 'error',
+                'error': str(e)
+            }
+    
+    def _classify_question_type(self, question: str) -> str:
+        """Classify the type of question for appropriate response strategy."""
+        question_lower = question.lower()
+        
+        # Performance and metrics questions
+        if any(word in question_lower for word in ['performance', 'metrics', 'success rate', 'analytics', 'statistics']):
+            return 'performance_analytics'
+        
+        # Artifact and result questions
+        elif any(word in question_lower for word in ['result', 'output', 'artifact', 'produced', 'generated']):
+            return 'artifact_inquiry'
+        
+        # Process and workflow questions
+        elif any(word in question_lower for word in ['how', 'process', 'workflow', 'steps', 'procedure']):
+            return 'process_inquiry'
+        
+        # Historical and execution questions
+        elif any(word in question_lower for word in ['when', 'history', 'previous', 'last time', 'executed']):
+            return 'historical_inquiry'
+        
+        # Capability and feature questions
+        elif any(word in question_lower for word in ['can you', 'able to', 'capability', 'feature', 'support']):
+            return 'capability_inquiry'
+        
+        # Error and troubleshooting questions
+        elif any(word in question_lower for word in ['error', 'failed', 'problem', 'issue', 'wrong']):
+            return 'troubleshooting'
+        
+        # Configuration and setup questions
+        elif any(word in question_lower for word in ['configure', 'setup', 'settings', 'parameters']):
+            return 'configuration_inquiry'
+        
+        # Comparison and analysis questions
+        elif any(word in question_lower for word in ['compare', 'difference', 'better', 'vs', 'versus']):
+            return 'comparative_analysis'
+        
+        # Recommendation questions
+        elif any(word in question_lower for word in ['recommend', 'suggest', 'best', 'should', 'advice']):
+            return 'recommendation_request'
+        
+        else:
+            return 'general_inquiry'
+    
+    async def _build_qa_context(self, question: str, session_id: str, context_scope: str) -> Dict[str, Any]:
+        """Build comprehensive context for answering questions."""
+        context = {
+            'question': question,
+            'session_id': session_id,
+            'context_scope': context_scope,
+            'domain': self.domain_name,
+            'timestamp': datetime.now().isoformat()
+        }
+        
+        # Session-specific context
+        if context_scope in ['session', 'all']:
+            context['session_context'] = self.session_contexts.get(session_id, {})
+            context['session_artifacts'] = self.get_session_artifacts(session_id)
+            context['session_performance'] = self.performance_metrics.get(session_id, {})
+            context['execution_history'] = self.execution_history.get(session_id, [])
+        
+        # Domain-wide context
+        if context_scope in ['domain', 'all']:
+            context['domain_insights'] = self.get_domain_insights()
+            context['domain_context'] = self.domain_context
+            context['query_patterns'] = self.query_patterns
+            context['specialist_usage'] = getattr(self, 'domain_specialist_usage', {})
+        
+        # Relevant artifacts based on question keywords
+        context['relevant_artifacts'] = self._find_relevant_artifacts(question, session_id if context_scope == 'session' else None)
+        
+        # Recent similar questions
+        context['similar_questions'] = self._find_similar_questions(question)
+        
+        # Current orchestrator state
+        context['orchestrator_state'] = {
+            'current_session': self.current_session_id,
+            'active_agents': len(self.active_agents),
+            'workflow_state': self._capture_workflow_state(),
+            'capabilities': list(self.get_orchestrator_capabilities().keys())
+        }
+        
+        return context
+    
+    def _find_relevant_artifacts(self, question: str, session_id: Optional[str] = None, limit: int = 10) -> List[Dict[str, Any]]:
+        """Find artifacts relevant to the question."""
+        # Extract keywords from question
+        keywords = question.lower().split()
+        keywords = [word for word in keywords if len(word) > 3]  # Filter short words
+        
+        # Search artifacts
+        relevant_artifacts = []
+        for keyword in keywords:
+            search_results = self.search_artifacts(
+                query=keyword,
+                session_id=session_id,
+                limit=limit
+            )
+            relevant_artifacts.extend(search_results)
+        
+        # Remove duplicates and sort by relevance
+        seen_ids = set()
+        unique_artifacts = []
+        for artifact in relevant_artifacts:
+            if artifact['artifact_id'] not in seen_ids:
+                unique_artifacts.append(artifact)
+                seen_ids.add(artifact['artifact_id'])
+        
+        return unique_artifacts[:limit]
+    
+    def _find_similar_questions(self, question: str, limit: int = 5) -> List[Dict[str, Any]]:
+        """Find similar previously asked questions."""
+        similar_questions = []
+        question_words = set(question.lower().split())
+        
+        for qa_id, qa_entry in self.qa_knowledge_base.items():
+            stored_question = qa_entry.get('question', '').lower()
+            stored_words = set(stored_question.split())
+            
+            # Calculate word overlap
+            overlap = len(question_words & stored_words)
+            total_words = len(question_words | stored_words)
+            
+            if total_words > 0 and overlap / total_words > 0.3:  # 30% similarity threshold
+                similar_questions.append({
+                    'qa_id': qa_id,
+                    'question': qa_entry.get('question'),
+                    'answer': qa_entry.get('answer'),
+                    'similarity_score': overlap / total_words,
+                    'timestamp': qa_entry.get('timestamp')
+                })
+        
+        # Sort by similarity and return top results
+        similar_questions.sort(key=lambda x: x['similarity_score'], reverse=True)
+        return similar_questions[:limit]
+    
+    async def _generate_contextual_answer(self, question: str, question_type: str, context: Dict[str, Any], session_id: str) -> Dict[str, Any]:
+        """Generate answer based on question type and context."""
+        answer_data = {
+            'answer': '',
+            'confidence': 0.0,
+            'sources': [],
+            'follow_up_suggestions': []
+        }
+        
+        try:
+            if question_type == 'performance_analytics':
+                answer_data = await self._answer_performance_question(question, context)
+            elif question_type == 'artifact_inquiry':
+                answer_data = await self._answer_artifact_question(question, context)
+            elif question_type == 'process_inquiry':
+                answer_data = await self._answer_process_question(question, context)
+            elif question_type == 'historical_inquiry':
+                answer_data = await self._answer_historical_question(question, context)
+            elif question_type == 'capability_inquiry':
+                answer_data = await self._answer_capability_question(question, context)
+            elif question_type == 'troubleshooting':
+                answer_data = await self._answer_troubleshooting_question(question, context)
+            elif question_type == 'configuration_inquiry':
+                answer_data = await self._answer_configuration_question(question, context)
+            elif question_type == 'comparative_analysis':
+                answer_data = await self._answer_comparative_question(question, context)
+            elif question_type == 'recommendation_request':
+                answer_data = await self._answer_recommendation_question(question, context)
+            else:
+                answer_data = await self._answer_general_question(question, context)
+            
+        except Exception as e:
+            logger.error(f"Error generating contextual answer: {e}")
+            answer_data = {
+                'answer': f"I encountered an error while generating the answer: {str(e)}",
+                'confidence': 0.0,
+                'sources': [],
+                'follow_up_suggestions': []
+            }
+        
+        return answer_data
+    
+    async def _answer_performance_question(self, question: str, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Answer performance and analytics related questions."""
+        session_performance = context.get('session_performance', {})
+        domain_insights = context.get('domain_insights', {})
+        
+        # Build performance summary
+        performance_summary = []
+        
+        if session_performance:
+            performance_summary.append(f"Current session performance:")
+            performance_summary.append(f"- Average success rate: {session_performance.get('avg_success_rate', 0):.1%}")
+            performance_summary.append(f"- Average execution duration: {session_performance.get('avg_duration', 0):.2f} seconds")
+            performance_summary.append(f"- Total executions: {session_performance.get('total_executions', 0)}")
+            performance_summary.append(f"- Average complexity: {session_performance.get('avg_complexity', 0):.2f}")
+        
+        if domain_insights:
+            performance_summary.append(f"\nDomain-wide insights:")
+            performance_summary.append(f"- Total sessions: {domain_insights.get('total_sessions', 0)}")
+            performance_summary.append(f"- Total executions: {domain_insights.get('total_executions', 0)}")
+            performance_summary.append(f"- Average success rate: {domain_insights.get('avg_success_rate', 0):.1%}")
+            performance_summary.append(f"- Most common query type: {domain_insights.get('most_common_query_type', 'unknown')}")
+        
+        answer = "\n".join(performance_summary) if performance_summary else "No performance data available for analysis."
+        
+        return {
+            'answer': answer,
+            'confidence': 0.9 if performance_summary else 0.3,
+            'sources': ['session_performance_metrics', 'domain_insights'],
+            'follow_up_suggestions': [
+                "Would you like to see detailed performance trends?",
+                "Should I analyze performance by task type?",
+                "Would you like optimization recommendations?"
+            ]
+        }
+    
+    async def _answer_artifact_question(self, question: str, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Answer questions about artifacts and results."""
+        relevant_artifacts = context.get('relevant_artifacts', [])
+        session_artifacts = context.get('session_artifacts', [])
+        
+        artifact_summary = []
+        
+        if session_artifacts:
+            artifact_types = {}
+            for artifact in session_artifacts:
+                artifact_type = artifact.get('artifact_type', 'unknown')
+                artifact_types[artifact_type] = artifact_types.get(artifact_type, 0) + 1
+            
+            artifact_summary.append(f"Session artifacts summary:")
+            artifact_summary.append(f"- Total artifacts: {len(session_artifacts)}")
+            for artifact_type, count in artifact_types.items():
+                artifact_summary.append(f"- {artifact_type}: {count} items")
+        
+        if relevant_artifacts:
+            artifact_summary.append(f"\nMost relevant artifacts found:")
+            for i, artifact in enumerate(relevant_artifacts[:3], 1):
+                artifact_summary.append(f"{i}. {artifact.get('artifact_type', 'unknown')} from {artifact.get('source_info', {}).get('task_id', 'unknown task')}")
+        
+        answer = "\n".join(artifact_summary) if artifact_summary else "No relevant artifacts found for your question."
+        
+        return {
+            'answer': answer,
+            'confidence': 0.8 if artifact_summary else 0.3,
+            'sources': ['session_artifacts', 'artifact_search'],
+            'follow_up_suggestions': [
+                "Would you like to see the content of specific artifacts?",
+                "Should I search for artifacts from other sessions?",
+                "Would you like to see artifact relationships?"
+            ]
+        }
+    
+    async def _answer_process_question(self, question: str, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Answer questions about processes and workflows."""
+        workflow_state = context.get('orchestrator_state', {}).get('workflow_state', {})
+        execution_history = context.get('execution_history', [])
+        
+        process_info = []
+        
+        if workflow_state.get('workflow_exists'):
+            process_info.append(f"Current workflow process:")
+            process_info.append(f"- Workflow state: {workflow_state.get('state', 'unknown')}")
+            process_info.append(f"- Total nodes: {workflow_state.get('total_nodes', 0)}")
+            process_info.append(f"- Completed nodes: {workflow_state.get('completed_nodes', 0)}")
+            process_info.append(f"- Pending nodes: {workflow_state.get('pending_nodes', 0)}")
+        
+        if execution_history:
+            latest_execution = execution_history[-1]
+            execution_plan = latest_execution.get('execution_plan', {})
+            
+            process_info.append(f"\nLatest execution process:")
+            process_info.append(f"- Coordination strategy: {execution_plan.get('coordination_strategy', 'unknown')}")
+            process_info.append(f"- Number of tasks: {len(execution_plan.get('tasks', []))}")
+            process_info.append(f"- Execution duration: {latest_execution.get('execution_duration', 0):.2f} seconds")
+        
+        # Add general process description
+        process_info.append(f"\nGeneral orchestration process:")
+        process_info.append(f"1. Strategic planning via Enhanced Planner Agent")
+        process_info.append(f"2. Task decomposition and specialist assignment")
+        process_info.append(f"3. Coordinated execution (sequential/parallel/hybrid)")
+        process_info.append(f"4. Artifact collection and result synthesis")
+        process_info.append(f"5. Performance tracking and context updates")
+        
+        answer = "\n".join(process_info)
+        
+        return {
+            'answer': answer,
+            'confidence': 0.9,
+            'sources': ['workflow_state', 'execution_history', 'orchestrator_design'],
+            'follow_up_suggestions': [
+                "Would you like to see the current workflow graph?",
+                "Should I explain the specialist coordination process?",
+                "Would you like to see execution step details?"
+            ]
+        }
+    
+    async def _answer_historical_question(self, question: str, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Answer questions about historical data and past executions."""
+        execution_history = context.get('execution_history', [])
+        session_context = context.get('session_context', {})
+        
+        history_summary = []
+        
+        if execution_history:
+            history_summary.append(f"Session execution history:")
+            history_summary.append(f"- Total executions: {len(execution_history)}")
+            
+            if execution_history:
+                latest = execution_history[-1]
+                history_summary.append(f"- Latest execution: {latest.get('timestamp', 'unknown')}")
+                history_summary.append(f"- Latest query type: {self._classify_query_type(latest.get('query', ''))}")
+            
+            # Analyze execution patterns
+            query_types = {}
+            for execution in execution_history:
+                query_type = self._classify_query_type(execution.get('query', ''))
+                query_types[query_type] = query_types.get(query_type, 0) + 1
+            
+            if query_types:
+                history_summary.append(f"\nQuery type distribution:")
+                for query_type, count in sorted(query_types.items(), key=lambda x: x[1], reverse=True):
+                    history_summary.append(f"- {query_type}: {count} times")
+        
+        if session_context:
+            session_start = session_context.get('session_start')
+            if session_start:
+                history_summary.append(f"\nSession started: {session_start}")
+                history_summary.append(f"Total queries in session: {session_context.get('total_queries', 0)}")
+        
+        answer = "\n".join(history_summary) if history_summary else "No historical data available for this session."
+        
+        return {
+            'answer': answer,
+            'confidence': 0.8 if history_summary else 0.3,
+            'sources': ['execution_history', 'session_context'],
+            'follow_up_suggestions': [
+                "Would you like to see details of a specific execution?",
+                "Should I analyze execution performance trends?",
+                "Would you like to compare with other sessions?"
+            ]
+        }
+    
+    async def _answer_capability_question(self, question: str, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Answer questions about orchestrator capabilities."""
+        capabilities = context.get('orchestrator_state', {}).get('capabilities', [])
+        orchestrator_capabilities = self.get_orchestrator_capabilities()
+        
+        capability_info = []
+        capability_info.append(f"Master Orchestrator Template capabilities:")
+        capability_info.append(f"- Domain: {self.domain_name}")
+        capability_info.append(f"- Architecture: Enhanced Planner Agent integration")
+        
+        # Key capability areas
+        for category, features in orchestrator_capabilities.items():
+            if isinstance(features, list) and category.endswith('_capabilities'):
+                category_name = category.replace('_capabilities', '').replace('_', ' ').title()
+                capability_info.append(f"\n{category_name}:")
+                for feature in features[:3]:  # Show top 3 features
+                    capability_info.append(f"- {feature}")
+                if len(features) > 3:
+                    capability_info.append(f"- ... and {len(features) - 3} more features")
+        
+        # Phase completion status
+        phase_status = orchestrator_capabilities.get('phase_completion_status', {})
+        completed_phases = [phase for phase, status in phase_status.items() if status]
+        capability_info.append(f"\nCompleted enhancement phases: {len(completed_phases)}")
+        
+        answer = "\n".join(capability_info)
+        
+        return {
+            'answer': answer,
+            'confidence': 0.95,
+            'sources': ['orchestrator_capabilities', 'feature_documentation'],
+            'follow_up_suggestions': [
+                "Would you like details about a specific capability area?",
+                "Should I explain how to use certain features?",
+                "Would you like to see the enhancement roadmap?"
+            ]
+        }
+    
+    async def _answer_troubleshooting_question(self, question: str, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Answer troubleshooting and error-related questions."""
+        execution_history = context.get('execution_history', [])
+        session_performance = context.get('session_performance', {})
+        
+        troubleshooting_info = []
+        
+        # Check for recent errors
+        recent_errors = []
+        for execution in execution_history[-5:]:  # Last 5 executions
+            orchestration_result = execution.get('orchestration_result', {})
+            if orchestration_result.get('error'):
+                recent_errors.append(execution)
+        
+        if recent_errors:
+            troubleshooting_info.append(f"Recent errors detected:")
+            for i, execution in enumerate(recent_errors, 1):
+                error = execution.get('orchestration_result', {}).get('error', 'Unknown error')
+                troubleshooting_info.append(f"{i}. {error}")
+        
+        # Performance indicators
+        success_rate = session_performance.get('avg_success_rate', 1.0)
+        if success_rate < 0.8:
+            troubleshooting_info.append(f"\nPerformance concern: Success rate is {success_rate:.1%} (below 80%)")
+            troubleshooting_info.append(f"Suggestions:")
+            troubleshooting_info.append(f"- Review task complexity and decomposition")
+            troubleshooting_info.append(f"- Check specialist availability and configuration")
+            troubleshooting_info.append(f"- Verify coordination strategy appropriateness")
+        
+        # General troubleshooting guidance
+        if not troubleshooting_info:
+            troubleshooting_info.append(f"No specific issues detected. General troubleshooting steps:")
+            troubleshooting_info.append(f"1. Check orchestrator and workflow state")
+            troubleshooting_info.append(f"2. Review recent execution logs and metrics")
+            troubleshooting_info.append(f"3. Validate specialist configurations")
+            troubleshooting_info.append(f"4. Check for context or state inconsistencies")
+            troubleshooting_info.append(f"5. Review artifact collection and storage")
+        
+        answer = "\n".join(troubleshooting_info)
+        
+        return {
+            'answer': answer,
+            'confidence': 0.8 if recent_errors or success_rate < 0.8 else 0.6,
+            'sources': ['execution_history', 'performance_metrics', 'troubleshooting_guidelines'],
+            'follow_up_suggestions': [
+                "Would you like detailed error analysis?",
+                "Should I check system health and diagnostics?",
+                "Would you like help with specific error resolution?"
+            ]
+        }
+    
+    async def _answer_configuration_question(self, question: str, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Answer configuration and setup related questions."""
+        orchestrator_state = context.get('orchestrator_state', {})
+        
+        config_info = []
+        config_info.append(f"Current orchestrator configuration:")
+        config_info.append(f"- Domain: {self.domain_name}")
+        config_info.append(f"- Domain specialists: {len(self.domain_specialists)}")
+        config_info.append(f"- Planning mode: {self.planner.planning_mode}")
+        config_info.append(f"- Dynamic workflow enabled: {self.enable_dynamic_workflow}")
+        config_info.append(f"- Parallel execution enabled: {self.enable_parallel}")
+        
+        # Specialist configuration
+        if self.domain_specialists:
+            config_info.append(f"\nConfigured specialists:")
+            for specialist, description in self.domain_specialists.items():
+                config_info.append(f"- {specialist}: {description}")
+        
+        # Configuration recommendations
+        config_info.append(f"\nConfiguration best practices:")
+        config_info.append(f"- Use sophisticated planning mode for complex tasks")
+        config_info.append(f"- Enable parallel execution for independent tasks")
+        config_info.append(f"- Configure domain-specific specialists for better results")
+        config_info.append(f"- Set appropriate quality thresholds for your domain")
+        
+        answer = "\n".join(config_info)
+        
+        return {
+            'answer': answer,
+            'confidence': 0.9,
+            'sources': ['orchestrator_configuration', 'specialist_registry', 'best_practices'],
+            'follow_up_suggestions': [
+                "Would you like to modify the planning mode?",
+                "Should I explain specialist configuration options?",
+                "Would you like to see advanced configuration settings?"
+            ]
+        }
+    
+    async def _answer_comparative_question(self, question: str, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Answer comparative analysis questions."""
+        domain_insights = context.get('domain_insights', {})
+        session_performance = context.get('session_performance', {})
+        
+        comparison_info = []
+        
+        # Compare current session to domain average
+        if session_performance and domain_insights:
+            session_success = session_performance.get('avg_success_rate', 0)
+            domain_success = domain_insights.get('avg_success_rate', 0)
+            
+            comparison_info.append(f"Session vs Domain Performance Comparison:")
+            comparison_info.append(f"- Session success rate: {session_success:.1%}")
+            comparison_info.append(f"- Domain average: {domain_success:.1%}")
+            
+            if session_success > domain_success:
+                comparison_info.append(f"- This session is performing above domain average")
+            else:
+                comparison_info.append(f"- This session is performing below domain average")
+        
+        # Compare coordination strategies
+        comparison_info.append(f"\nCoordination Strategy Comparison:")
+        comparison_info.append(f"- Sequential: Best for dependent tasks, simpler debugging")
+        comparison_info.append(f"- Parallel: Faster execution for independent tasks")
+        comparison_info.append(f"- Hybrid: Optimal balance, handles dependencies intelligently")
+        
+        # Compare planning modes
+        comparison_info.append(f"\nPlanning Mode Comparison:")
+        comparison_info.append(f"- Simple: Faster planning, basic task decomposition")
+        comparison_info.append(f"- Sophisticated: Advanced analysis, better optimization")
+        
+        answer = "\n".join(comparison_info)
+        
+        return {
+            'answer': answer,
+            'confidence': 0.8,
+            'sources': ['performance_comparison', 'feature_analysis', 'best_practices'],
+            'follow_up_suggestions': [
+                "Would you like specific recommendations for improvement?",
+                "Should I analyze performance trends over time?",
+                "Would you like to see detailed feature comparisons?"
+            ]
+        }
+    
+    async def _answer_recommendation_question(self, question: str, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Answer recommendation and advice questions."""
+        session_performance = context.get('session_performance', {})
+        domain_insights = context.get('domain_insights', {})
+        execution_history = context.get('execution_history', [])
+        
+        recommendations = []
+        
+        # Performance-based recommendations
+        success_rate = session_performance.get('avg_success_rate', 1.0)
+        if success_rate < 0.8:
+            recommendations.append(f"Performance Improvement Recommendations:")
+            recommendations.append(f"- Consider breaking down complex tasks into smaller steps")
+            recommendations.append(f"- Review specialist assignments for better task matching")
+            recommendations.append(f"- Use hybrid coordination for mixed task dependencies")
+        
+        # Complexity-based recommendations
+        avg_complexity = session_performance.get('avg_complexity', 0)
+        if avg_complexity > 0.7:
+            recommendations.append(f"\nComplexity Management Recommendations:")
+            recommendations.append(f"- Utilize sophisticated planning mode for complex scenarios")
+            recommendations.append(f"- Consider adding domain-specific specialists")
+            recommendations.append(f"- Enable dynamic workflow for better task orchestration")
+        
+        # Usage pattern recommendations
+        query_patterns = domain_insights.get('query_patterns', {})
+        if query_patterns:
+            most_common = max(query_patterns.items(), key=lambda x: x[1])[0]
+            recommendations.append(f"\nUsage Pattern Recommendations:")
+            recommendations.append(f"- Most common query type: {most_common}")
+            recommendations.append(f"- Consider optimizing for {most_common} workflows")
+            recommendations.append(f"- Create templates for frequently used patterns")
+        
+        # General best practices
+        if not recommendations:
+            recommendations.append(f"General Recommendations:")
+            recommendations.append(f"- Use sophisticated planning mode for complex tasks")
+            recommendations.append(f"- Enable parallel execution when tasks are independent")
+            recommendations.append(f"- Regularly review and clean up artifacts")
+            recommendations.append(f"- Monitor performance metrics for optimization opportunities")
+        
+        answer = "\n".join(recommendations)
+        
+        return {
+            'answer': answer,
+            'confidence': 0.85,
+            'sources': ['performance_analysis', 'usage_patterns', 'best_practices'],
+            'follow_up_suggestions': [
+                "Would you like specific implementation guidance?",
+                "Should I help configure recommended settings?",
+                "Would you like to see optimization strategies?"
+            ]
+        }
+    
+    async def _answer_general_question(self, question: str, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Answer general questions using available context."""
+        # Extract key information from context
+        session_id = context.get('session_id')
+        domain = context.get('domain')
+        orchestrator_state = context.get('orchestrator_state', {})
+        
+        general_info = []
+        general_info.append(f"I'm the {domain} Master Orchestrator, designed to coordinate complex workflows and tasks.")
+        general_info.append(f"\nCurrent status:")
+        general_info.append(f"- Active session: {session_id}")
+        general_info.append(f"- Workflow state: {orchestrator_state.get('workflow_state', {}).get('state', 'ready')}")
+        general_info.append(f"- Active agents: {orchestrator_state.get('active_agents', 0)}")
+        
+        general_info.append(f"\nI can help you with:")
+        general_info.append(f"- Task planning and decomposition")
+        general_info.append(f"- Workflow orchestration and coordination")
+        general_info.append(f"- Performance analysis and optimization")
+        general_info.append(f"- Artifact management and retrieval")
+        general_info.append(f"- Domain-specific insights and recommendations")
+        
+        answer = "\n".join(general_info)
+        
+        return {
+            'answer': answer,
+            'confidence': 0.7,
+            'sources': ['orchestrator_overview', 'current_state'],
+            'follow_up_suggestions': [
+                "What would you like to know about my capabilities?",
+                "Would you like to see performance metrics?",
+                "Should I help you with a specific task?"
+            ]
+        }
+    
+    async def _store_qa_interaction(self, question: str, answer_data: Dict[str, Any], session_id: str, context: Dict[str, Any]) -> str:
+        """Store Q&A interaction for learning and future reference."""
+        qa_id = str(uuid.uuid4())
+        
+        qa_entry = {
+            'qa_id': qa_id,
+            'question': question,
+            'answer': answer_data['answer'],
+            'confidence': answer_data['confidence'],
+            'question_type': answer_data.get('question_type', 'unknown'),
+            'session_id': session_id,
+            'timestamp': datetime.now().isoformat(),
+            'sources': answer_data.get('sources', []),
+            'context_scope': context.get('context_scope', 'session'),
+            'follow_up_suggestions': answer_data.get('follow_up_suggestions', [])
+        }
+        
+        self.qa_knowledge_base[qa_id] = qa_entry
+        
+        # Update Q&A patterns
+        question_type = answer_data.get('question_type', 'unknown')
+        self.qa_patterns[question_type] = self.qa_patterns.get(question_type, 0) + 1
+        
+        # Keep only last 100 Q&A entries to manage memory
+        if len(self.qa_knowledge_base) > 100:
+            oldest_qa = min(self.qa_knowledge_base.items(), key=lambda x: x[1]['timestamp'])
+            del self.qa_knowledge_base[oldest_qa[0]]
+        
+        logger.debug(f"Stored Q&A interaction {qa_id}")
+        return qa_id
+    
+    def _update_domain_knowledge(self, question: str, answer_data: Dict[str, Any], context: Dict[str, Any]):
+        """Update domain knowledge based on Q&A interactions."""
+        # Extract insights from high-confidence answers
+        if answer_data.get('confidence', 0) > 0.8:
+            question_type = answer_data.get('question_type', 'unknown')
+            
+            if question_type not in self.domain_knowledge:
+                self.domain_knowledge[question_type] = {
+                    'common_questions': [],
+                    'best_answers': [],
+                    'patterns': {}
+                }
+            
+            domain_section = self.domain_knowledge[question_type]
+            
+            # Store common question patterns
+            question_keywords = set(question.lower().split())
+            for keyword in question_keywords:
+                if len(keyword) > 3:  # Filter short words
+                    patterns = domain_section['patterns']
+                    patterns[keyword] = patterns.get(keyword, 0) + 1
+            
+            # Store successful answer patterns
+            if len(domain_section['best_answers']) < 10:
+                domain_section['best_answers'].append({
+                    'question': question,
+                    'answer': answer_data['answer'],
+                    'confidence': answer_data['confidence'],
+                    'timestamp': datetime.now().isoformat()
+                })
+    
+    def get_qa_analytics(self) -> Dict[str, Any]:
+        """Get analytics about Q&A interactions."""
+        total_questions = len(self.qa_knowledge_base)
+        
+        # Analyze question types
+        type_distribution = {}
+        confidence_scores = []
+        
+        for qa_entry in self.qa_knowledge_base.values():
+            question_type = qa_entry.get('question_type', 'unknown')
+            type_distribution[question_type] = type_distribution.get(question_type, 0) + 1
+            confidence_scores.append(qa_entry.get('confidence', 0))
+        
+        avg_confidence = sum(confidence_scores) / len(confidence_scores) if confidence_scores else 0
+        
+        return {
+            'total_questions': total_questions,
+            'question_type_distribution': type_distribution,
+            'average_confidence': avg_confidence,
+            'domain_knowledge_areas': len(self.domain_knowledge),
+            'qa_patterns': self.qa_patterns,
+            'high_confidence_answers': len([qa for qa in self.qa_knowledge_base.values() if qa.get('confidence', 0) > 0.8])
+        }
+    
     def get_paused_node_id(self) -> Optional[str]:
         """Get the ID of the paused node."""
         if self.dynamic_workflow:
@@ -2271,6 +3007,20 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
                 'Analytics and reporting on artifact patterns',
                 'Cross-artifact relationship mapping and analysis'
             ],
+            'intelligent_qa_capabilities': [
+                'Context-aware question answering using domain knowledge',
+                'Multi-type question classification and specialized responses',
+                'Performance analytics and troubleshooting guidance',
+                'Artifact-based inquiry resolution with source tracking',
+                'Historical analysis and execution pattern insights',
+                'Capability explanation and feature documentation',
+                'Configuration guidance and optimization recommendations',
+                'Comparative analysis between sessions and strategies',
+                'Intelligent follow-up suggestions for deeper exploration',
+                'Domain knowledge accumulation and pattern learning',
+                'Q&A interaction storage and similarity matching',
+                'Confidence scoring and source attribution for answers'
+            ],
             'backward_compatibility': 'Full API compatibility with original MasterOrchestratorTemplate',
             'enhanced_features': 'All capabilities enhanced via EnhancedGenericPlannerAgent integration',
             'phase_completion_status': {
@@ -2278,6 +3028,7 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
                 'phase_2_context_history': True,
                 'phase_2_5_clear_state_management': True,
                 'phase_3_enhanced_state_management': True,
-                'phase_4_artifact_management': True
+                'phase_4_artifact_management': True,
+                'phase_5_intelligent_qa': True
             }
         }
