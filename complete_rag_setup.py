@@ -190,7 +190,18 @@ def setup_rag_corpus():
     try:
         # Import required libraries
         import vertexai
-        from vertexai import rag  # Use non-preview like working notebook
+        
+        # Try to import rag with fallback
+        try:
+            from vertexai import rag
+            log("Using 'from vertexai import rag'")
+        except ImportError:
+            try:
+                from vertexai.preview import rag
+                log("Using 'from vertexai.preview import rag' (fallback)")
+            except ImportError:
+                raise ImportError("Cannot import rag from vertexai or vertexai.preview")
+        
         from google import genai
         from google.genai.types import (
             GenerateContentConfig, 
@@ -216,17 +227,29 @@ def setup_rag_corpus():
         
         # Create RAG Corpus
         log("Creating RAG Corpus...")
-        rag_corpus = rag.create_corpus(
-            display_name=rag_corpus_display_name,
-            description=f"Codebase files from {GITHUB_URL}",
-            backend_config=rag.RagVectorDbConfig(
-                rag_embedding_model_config=rag.RagEmbeddingModelConfig(
-                    vertex_prediction_endpoint=rag.VertexPredictionEndpoint(
-                        publisher_model=EMBEDDING_MODEL
+        
+        # Check if we have the newer API with backend_config
+        if hasattr(rag, 'RagVectorDbConfig'):
+            # Use the newer API structure
+            log("Using newer API with RagVectorDbConfig")
+            rag_corpus = rag.create_corpus(
+                display_name=rag_corpus_display_name,
+                description=f"Codebase files from {GITHUB_URL}",
+                backend_config=rag.RagVectorDbConfig(
+                    rag_embedding_model_config=rag.RagEmbeddingModelConfig(
+                        vertex_prediction_endpoint=rag.VertexPredictionEndpoint(
+                            publisher_model=f"publishers/google/models/{EMBEDDING_MODEL}"
+                        )
                     )
                 )
             )
-        )
+        else:
+            # Use simpler API if available
+            log("Using standard API")
+            rag_corpus = rag.create_corpus(
+                display_name=rag_corpus_display_name,
+                description=f"Codebase files from {GITHUB_URL}",
+            )
         log(f"Created corpus: {rag_corpus.display_name}")
         log(f"Corpus resource name: {rag_corpus.name}")
         
@@ -236,17 +259,28 @@ def setup_rag_corpus():
         log("Note: Using lower embedding rate to avoid quota limits")
         
         try:
-            import_response = rag.import_files(
-                corpus_name=rag_corpus.name,
-                paths=[gcs_import_uri],
-                transformation_config=rag.TransformationConfig(
-                    chunking_config=rag.ChunkingConfig(
-                        chunk_size=CHUNK_SIZE,
-                        chunk_overlap=CHUNK_OVERLAP
-                    )
-                ),
-                # Note: NOT using max_embedding_requests_per_min like notebook
-            )
+            # Check if we have TransformationConfig
+            if hasattr(rag, 'TransformationConfig'):
+                log("Using TransformationConfig for import")
+                import_response = rag.import_files(
+                    corpus_name=rag_corpus.name,
+                    paths=[gcs_import_uri],
+                    transformation_config=rag.TransformationConfig(
+                        chunking_config=rag.ChunkingConfig(
+                            chunk_size=CHUNK_SIZE,
+                            chunk_overlap=CHUNK_OVERLAP
+                        )
+                    ),
+                )
+            else:
+                # Try direct parameters
+                log("Using direct parameters for import")
+                import_response = rag.import_files(
+                    corpus_name=rag_corpus.name,
+                    paths=[gcs_import_uri],
+                    chunk_size=CHUNK_SIZE,
+                    chunk_overlap=CHUNK_OVERLAP,
+                )
             log("File import initiated successfully!")
             log("Import operation started. Files will be processed at 100 embeddings/minute.")
             
@@ -340,7 +374,7 @@ client = genai.Client(vertexai=True, project="{config['project_id']}", location=
 rag_retrieval_tool = Tool(
     retrieval=Retrieval(
         vertex_rag_store=VertexRagStore(
-            rag_resources=[{{"rag_corpus": "{config['corpus_name']}"}}],
+            rag_corpora=["{config['corpus_name']}"],
             similarity_top_k=10,
             vector_distance_threshold=0.5,
         )
