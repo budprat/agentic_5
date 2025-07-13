@@ -27,6 +27,9 @@ You should use the following configuration to guide your behavior.
 - YOU MUST ALWAYS ask for clarification rather than making assumptions.
 - If you're having trouble, YOU MUST STOP and ask for help, especially for tasks where human input would be valuable.
 
+# Rules
+- Save Session Summary in the file SPECS/SESSION.md about every code change you make
+
 # New Project Rules
 - Always read files SPECS/PRD.md , SPECS/PLAN.md and SPECS/SPECS.md at the start of every new conversation
 - Check SPECS/TODO.md before starting your work
