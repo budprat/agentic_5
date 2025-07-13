@@ -1,6 +1,4 @@
-# ABOUTME: Utility functions for the A2A MCP framework
-# ABOUTME: Provides logging, configuration, and helper functions
-
+# type: ignore
 import logging
 import os
 import uuid
@@ -13,10 +11,53 @@ from datetime import datetime, timezone
 from functools import wraps
 import time
 
+import google.generativeai as genai
+
 from a2a_mcp.common.types import ServerConfig
 
 
 logger = logging.getLogger(__name__)
+
+
+def init_api_key():
+    """Initialize the API key for Google Generative AI."""
+    if not os.getenv('GOOGLE_API_KEY'):
+        logger.error('GOOGLE_API_KEY is not set')
+        raise ValueError('GOOGLE_API_KEY is not set')
+
+    genai.configure(api_key=os.getenv('GOOGLE_API_KEY'))
+
+
+def config_logging():
+    """Configure basic logging."""
+    log_level = (
+        os.getenv('A2A_LOG_LEVEL') or os.getenv('FASTMCP_LOG_LEVEL') or 'INFO'
+    ).upper()
+    logging.basicConfig(level=getattr(logging, log_level, logging.INFO))
+
+
+def config_logger(logger):
+    """Logger specific config, avoiding clutter in enabling all loggging."""
+    # TODO: replace with env
+    logger.setLevel(logging.INFO)
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
+
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    console_handler.setFormatter(formatter)
+    logger.addHandler(console_handler)
+
+
+def get_mcp_server_config() -> ServerConfig:
+    """Get the MCP server configuration."""
+    return ServerConfig(
+        host='localhost',
+        port=10100,
+        transport='sse',
+        url='http://localhost:10100/sse',
+    )
 
 
 def generate_id(prefix: str = "") -> str:
@@ -39,68 +80,6 @@ def utc_now() -> datetime:
         Current datetime in UTC timezone
     """
     return datetime.now(timezone.utc)
-
-
-def config_logging(level: Optional[str] = None):
-    """Configure basic logging for the framework.
-    
-    Args:
-        level: Logging level (DEBUG, INFO, WARNING, ERROR). 
-               Defaults to env var A2A_LOG_LEVEL or INFO.
-    """
-    log_level = level or os.getenv('A2A_LOG_LEVEL', 'INFO').upper()
-    
-    logging.basicConfig(
-        level=getattr(logging, log_level, logging.INFO),
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S'
-    )
-
-
-def config_logger(logger_instance: logging.Logger, level: Optional[str] = None):
-    """Configure a specific logger instance.
-    
-    Args:
-        logger_instance: The logger to configure
-        level: Logging level for this logger
-    """
-    log_level = level or os.getenv('A2A_LOG_LEVEL', 'INFO').upper()
-    logger_instance.setLevel(getattr(logging, log_level, logging.INFO))
-    
-    # Avoid adding duplicate handlers
-    if not logger_instance.handlers:
-        console_handler = logging.StreamHandler()
-        console_handler.setLevel(getattr(logging, log_level, logging.INFO))
-        
-        formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-        )
-        console_handler.setFormatter(formatter)
-        logger_instance.addHandler(console_handler)
-
-
-def get_mcp_server_config() -> ServerConfig:
-    """Get the MCP server configuration from environment or defaults.
-    
-    Returns:
-        ServerConfig with host, port, transport, and URL settings
-    """
-    host = os.getenv('MCP_SERVER_HOST', 'localhost')
-    port = int(os.getenv('MCP_SERVER_PORT', '10100'))
-    transport = os.getenv('MCP_SERVER_TRANSPORT', 'sse')
-    
-    # Build URL based on transport type
-    if transport == 'sse':
-        url = f'http://{host}:{port}/sse'
-    else:
-        url = f'http://{host}:{port}'
-    
-    return ServerConfig(
-        host=host,
-        port=port,
-        transport=transport,
-        url=url,
-    )
 
 
 def load_config(config_path: str) -> Dict[str, Any]:
@@ -235,3 +214,5 @@ async def shutdown_a2a_connection_pool() -> None:
     logger.info("Shutting down A2A connection pool")
     await shutdown_global_pool()
     logger.info("A2A connection pool shutdown complete")
+
+
