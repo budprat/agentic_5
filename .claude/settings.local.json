@@ -100,7 +100,13 @@
       "Bash(~/google-cloud-sdk/bin/gcloud storage buckets create gs://sankhya-gen-lang-client-0871164439 --location=us-central1)",
       "Bash(~/google-cloud-sdk/bin/gcloud storage buckets describe gs://sankhya-gen-lang-client-0871164439)",
       "Bash(~/google-cloud-sdk/bin/gcloud storage ls gs://sankhya-gen-lang-client-0871164439/)",
-      "Bash(~/google-cloud-sdk/bin/gcloud storage cp /tmp/placeholder gs://sankhya-gen-lang-client-0871164439/sankhya/)"
+      "Bash(~/google-cloud-sdk/bin/gcloud storage cp /tmp/placeholder gs://sankhya-gen-lang-client-0871164439/sankhya/)",
+      "Bash(git clone:*)",
+      "Bash(/home/user/a2a-mcp-framework/upload_to_gcs.sh:*)",
+      "Bash(~/google-cloud-sdk/bin/gsutil ls gs://sankhya-gen-lang-client-0871164439/sankhya/)",
+      "Bash(~/google-cloud-sdk/bin/gcloud services list --enabled)",
+      "Bash(/home/user/a2a-mcp-framework/setup_vertex_rag.sh:*)",
+      "Bash(source:*)"
     ],
     "deny": []
   },
