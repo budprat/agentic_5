@@ -1,92 +1,187 @@
-# Google ADK Deployment Tutorial for A2A-MCP Framework
+# Google Cloud Deployment Tutorial for A2A-MCP Framework V2.0
 
-## ✅ Deployment Feasibility Assessment
+## ✅ V2.0 Deployment Feasibility Assessment
 
-**YES, you can use `adk deploy` for your agents!** This tutorial covers complete deployment to Google Cloud.
+**YES, you can deploy V2.0 agents to Google Cloud!** This tutorial covers complete deployment with V2.0 features including quality validation, observability, and PHASE 7 streaming.
 
-### Current Architecture Compatibility:
-- ✅ Your agents use `google.adk.agents.Agent` (confirmed in domain_specialist_agent.py, service_agent.py)
-- ✅ Google Cloud project configured: "Agents Cloud" in "asia-south2-c"
-- ✅ ADK supports `adk deploy cloud_run` command for Python agents
-- ✅ Your A2A-MCP agents are ADK-compatible
+### V2.0 Architecture Compatibility:
+- ✅ V2.0 agents use `StandardizedAgentBase` with cloud-ready design
+- ✅ Google Cloud Run supports HTTP/2 for V2.0 connection pooling
+- ✅ Built-in observability integrates with Google Cloud Operations
+- ✅ PHASE 7 streaming works with Cloud Run's response streaming
+- ✅ Quality framework compatible with cloud metrics
 
-## 🚀 Deployment Strategy Options
+## 📚 Essential V2.0 References
+- [Framework Components Guide](../docs/FRAMEWORK_COMPONENTS_AND_ORCHESTRATION_GUIDE.md)
+- [Multi-Agent Workflow Guide](../docs/MULTI_AGENT_WORKFLOW_GUIDE.md)
 
-### Option 1: Individual Agent Deployment (Recommended)
-**Deploy each specialized agent separately to Cloud Run**
+## 🚀 V2.0 Deployment Strategy Options
 
-**Agents Ready for Deployment:**
-1. **Domain Specialist Agent** (Business logic and rules enforcement)
-2. **Analytics Agent** (Data analysis and reporting)
-3. **Service Agent** (External service integrations)
-4. **Notification Agent** (Communication and alerting)
-5. **Master Orchestrator** (Workflow coordination)
+### Option 1: Microservices Deployment (Recommended for V2.0)
+**Deploy each V2.0 agent as a separate Cloud Run service with observability**
 
-**Commands:**
+**V2.0 Agents Ready for Deployment:**
+1. **StandardizedAgentBase Agents** (Quality-validated domain specialists)
+2. **GenericDomainAgent Instances** (Quick-deploy specialists)
+3. **EnhancedMasterOrchestrator** (PHASE 7 streaming coordinator)
+4. **Parallel Workflow Services** (Performance-optimized processors)
+5. **Quality Validation Services** (Domain-specific validators)
+
+**V2.0 Deployment Commands:**
 ```bash
-# For each agent directory
-cd src/a2a_mcp/agents/tier2/
-adk deploy cloud_run --agent domain_specialist_agent.py
-adk deploy cloud_run --agent analytics_agent.py
-# etc.
+# Deploy V2.0 agents with observability
+cd src/a2a_mcp/common/
+
+# Deploy StandardizedAgentBase agents
+gcloud run deploy domain-specialist-v2 \
+  --source . \
+  --allow-unauthenticated \
+  --set-env-vars="ENABLE_OBSERVABILITY=true,QUALITY_DOMAIN=ANALYTICAL" \
+  --cpu=2 --memory=4Gi \
+  --concurrency=1000 \
+  --http2  # Enable HTTP/2 for connection pooling
+
+# Deploy GenericDomainAgent
+gcloud run deploy generic-agent-v2 \
+  --source . \
+  --set-env-vars="DOMAIN=Finance,SPECIALIZATION=analyst" \
+  --http2
 ```
 
-### Option 2: Monolithic Deployment
-**Deploy the entire A2A system as a single service**
+### Option 2: V2.0 Orchestrator-Centric Deployment
+**Deploy Enhanced Orchestrator with agent discovery**
 
-## 📋 Required Deployment Preparations
+### Option 3: Serverless Function Deployment
+**Deploy lightweight agents as Cloud Functions**
 
-### 1. **Environment Variables Setup** (CRITICAL - Official ADK Requirements):
+## 📋 V2.0 Deployment Preparations
+
+### 1. **V2.0 Environment Variables Setup**:
 ```bash
-# REQUIRED Google Cloud Environment Variables
-export GOOGLE_CLOUD_PROJECT="Business Cloud"
+# V2.0 Framework Configuration
+export ORCHESTRATION_MODE="enhanced"
+export ENABLE_PHASE_7_STREAMING="true"
+export ENABLE_OBSERVABILITY="true"
+export CONNECTION_POOL_SIZE="20"
+export DEFAULT_QUALITY_DOMAIN="ANALYTICAL"
+
+# Google Cloud Configuration
+export GOOGLE_CLOUD_PROJECT="business-cloud"
 export GOOGLE_CLOUD_LOCATION="us-central1"  
-export GOOGLE_GENAI_USE_VERTEXAI=0  # Set to True for Vertex AI, False for standard Gemini API
+export GOOGLE_CLOUD_ENABLE_TRACING="true"
+export GOOGLE_CLOUD_ENABLE_PROFILER="true"
 
-# OPTIONAL - For cleaner deployment commands
-export AGENT_PATH="./src/a2a_mcp/agents/tier2"
-export SERVICE_NAME="domain-specialist-agent"
-export APP_NAME="domain-specialist"
+# Observability Configuration
+export OTEL_SERVICE_NAME="a2a-mcp-v2"
+export OTEL_EXPORTER_OTLP_ENDPOINT="https://otel-collector.googleapis.com"
+export TRACING_ENABLED="true"
+export METRICS_ENABLED="true"
+
+# V2.0 Performance Settings
+export ENABLE_HTTP2="true"
+export MAX_CONCURRENT_REQUESTS="1000"
+export REQUEST_TIMEOUT="30000"
 ```
 
-### 2. **Agent Structure Requirements** (ADK Standards):
-Your agents MUST follow this structure for `adk deploy` to work:
+### 2. **V2.0 Agent Structure Requirements**:
+Your V2.0 agents follow this enhanced structure:
 
 ```
-domain_specialist_agent/
-├── __init__.py              # Must contain: from . import agent
-├── agent.py                 # Must contain: root_agent = YourAgent()
-└── requirements.txt         # Dependencies
+agent_v2/
+├── __init__.py              # Exports V2.0 agent classes
+├── agent.py                 # StandardizedAgentBase implementation
+├── quality_config.yaml      # Quality validation settings
+├── observability.yaml       # Tracing and metrics config
+├── requirements.txt         # V2.0 dependencies
+└── Dockerfile              # V2.0 optimized container
 ```
 
-**Critical Requirements:**
-- Agent code must be in file called `agent.py`
-- Agent variable must be named `root_agent`
-- `__init__.py` must contain `from . import agent`
+**V2.0 Dockerfile Example:**
+```dockerfile
+# V2.0 Python runtime with observability
+FROM python:3.11-slim
 
-### 3. **Agent Code Structure** (Update Required):
+# Install OpenTelemetry agents
+RUN pip install opentelemetry-distro[otlp] \
+    opentelemetry-instrumentation
+
+# Copy V2.0 framework
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+COPY . /app
+WORKDIR /app
+
+# Enable V2.0 features
+ENV PYTHONUNBUFFERED=1
+ENV ENABLE_OBSERVABILITY=true
+ENV ENABLE_PHASE_7_STREAMING=true
+
+# Auto-instrument with OpenTelemetry
+CMD ["opentelemetry-instrument", "python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080", "--http", "h2"]
+```
+
+### 3. **V2.0 Agent Code Structure**:
 ```python
-# agent.py - Update your existing agents to this format
-from google.adk.agents import Agent
-from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, SseConnectionParams
-from a2a_mcp.common.utils import get_mcp_server_config, init_api_key
+# agent.py - V2.0 StandardizedAgentBase implementation
+from a2a_mcp.common.standardized_agent_base import StandardizedAgentBase
+from a2a_mcp.common.quality_framework import QualityDomain
+from a2a_mcp.common.observability import trace_async
+from typing import Dict, Any
+import os
 
-# Initialize API key
-init_api_key()
+class CloudDeployedAgentV2(StandardizedAgentBase):
+    """V2.0 Cloud-optimized agent with full features"""
+    
+    def __init__(self):
+        super().__init__(
+            agent_name="Cloud Domain Specialist V2",
+            description="Cloud-deployed specialist with quality validation",
+            capabilities=[
+                "Process domain requests",
+                "Validate quality metrics",
+                "Stream real-time updates",
+                "Export observability data"
+            ],
+            quality_config={
+                "domain": QualityDomain[os.getenv("QUALITY_DOMAIN", "ANALYTICAL")],
+                "thresholds": {
+                    "completeness": float(os.getenv("QUALITY_COMPLETENESS", "0.90")),
+                    "accuracy": float(os.getenv("QUALITY_ACCURACY", "0.95")),
+                    "relevance": float(os.getenv("QUALITY_RELEVANCE", "0.88"))
+                }
+            },
+            enable_observability=os.getenv("ENABLE_OBSERVABILITY", "true").lower() == "true"
+        )
+    
+    @trace_async
+    async def process_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """Process with V2.0 quality validation and tracing"""
+        
+        # Quality-validated processing
+        result = await self.execute_with_quality(request)
+        
+        # Add cloud metadata
+        result["cloud_metadata"] = {
+            "service": os.getenv("K_SERVICE", "unknown"),
+            "revision": os.getenv("K_REVISION", "unknown"),
+            "trace_id": self.get_current_trace_id()
+        }
+        
+        return result
 
-# Configure MCP tools
-config = get_mcp_server_config()
-tools = await MCPToolset(
-    connection_params=SseConnectionParams(url=config.url)
-).get_tools()
+# For quick deployment
+from a2a_mcp.common.generic_domain_agent import GenericDomainAgent
 
-# Create the agent (this MUST be named 'root_agent')
-root_agent = Agent(
-    name="Sentiment Seeker",
-    instruction="You are a specialized agent for analyzing social media sentiment...",
-    model='gemini-2.0-flash',
-    tools=tools
-)
+def create_cloud_agent():
+    """Create V2.0 agent for cloud deployment"""
+    return GenericDomainAgent(
+        domain=os.getenv("AGENT_DOMAIN", "Generic"),
+        specialization=os.getenv("AGENT_SPECIALIZATION", "analyst"),
+        capabilities=os.getenv("AGENT_CAPABILITIES", "").split(","),
+        quality_domain=QualityDomain[os.getenv("QUALITY_DOMAIN", "GENERIC")],
+        enable_observability=True
+    )
 ```
 
 ### 4. **Multiple Deployment Options**:
@@ -101,80 +196,224 @@ root_agent = Agent(
 - Custom FastAPI application structure
 - Manual Dockerfile creation required
 
-## 🛠️ Implementation Steps
+## 🛠️ V2.0 Implementation Steps
 
-### Phase 1: Individual Agent Deployment
-1. **Create ADK deployment configs** for each A2A-MCP agent
-2. **Extract agent-specific environment variables**
-3. **Set up Google Cloud authentication** (`gcloud auth login`)
-4. **Deploy Domain Specialist first** (core business logic agent to test)
-5. **Validate deployment** and test agent endpoints
-6. **Deploy remaining agents** one by one
+### Phase 1: V2.0 Infrastructure Setup
+1. **Deploy Observability Stack** to Google Cloud
+   ```bash
+   # Deploy OpenTelemetry Collector
+   gcloud run deploy otel-collector \
+     --image=otel/opentelemetry-collector-contrib:latest \
+     --port=4317 \
+     --set-env-vars="GOOGLE_CLOUD_PROJECT=${GOOGLE_CLOUD_PROJECT}"
+   ```
 
-### Phase 2: Service Integration
-1. **Update A2A orchestrator** to use deployed Cloud Run endpoints
-2. **Configure load balancing** and health checks
-3. **Set up monitoring** and logging with Cloud Operations
-4. **Implement auto-scaling** based on request volume
+2. **Set up Cloud Monitoring Dashboard**
+   ```bash
+   # Create V2.0 monitoring dashboard
+   gcloud monitoring dashboards create \
+     --config-from-file=monitoring/v2-dashboard.yaml
+   ```
 
-### Phase 3: MCP Server Deployment
-1. **Deploy MCP server** to Cloud Run
-2. **Configure agent discovery** for cloud-deployed agents
-3. **Update agent cards** with Cloud Run URLs
-4. **Test end-to-end workflows**
+3. **Configure Cloud Trace** for distributed tracing
+4. **Set up Cloud Profiler** for performance analysis
 
-## ⚙️ Technical Considerations
+### Phase 2: V2.0 Agent Deployment
+1. **Deploy StandardizedAgentBase agents**
+   ```bash
+   # Deploy with V2.0 features enabled
+   gcloud run deploy agent-v2 \
+     --source=. \
+     --set-env-vars="@env-v2.yaml" \
+     --cpu=2 --memory=4Gi \
+     --concurrency=1000 \
+     --http2 \
+     --set-cloudsql-instances=${CLOUD_SQL_CONNECTION}
+   ```
 
-### ADK Cloud Run Features:
-- **Auto-scaling**: Scales to zero when not in use
-- **Built-in authentication**: Integrates with Google Cloud IAM
-- **Load balancing**: Automatic traffic distribution
-- **Monitoring**: Built-in metrics and logging
+2. **Deploy Enhanced Master Orchestrator**
+   ```bash
+   # Deploy orchestrator with PHASE 7 streaming
+   gcloud run deploy orchestrator-v2 \
+     --source=. \
+     --set-env-vars="ENABLE_PHASE_7_STREAMING=true" \
+     --timeout=3600 \
+     --cpu=4 --memory=8Gi
+   ```
 
-### A2A Framework Integration:
-- **Agent Cards**: Update URLs to Cloud Run endpoints
-- **MCP Connectivity**: Ensure agents can reach MCP servers
-- **Authentication**: Configure bearer tokens for agent communication
+3. **Configure Service Mesh** for inter-agent communication
+4. **Enable connection pooling** between services
 
-## 🔐 Security & Configuration
+### Phase 3: V2.0 Quality & Performance
+1. **Deploy Quality Validation Service**
+2. **Configure auto-scaling policies**
+   ```yaml
+   # v2-autoscaling.yaml
+   apiVersion: autoscaling.k8s.io/v1
+   kind: VerticalPodAutoscaler
+   spec:
+     targetCPUUtilizationPercentage: 70
+     minReplicas: 2
+     maxReplicas: 100
+   ```
+3. **Set up performance monitoring**
+4. **Configure quality alerts**
 
-### Environment Variables for Cloud Run:
+## ⚙️ V2.0 Technical Considerations
+
+### Cloud Run V2.0 Features:
+- **HTTP/2 Support**: Enables connection pooling (60% performance gain)
+- **Response Streaming**: Supports PHASE 7 real-time updates
+- **Concurrent Requests**: Handle 1000+ concurrent with V2.0
+- **Observability Integration**: Native OpenTelemetry support
+- **Quality Metrics Export**: Direct to Cloud Monitoring
+
+### V2.0 Framework Cloud Integration:
+- **Distributed Tracing**: Full request flow visibility
+- **Quality Validation**: Cloud-based quality scoring
+- **Parallel Execution**: Multi-region deployment support
+- **Connection Pooling**: Persistent HTTP/2 connections
+- **Streaming Responses**: WebSocket and SSE support
+
+### V2.0 Performance Optimizations:
+```yaml
+# cloud-run-v2.yaml
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: agent-v2
+  annotations:
+    run.googleapis.com/cpu-throttling: "false"
+    run.googleapis.com/execution-environment: gen2
+spec:
+  template:
+    metadata:
+      annotations:
+        # V2.0 Performance settings
+        run.googleapis.com/network-interfaces: "[{\"network\":\"default\",\"subnetwork\":\"premium\"}]"
+        run.googleapis.com/vpc-access-connector: projects/${PROJECT}/locations/${REGION}/connectors/vpc-connector
+    spec:
+      containerConcurrency: 1000
+      timeoutSeconds: 3600
+      serviceAccountName: agent-v2-sa@${PROJECT}.iam.gserviceaccount.com
+```
+
+## 🔐 V2.0 Security & Configuration
+
+### V2.0 Environment Variables for Cloud Run:
+```yaml
+# env-v2.yaml - V2.0 Configuration
+# Framework V2.0 Settings
+ORCHESTRATION_MODE: enhanced
+ENABLE_PHASE_7_STREAMING: "true"
+ENABLE_OBSERVABILITY: "true"
+CONNECTION_POOL_SIZE: "20"
+DEFAULT_QUALITY_DOMAIN: ANALYTICAL
+
+# Quality Thresholds
+QUALITY_COMPLETENESS: "0.90"
+QUALITY_ACCURACY: "0.95"
+QUALITY_RELEVANCE: "0.88"
+
+# Observability
+OTEL_SERVICE_NAME: a2a-mcp-v2-${K_SERVICE}
+OTEL_EXPORTER_OTLP_ENDPOINT: https://cloudtrace.googleapis.com
+TRACING_ENABLED: "true"
+METRICS_ENABLED: "true"
+JSON_LOGS: "true"
+
+# Performance
+ENABLE_HTTP2: "true"
+MAX_CONCURRENT_REQUESTS: "1000"
+REQUEST_TIMEOUT: "30000"
+CONNECTION_KEEPALIVE: "true"
+
+# Secrets (from Secret Manager)
+DATABASE_URL: sm://database-url-v2
+REDIS_URL: sm://redis-url-v2
+API_KEYS: sm://api-keys-v2
+```
+
+### V2.0 Secret Manager Integration:
 ```bash
-GOOGLE_API_KEY=
-GOOGLE_CLOUD_PROJECT=Business
-GOOGLE_CLOUD_LOCATION=us-central1
-GOOGLE_GENAI_USE_VERTEXAI=0
-DATABASE_URL=xxx
-REDIS_URL=xxx
-API_GATEWAY_TOKEN=xxx
-# etc.
+# Create V2.0 secrets
+echo -n "${DATABASE_URL}" | gcloud secrets create database-url-v2 --data-file=-
+echo -n "${REDIS_URL}" | gcloud secrets create redis-url-v2 --data-file=-
+
+# Grant access to service account
+gcloud secrets add-iam-policy-binding database-url-v2 \
+  --member="serviceAccount:agent-v2-sa@${PROJECT}.iam.gserviceaccount.com" \
+  --role="roles/secretmanager.secretAccessor"
 ```
 
-### Secret Manager Integration:
-- Store sensitive API keys in Google Secret Manager
-- Reference secrets in Cloud Run deployment
-- Automatic secret rotation support
+### V2.0 IAM Configuration:
+```bash
+# Create V2.0 service account
+gcloud iam service-accounts create agent-v2-sa \
+  --display-name="A2A-MCP V2.0 Agent Service Account"
 
-## 📊 Deployment Architecture
+# Grant required permissions
+gcloud projects add-iam-policy-binding ${PROJECT} \
+  --member="serviceAccount:agent-v2-sa@${PROJECT}.iam.gserviceaccount.com" \
+  --role="roles/cloudtrace.agent"
 
-```
-Internet → Cloud Load Balancer → Cloud Run Services
-                                      ↓
-┌─────────────────┬─────────────────┬─────────────────┐
-│ Domain          │ Analytics       │ Service         │
-│ Specialist      │ Agent           │ Agent           │
-│ (Cloud Run)     │ (Cloud Run)     │ (Cloud Run)     │
-└─────────────────┴─────────────────┴─────────────────┘
-                                      ↓
-                          MCP Server (Cloud Run)
-                                      ↓
-┌─────────────────┬─────────────────┬─────────────────┐
-│ Database        │ Message Queue   │ External APIs   │
-│ (Data Storage)  │ (Real-time)     │ (Integrations)  │
-└─────────────────┴─────────────────┴─────────────────┘
+gcloud projects add-iam-policy-binding ${PROJECT} \
+  --member="serviceAccount:agent-v2-sa@${PROJECT}.iam.gserviceaccount.com" \
+  --role="roles/cloudprofiler.agent"
 ```
 
-## 🎯 Step-by-Step Deployment Guide
+## 📊 V2.0 Deployment Architecture
+
+```
+Internet → Cloud CDN → Global Load Balancer → Cloud Armor (DDoS)
+                                                    ↓
+                                          ┌─────────────────┐
+                                          │ Enhanced Master │
+                                          │ Orchestrator V2 │
+                                          │ (PHASE 7)       │
+                                          └────────┬────────┘
+                                                   ↓ HTTP/2 + Pooling
+        ┌──────────────────┬──────────────────┬──────────────────┐
+        │                  │                  │                  │
+┌───────▼────────┐ ┌───────▼────────┐ ┌───────▼────────┐ ┌───────▼────────┐
+│ Standardized   │ │ Generic Domain │ │ Quality Valid. │ │ Parallel Work. │
+│ Agent Base V2  │ │ Agents V2      │ │ Service V2     │ │ Service V2     │
+│ (Cloud Run)    │ │ (Cloud Run)    │ │ (Cloud Run)    │ │ (Cloud Run)    │
+└────────┬───────┘ └────────┬───────┘ └────────┬───────┘ └────────┬───────┘
+         │                  │                  │                  │
+         └──────────────────┴──────────────────┴──────────────────┘
+                                     ↓
+                            ┌─────────────────┐
+                            │ Connection Pool │
+                            │ Manager V2      │
+                            └────────┬────────┘
+                                     ↓
+┌─────────────────┬─────────────────┬─────────────────┬─────────────────┐
+│ Cloud SQL       │ Memorystore     │ Cloud Trace     │ Cloud Monitoring│
+│ (PostgreSQL)    │ (Redis)         │ (Distributed)   │ (Metrics)       │
+└─────────────────┴─────────────────┴─────────────────┴─────────────────┘
+```
+
+### V2.0 Multi-Region Architecture:
+```
+us-central1          europe-west1         asia-southeast1
+    │                     │                     │
+    ▼                     ▼                     ▼
+┌─────────┐         ┌─────────┐         ┌─────────┐
+│ Agent   │◄────────│ Agent   │◄────────│ Agent   │
+│ Cluster │ Global  │ Cluster │ Global  │ Cluster │
+│ V2      │ Sync    │ V2      │ Sync    │ V2      │
+└─────────┘         └─────────┘         └─────────┘
+    │                     │                     │
+    └─────────────────────┴─────────────────────┘
+                          │
+                  ┌───────▼────────┐
+                  │ Global Spanner │
+                  │ Database       │
+                  └────────────────┘
+```
+
+## 🎯 V2.0 Step-by-Step Deployment Guide
 
 ### Prerequisites:
 ```bash
@@ -186,179 +425,365 @@ exec -l $SHELL
 gcloud auth login
 gcloud config set project "business-cloud"
 
-# Verify ADK installation
+# Install V2.0 dependencies
+pip install opentelemetry-distro[otlp]
+pip install opentelemetry-instrumentation
+pip install a2a-mcp-framework[v2]
+```
+
+### Step 1: V2.0 Project Setup
+```bash
+# Enable required APIs
+gcloud services enable \
+  run.googleapis.com \
+  cloudbuild.googleapis.com \
+  cloudtrace.googleapis.com \
+  cloudprofiler.googleapis.com \
+  monitoring.googleapis.com \
+  logging.googleapis.com
+
+# Create V2.0 artifact repository
+gcloud artifacts repositories create a2a-mcp-v2 \
+  --repository-format=docker \
+  --location=us-central1
 adk --version
 ```
 
-### Step 1: Authentication Setup
-```bash
-# Authenticate with Google Cloud (REQUIRED)
-gcloud auth login
-gcloud config set project "business-cloud"
-
-# Verify ADK installation
-adk --version
-```
-
-### Step 2: Environment Variables (Official ADK Requirements)
-```bash
-# Set REQUIRED environment variables (per official ADK docs)
-export GOOGLE_CLOUD_PROJECT="Business Cloud"
-export GOOGLE_CLOUD_LOCATION="us-central1"  
-export GOOGLE_GENAI_USE_VERTEXAI=0  # Important: 0 for Gemini API, True for Vertex AI
-
-# Set deployment variables for convenience
-export AGENT_PATH="./src/a2a_mcp/agents/market_oracle/domain_specialist_agent"
-export SERVICE_NAME="domain-specialist-agent"
-export APP_NAME="domain-specialist"
-```
-
-### Step 3: Prepare Agent Directory Structure
-```bash
-# Create proper ADK-compliant structure for each agent
-mkdir -p deploy_agents/domain_specialist_agent
-cd deploy_agents/domain_specialist_agent
-
-# Create required files
-cat > __init__.py << 'EOF'
-from . import agent
-EOF
-
-cat > agent.py << 'EOF'
-from google.adk.agents import Agent
-from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, SseConnectionParams
-from google.genai import types as genai_types
-
-# This MUST be named 'root_agent' for ADK deployment
-root_agent = Agent(
-    name="Domain Specialist",
-    instruction="""You are a Domain Specialist, an agent that enforces business rules and domain logic.
-
-Your capabilities:
-1. Validate business rules and constraints
-2. Process domain-specific workflows
-3. Coordinate with other tier 2 agents
-4. Apply business logic transformations
-5. Handle domain validation and error handling
-
-When processing requests, ensure all business rules are properly validated and applied.""",
-    model='gemini-2.0-flash',
-    generate_content_config=genai_types.GenerateContentConfig(temperature=0.1)
-)
-EOF
-
-cat > requirements.txt << 'EOF'
-google-adk
-a2a-sdk
-google-generativeai
-mcp
-EOF
-```
-
-### Step 4A: Deploy with ADK CLI (Recommended)
-
-#### Minimal Deployment Command:
-```bash
-adk deploy cloud_run \
---project="Business Cloud" \
---region="us-central1" \
-./domain_specialist_agent
-```
-
-#### Full Command with All Options:
-```bash
-adk deploy cloud_run \
---project="Business Cloud" \
---region="us-central1" \
---service_name="domain-specialist-agent" \
---app_name="domain-specialist" \
---with_ui \
-./domain_specialist_agent
-```
-
-#### Authentication Prompt:
-When prompted: `Allow unauthenticated invocations to [domain-specialist-agent] (y/N)?`
-- Enter `y` for public access (testing)
-- Enter `N` for authenticated access (production)
-
-#### Expected Output:
-```bash
-✓ Building container image...
-✓ Pushing to Artifact Registry...
-✓ Deploying to Cloud Run...
-✓ Service URL: https://domain-specialist-agent-xxx-us-central1.run.app
-```
-
-### Step 4B: Deploy with gcloud CLI (Advanced)
-
-#### Create Custom FastAPI Structure:
-```bash
-mkdir -p custom_deploy/domain_specialist_agent
-cd custom_deploy
-
-# Create main.py
-cat > main.py << 'EOF'
-import os
+### Step 2: V2.0 FastAPI Application
+```python
+# main.py - V2.0 Cloud Run application
+from fastapi import FastAPI, Request
+from fastapi.responses import StreamingResponse
+from contextlib import asynccontextmanager
 import uvicorn
-from google.adk.cli.fast_api import get_fast_api_app
+import os
+import asyncio
+import json
 
-# Get the directory where main.py is located
-AGENT_DIR = os.path.dirname(os.path.abspath(__file__))
-SESSION_DB_URL = "sqlite:///./sessions.db"
-ALLOWED_ORIGINS = ["http://localhost", "http://localhost:8080", "*"]
-SERVE_WEB_INTERFACE = True
+from a2a_mcp.common.master_orchestrator_template import EnhancedMasterOrchestratorTemplate
+from a2a_mcp.common.observability import setup_observability
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
-app = get_fast_api_app(
-    agents_dir=AGENT_DIR,
-    session_service_uri=SESSION_DB_URL,
-    allow_origins=ALLOWED_ORIGINS,
-    web=SERVE_WEB_INTERFACE,
+# Initialize observability
+setup_observability("a2a-mcp-v2")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    app.state.orchestrator = EnhancedMasterOrchestratorTemplate(
+        domain_name=os.getenv("DOMAIN_NAME", "Generic"),
+        domain_specialists=json.loads(os.getenv("DOMAIN_SPECIALISTS", "{}")),
+        enable_phase_7_streaming=True,
+        enable_observability=True
+    )
+    yield
+    # Shutdown
+    await app.state.orchestrator.cleanup()
+
+app = FastAPI(
+    title="A2A-MCP Framework V2.0",
+    version="2.0.0",
+    lifespan=lifespan
 )
+
+# Instrument FastAPI with OpenTelemetry
+FastAPIInstrumentor.instrument_app(app)
+
+@app.post("/process")
+async def process_request(request: Request):
+    """V2.0 endpoint with PHASE 7 streaming"""
+    data = await request.json()
+    
+    async def stream_response():
+        async for event in app.state.orchestrator.stream_with_artifacts(
+            query=data["query"],
+            session_id=data.get("session_id", "default"),
+            task_id=data.get("task_id", "default")
+        ):
+            yield f"data: {json.dumps(event)}\n\n"
+    
+    return StreamingResponse(
+        stream_response(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no"
+        }
+    )
+
+@app.get("/health")
+async def health_check():
+    return {
+        "status": "healthy",
+        "version": "2.0.0",
+        "features": {
+            "streaming": True,
+            "observability": True,
+            "quality_validation": True,
+            "connection_pooling": True
+        }
+    }
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
+    port = int(os.environ.get("PORT", 8080))
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=port,
+        http="h2",  # HTTP/2
+        log_config={
+            "version": 1,
+            "disable_existing_loggers": False,
+            "formatters": {
+                "json": {
+                    "class": "pythonjsonlogger.jsonlogger.JsonFormatter"
+                }
+            },
+            "handlers": {
+                "default": {
+                    "formatter": "json",
+                    "class": "logging.StreamHandler"
+                }
+            },
+            "root": {
+                "level": "INFO",
+                "handlers": ["default"]
+            }
+        }
+    )
+```
+
+### Step 3: V2.0 Deployment Package
+```bash
+# Create V2.0 deployment structure
+mkdir -p deploy_v2/
+cd deploy_v2/
+
+# Copy main application
+cp ../main.py .
+
+# Create requirements.txt
+cat > requirements.txt << 'EOF'
+# A2A-MCP Framework V2.0
+a2a-mcp-framework[v2]==2.0.0
+
+# FastAPI and server
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+python-multipart==0.0.6
+
+# Observability
+opentelemetry-distro[otlp]==0.43b0
+opentelemetry-instrumentation-fastapi==0.43b0
+opentelemetry-exporter-gcp-trace==1.6.0
+opentelemetry-exporter-gcp-monitoring==1.6.0
+opentelemetry-resourcedetector-gcp==1.6.0
+python-json-logger==2.0.7
+
+# Google Cloud
+google-cloud-trace==1.12.0
+google-cloud-monitoring==2.18.0
+google-cloud-logging==3.9.0
+google-cloud-profiler==4.1.0
+
+# Performance
+httpx[http2]==0.26.0
+aiohttp==3.9.3
+aiodns==3.1.1
+
+# Database and caching
+asyncpg==0.29.0
+redis[hiredis]==5.0.1
 EOF
 
-# Create Dockerfile
+# Create V2.0 Dockerfile
 cat > Dockerfile << 'EOF'
-FROM python:3.13-slim
-WORKDIR /app
+# V2.0 optimized Python runtime
+FROM python:3.11-slim as builder
 
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-RUN adduser --disabled-password --gecos "" myuser && \
-    chown -R myuser:myuser /app
+# Runtime stage
+FROM python:3.11-slim
 
-COPY . .
-USER myuser
-ENV PATH="/home/myuser/.local/bin:$PATH"
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port $PORT"]
+# Copy virtual environment
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Create non-root user
+RUN useradd -m -u 1000 appuser
+
+# Copy application
+WORKDIR /app
+COPY --chown=appuser:appuser . .
+
+# V2.0 environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    ENABLE_OBSERVABILITY=true \
+    ENABLE_PHASE_7_STREAMING=true \
+    CONNECTION_POOL_SIZE=20 \
+    ENABLE_HTTP2=true
+
+# Switch to non-root user
+USER appuser
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD curl -f http://localhost:8080/health || exit 1
+
+# Start with OpenTelemetry auto-instrumentation
+CMD ["opentelemetry-instrument", "python", "main.py"]
 EOF
+```
 
-# Deploy with gcloud
-gcloud run deploy domain-specialist-agent \
---source . \
---region us-central1 \
---project "business-cloud" \
---allow-unauthenticated \
---set-env-vars="GOOGLE_CLOUD_PROJECT=Agents Cloud,GOOGLE_CLOUD_LOCATION=asia-south2-c,GOOGLE_GENAI_USE_VERTEXAI=0,GOOGLE_API_KEY=```
+### Step 4: V2.0 Cloud Run Deployment
 
-### Step 3: Update Agent Cards
-```json
-{
-    "name": "Domain Specialist",
-    "description": "Business logic and domain rules enforcement agent",
-    "url": "https://domain-specialist-agent-xxx.us-central1.run.app/",
-    "provider": "Google Cloud Run",
-    "version": "1.0.0",
-    "capabilities": {
-        "streaming": "True",
-        "pushNotifications": "True",
-        "stateTransitionHistory": "False"
+#### Build and Push Container:
+```bash
+# Configure Docker for Artifact Registry
+gcloud auth configure-docker us-central1-docker.pkg.dev
+
+# Build V2.0 container with Cloud Build
+gcloud builds submit --tag us-central1-docker.pkg.dev/${PROJECT}/a2a-mcp-v2/orchestrator:latest
+
+# Or build locally
+docker build -t us-central1-docker.pkg.dev/${PROJECT}/a2a-mcp-v2/orchestrator:latest .
+docker push us-central1-docker.pkg.dev/${PROJECT}/a2a-mcp-v2/orchestrator:latest
+```
+
+#### Deploy to Cloud Run:
+```bash
+# Deploy V2.0 orchestrator with all features
+gcloud run deploy a2a-mcp-orchestrator-v2 \
+  --image=us-central1-docker.pkg.dev/${PROJECT}/a2a-mcp-v2/orchestrator:latest \
+  --platform=managed \
+  --region=us-central1 \
+  --allow-unauthenticated \
+  --cpu=4 \
+  --memory=8Gi \
+  --concurrency=1000 \
+  --timeout=3600 \
+  --http2 \
+  --set-env-vars="@env-v2.yaml" \
+  --set-cloudsql-instances=${PROJECT}:us-central1:a2a-db \
+  --vpc-connector=projects/${PROJECT}/locations/us-central1/connectors/vpc-connector \
+  --service-account=a2a-v2-sa@${PROJECT}.iam.gserviceaccount.com \
+  --execution-environment=gen2 \
+  --cpu-boost \
+  --session-affinity
+```
+
+#### Expected Output:
+```bash
+✓ Building and deploying from repository...
+✓ Creating Container Repository...
+✓ Uploading sources...
+✓ Building Container... 
+✓ Creating Revision...
+✓ Routing traffic...
+✓ Setting IAM Policy...
+Done.
+Service [a2a-mcp-orchestrator-v2] revision [a2a-mcp-orchestrator-v2-00001-xyz] has been deployed and is serving 100 percent of traffic.
+Service URL: https://a2a-mcp-orchestrator-v2-xxx-uc.a.run.app
+```
+
+### Step 5: Deploy V2.0 Agent Services
+
+#### Deploy StandardizedAgentBase Agents:
+```bash
+# Deploy each V2.0 agent as a microservice
+for agent in "finance-analyst" "risk-assessor" "compliance-monitor" "fraud-detector"; do
+  gcloud run deploy ${agent}-v2 \
+    --source=./agents/${agent} \
+    --cpu=2 --memory=4Gi \
+    --concurrency=500 \
+    --http2 \
+    --set-env-vars="\
+QUALITY_DOMAIN=ANALYTICAL,\
+QUALITY_COMPLETENESS=0.95,\
+QUALITY_ACCURACY=0.98,\
+ENABLE_OBSERVABILITY=true"
+done
+```
+
+#### Deploy GenericDomainAgent Services:
+```bash
+# Quick deployment of generic agents
+gcloud run deploy generic-agent-v2 \
+  --image=us-central1-docker.pkg.dev/${PROJECT}/a2a-mcp-v2/generic-agent:latest \
+  --set-env-vars="\
+AGENT_DOMAIN=${DOMAIN},\
+AGENT_SPECIALIZATION=${SPECIALIZATION},\
+AGENT_CAPABILITIES='analyze,validate,report',\
+QUALITY_DOMAIN=GENERIC"
+```
+
+#### Deploy Quality Validation Service:
+```bash
+# Dedicated quality validation service
+gcloud run deploy quality-validator-v2 \
+  --source=./services/quality-validator \
+  --cpu=1 --memory=2Gi \
+  --concurrency=100 \
+  --set-env-vars="VALIDATION_MODE=strict,QUALITY_THRESHOLD=0.90"
+```
+
+### Step 6: V2.0 Service Discovery Configuration
+```yaml
+# service-discovery-v2.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: agent-registry-v2
+data:
+  agents.json: |
+    {
+      "orchestrator": {
+        "name": "Enhanced Master Orchestrator V2",
+        "url": "https://a2a-mcp-orchestrator-v2-xxx.run.app",
+        "version": "2.0.0",
+        "features": {
+          "phase7_streaming": true,
+          "quality_validation": true,
+          "parallel_execution": true,
+          "connection_pooling": true
+        }
+      },
+      "agents": [
+        {
+          "name": "Financial Analyst V2",
+          "type": "StandardizedAgentBase",
+          "url": "https://finance-analyst-v2-xxx.run.app",
+          "quality_domain": "ANALYTICAL",
+          "capabilities": ["analyze_markets", "evaluate_risk"]
+        },
+        {
+          "name": "Generic Processor V2",
+          "type": "GenericDomainAgent",
+          "url": "https://generic-agent-v2-xxx.run.app",
+          "quality_domain": "GENERIC",
+          "configurable": true
+        }
+      ]
     }
-}
 ```
 
 ### Step 4: Deploy Remaining Agents
@@ -380,62 +805,119 @@ cd src/a2a_mcp/mcp/
 adk deploy cloud_run --service server.py
 ```
 
-## 🧪 Testing Deployed Agents (Official ADK Testing Methods)
+## 🧪 V2.0 Testing and Validation
 
-### UI Testing (If --with_ui flag used):
-Simply navigate to your Cloud Run service URL in a web browser:
+### Testing PHASE 7 Streaming:
 ```bash
-# Example URL format
-https://domain-specialist-agent-xxx-us-central1.run.app
+# Test streaming endpoint
+curl -N -X POST https://a2a-mcp-orchestrator-v2-xxx.run.app/process \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer ${TOKEN}" \
+  -d '{
+    "query": "Analyze market trends for tech stocks",
+    "session_id": "test-session",
+    "task_id": "test-001"
+  }'
+
+# Expected streaming response:
+data: {"type": "planning", "content": "Analyzing your query...", "timestamp": "2024-01-15T10:00:00Z"}
+data: {"type": "task_start", "task": "market_analysis", "description": "Fetching market data"}
+data: {"type": "progress", "percent": 25, "message": "Processing historical trends"}
+data: {"type": "quality_check", "score": 0.94, "domain": "ANALYTICAL"}
+data: {"type": "artifact", "artifact": {"type": "market_report", "data": {...}}}
+data: {"type": "completed", "result": {...}, "quality_summary": {...}}
 ```
 
-The ADK dev UI allows you to:
-1. Select your agent from the dropdown
-2. Type messages and verify responses
-3. Manage sessions and view execution details
+### Quality Validation Testing:
+```python
+# test_quality_v2.py
+import requests
+import json
 
-### API Testing with curl (Official ADK API Endpoints):
-
-#### Step 1: Set Application URL
-```bash
-export APP_URL="https://domain-specialist-agent-xxx-us-central1.run.app"
+def test_quality_validation():
+    response = requests.post(
+        "https://quality-validator-v2-xxx.run.app/validate",
+        json={
+            "content": "Test analysis content",
+            "domain": "ANALYTICAL",
+            "expected_score": 0.90
+        }
+    )
+    
+    result = response.json()
+    assert result["quality_score"] >= 0.90
+    assert all(result["dimension_scores"][dim] >= 0.85 for dim in result["dimension_scores"])
+    print(f"Quality validation passed: {result['quality_score']:.2f}")
 ```
 
-#### Step 2: Get Identity Token (if authentication required)
+### V2.0 Performance Testing:
 ```bash
-export TOKEN=$(gcloud auth print-identity-token)
-```
+# Load test with V2.0 features
+docker run -i grafana/k6 run - <<EOF
+import http from 'k6/http';
+import { check } from 'k6';
 
-#### Step 3: List Available Apps
-```bash
-curl -X GET -H "Authorization: Bearer $TOKEN" $APP_URL/list-apps
-```
+export let options = {
+  stages: [
+    { duration: '30s', target: 100 },
+    { duration: '1m', target: 500 },
+    { duration: '30s', target: 1000 },
+    { duration: '1m', target: 1000 },
+    { duration: '30s', target: 0 },
+  ],
+  thresholds: {
+    http_req_duration: ['p(99)<1000'], // 99% of requests under 1s
+    http_req_failed: ['rate<0.01'], // Error rate under 1%
+  },
+};
 
-#### Step 4: Create or Update Session
-```bash
-curl -X POST -H "Authorization: Bearer $TOKEN" \
-    $APP_URL/apps/domain_specialist/users/user_123/sessions/session_abc \
-    -H "Content-Type: application/json" \
-    -d '{"state": {"preferred_language": "English", "visit_count": 1}}'
-```
+export default function () {
+  const url = 'https://a2a-mcp-orchestrator-v2-xxx.run.app/process';
+  const payload = JSON.stringify({
+    query: 'Test query ' + Math.random(),
+    session_id: 'load-test',
+    task_id: 'test-' + __VU + '-' + __ITER,
+  });
 
-#### Step 5: Run the Agent (Official ADK Format)
-```bash
-curl -X POST -H "Authorization: Bearer $TOKEN" \
-    $APP_URL/run_sse \
-    -H "Content-Type: application/json" \
-    -d '{
-    "app_name": "domain_specialist",
-    "user_id": "user_123", 
-    "session_id": "session_abc",
-    "new_message": {
-        "role": "user",
-        "parts": [{
-        "text": "Process order validation for customer request"
-        }]
+  const params = {
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ${TOKEN}',
     },
-    "streaming": false
-    }'
+  };
+
+  let response = http.post(url, payload, params);
+  
+  check(response, {
+    'status is 200': (r) => r.status === 200,
+    'response has streaming data': (r) => r.body.includes('data:'),
+    'quality score present': (r) => r.body.includes('quality_score'),
+  });
+}
+EOF
+```
+
+### Observability Validation:
+```bash
+# Check traces in Cloud Trace
+gcloud trace list --filter="\
+  resource.type=\"cloud_run_revision\" AND \
+  resource.labels.service_name=\"a2a-mcp-orchestrator-v2\" AND \
+  timestamp>=\"$(date -u -Iseconds -d '5 minutes ago')\""
+
+# View metrics in Cloud Monitoring
+gcloud monitoring time-series list \
+  --filter='metric.type="run.googleapis.com/request_latencies" AND \
+           resource.labels.service_name="a2a-mcp-orchestrator-v2"' \
+  --format="table(resource.labels.service_name, metric.labels, points[0].value)"
+
+# Check quality metrics
+gcloud logging read '
+  resource.type="cloud_run_revision" AND 
+  resource.labels.service_name="a2a-mcp-orchestrator-v2" AND
+  jsonPayload.quality_score>0' \
+  --limit=10 \
+  --format="json" | jq '.[] | {timestamp: .timestamp, quality: .jsonPayload.quality_score}'
 ```
 
 #### For Streaming Responses:
@@ -458,25 +940,122 @@ curl -X POST -H "Authorization: Bearer $TOKEN" \
     }'
 ```
 
-## 📊 Monitoring & Maintenance
+## 📊 V2.0 Monitoring & Operations
 
-### Cloud Operations Integration:
-```bash
-# View logs
-gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=domain-specialist-agent"
-
-# Monitor metrics
-gcloud monitoring metrics list --filter="metric.type:run.googleapis.com"
+### V2.0 Monitoring Dashboard:
+```yaml
+# monitoring/v2-dashboard.yaml
+displayName: "A2A-MCP V2.0 Operations"
+mosaicLayout:
+  columns: 12
+  tiles:
+  - width: 6
+    height: 4
+    widget:
+      title: "Request Latency (P50, P90, P99)"
+      xyChart:
+        dataSets:
+        - timeSeriesQuery:
+            timeSeriesFilter:
+              filter: |
+                resource.type="cloud_run_revision"
+                metric.type="run.googleapis.com/request_latencies"
+                resource.label.service_name=~".*-v2$"
+            aggregation:
+              alignmentPeriod: 60s
+              perSeriesAligner: ALIGN_DELTA
+              crossSeriesReducer: REDUCE_PERCENTILE_50
+              groupByFields: ["resource.label.service_name"]
+  - width: 6
+    height: 4
+    widget:
+      title: "Quality Scores by Domain"
+      xyChart:
+        dataSets:
+        - timeSeriesQuery:
+            timeSeriesFilter:
+              filter: |
+                resource.type="cloud_run_revision"
+                metric.type="custom.googleapis.com/a2a/quality_score"
+            aggregation:
+              alignmentPeriod: 60s
+              perSeriesAligner: ALIGN_MEAN
+              groupByFields: ["metric.label.quality_domain"]
+  - width: 12
+    height: 4
+    widget:
+      title: "Connection Pool Efficiency"
+      xyChart:
+        dataSets:
+        - timeSeriesQuery:
+            timeSeriesFilter:
+              filter: |
+                metric.type="custom.googleapis.com/a2a/connection_pool_reuse_rate"
 ```
 
-### Auto-scaling Configuration:
+### V2.0 Alert Policies:
+```bash
+# Create quality alert
+gcloud alpha monitoring policies create \
+  --notification-channels=${NOTIFICATION_CHANNEL} \
+  --display-name="V2.0 Quality Score Alert" \
+  --condition-display-name="Quality below threshold" \
+  --condition="{
+    \"displayName\": \"Quality Score < 0.85\",
+    \"conditionThreshold\": {
+      \"filter\": \"metric.type=\\\"custom.googleapis.com/a2a/quality_score\\\" resource.type=\\\"cloud_run_revision\\\"\",
+      \"comparison\": \"COMPARISON_LT\",
+      \"thresholdValue\": 0.85,
+      \"duration\": \"300s\",
+      \"aggregations\": [{
+        \"alignmentPeriod\": \"60s\",
+        \"perSeriesAligner\": \"ALIGN_MEAN\"
+      }]
+    }
+  }"
+
+# Create performance alert
+gcloud alpha monitoring policies create \
+  --notification-channels=${NOTIFICATION_CHANNEL} \
+  --display-name="V2.0 Latency Alert" \
+  --condition-display-name="P99 latency > 1s" \
+  --condition="{
+    \"displayName\": \"P99 Latency > 1000ms\",
+    \"conditionThreshold\": {
+      \"filter\": \"metric.type=\\\"run.googleapis.com/request_latencies\\\" resource.type=\\\"cloud_run_revision\\\" metric.label.\\\"response_code_class\\\"=\\\"2xx\\\"\",
+      \"comparison\": \"COMPARISON_GT\",
+      \"thresholdValue\": 1000,
+      \"duration\": \"300s\",
+      \"aggregations\": [{
+        \"alignmentPeriod\": \"60s\",
+        \"perSeriesAligner\": \"ALIGN_PERCENTILE_99\",
+        \"crossSeriesReducer\": \"REDUCE_MAX\",
+        \"groupByFields\": [\"resource.label.service_name\"]
+      }]
+    }
+  }"
+```
+
+### V2.0 SLO Configuration:
 ```yaml
-# In adk.yaml
-scaling:
-  min_instances: 0
-  max_instances: 100
-  target_cpu_utilization: 70
-  target_concurrency: 80
+# slo-v2.yaml
+apiVersion: monitoring.googleapis.com/v1
+kind: ServiceLevelObjective
+metadata:
+  name: a2a-mcp-v2-slo
+spec:
+  serviceLevelIndicator:
+    requestBased:
+      goodTotalRatio:
+        goodServiceFilter: |
+          resource.type="cloud_run_revision"
+          metric.type="run.googleapis.com/request_count"
+          metric.label.response_code_class="2xx"
+        totalServiceFilter: |
+          resource.type="cloud_run_revision"
+          metric.type="run.googleapis.com/request_count"
+  goal: 0.999  # 99.9% availability
+  rollingPeriod: 2419200s  # 28 days
 ```
 
 ## 💡 Benefits of ADK Cloud Deployment
@@ -488,57 +1067,257 @@ scaling:
 - **Reliability**: Google's infrastructure and SLA guarantees
 - **Global Distribution**: Deploy to multiple regions easily
 
-## 🔧 Troubleshooting Common Issues
+## 🔧 V2.0 Troubleshooting Guide
 
-### 1. **Authentication Errors**:
+### 1. **Streaming Not Working**:
 ```bash
-# Re-authenticate
-gcloud auth application-default login
+# Check HTTP/2 is enabled
+gcloud run services describe a2a-mcp-orchestrator-v2 \
+  --format="value(spec.template.metadata.annotations['run.googleapis.com/http2'])"
+
+# Fix: Update service
+gcloud run services update a2a-mcp-orchestrator-v2 --http2
 ```
 
-### 2. **Memory Issues**:
-```yaml
-# Increase memory in adk.yaml
-memory: "2Gi"
-cpu: "2"
+### 2. **Quality Scores Missing**:
+```python
+# Debug quality validation
+curl -X POST https://your-service.run.app/debug/quality \
+  -H "Content-Type: application/json" \
+  -d '{"test_content": "Sample text for validation"}'
+
+# Check environment variables
+gcloud run services describe a2a-mcp-orchestrator-v2 \
+  --format="yaml" | grep -A 20 "env:"
 ```
 
-### 3. **Environment Variables**:
+### 3. **Connection Pool Issues**:
 ```bash
-# Use Secret Manager for sensitive data
-gcloud secrets create REDDIT_CLIENT_SECRET --data-file=secret.txt
+# Monitor connection metrics
+gcloud logging read '
+  resource.type="cloud_run_revision" AND
+  jsonPayload.connection_pool_size>0' \
+  --limit=50 \
+  --format="table(timestamp, jsonPayload.connection_pool_size, jsonPayload.active_connections)"
+
+# Adjust pool size
+gcloud run services update a2a-mcp-orchestrator-v2 \
+  --set-env-vars="CONNECTION_POOL_SIZE=50"
 ```
 
-### 4. **Cold Start Optimization**:
-```yaml
-# Keep minimum instances warm
-min_instances: 1
-```
-
-## 🚀 Advanced Deployment Patterns
-
-### Multi-Region Deployment:
+### 4. **Observability Data Missing**:
 ```bash
-# Deploy to multiple regions for global availability
-adk deploy cloud_run --region us-central1
-adk deploy cloud_run --region europe-west1
-adk deploy cloud_run --region asia-southeast1
+# Verify OpenTelemetry is running
+gcloud logging read '
+  textPayload:"OpenTelemetry" AND
+  resource.labels.service_name="a2a-mcp-orchestrator-v2"' \
+  --limit=10
+
+# Check trace export
+gcloud trace list --limit=5 --filter='resource.labels.service_name="a2a-mcp-orchestrator-v2"'
+
+# Fix: Ensure OTEL environment variables are set
+gcloud run services update a2a-mcp-orchestrator-v2 \
+  --set-env-vars="\
+OTEL_SERVICE_NAME=a2a-mcp-v2,\
+OTEL_TRACES_EXPORTER=gcp_trace,\
+OTEL_METRICS_EXPORTER=gcp_monitoring"
 ```
 
-### CI/CD Integration:
+### 5. **Performance Degradation**:
+```bash
+# Enable CPU boost for better cold starts
+gcloud run services update a2a-mcp-orchestrator-v2 \
+  --cpu-boost
+
+# Increase minimum instances
+gcloud run services update a2a-mcp-orchestrator-v2 \
+  --min-instances=2
+
+# Enable session affinity for stateful connections
+gcloud run services update a2a-mcp-orchestrator-v2 \
+  --session-affinity
+```
+
+## 🚀 V2.0 Advanced Deployment Patterns
+
+### Multi-Region Active-Active Deployment:
+```bash
+# Deploy to multiple regions with global load balancing
+REGIONS=("us-central1" "europe-west1" "asia-southeast1")
+
+for REGION in "${REGIONS[@]}"; do
+  gcloud run deploy a2a-mcp-orchestrator-v2-${REGION} \
+    --image=us-central1-docker.pkg.dev/${PROJECT}/a2a-mcp-v2/orchestrator:latest \
+    --region=${REGION} \
+    --set-env-vars="REGION=${REGION},ENABLE_CROSS_REGION_SYNC=true" \
+    --vpc-connector=projects/${PROJECT}/locations/${REGION}/connectors/vpc-connector
+done
+
+# Set up global load balancer
+gcloud compute backend-services create a2a-mcp-v2-global \
+  --global \
+  --load-balancing-scheme=EXTERNAL_MANAGED \
+  --protocol=HTTP2
+
+# Add regional backends
+for REGION in "${REGIONS[@]}"; do
+  gcloud compute backend-services add-backend a2a-mcp-v2-global \
+    --global \
+    --network-endpoint-group=a2a-mcp-orchestrator-v2-${REGION}-neg \
+    --network-endpoint-group-region=${REGION}
+done
+```
+
+### V2.0 GitOps Deployment:
 ```yaml
-# .github/workflows/deploy.yml
-name: Deploy to Cloud Run
+# .github/workflows/deploy-v2.yml
+name: Deploy A2A-MCP V2.0
 on:
   push:
     branches: [main]
+    paths:
+      - 'src/**'
+      - 'Dockerfile'
+      - '.github/workflows/deploy-v2.yml'
+
 jobs:
-  deploy:
+  quality-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: google-github-actions/setup-gcloud@v0
-      - run: adk deploy cloud_run --agent domain_specialist_agent.py
+      - uses: actions/checkout@v3
+      - name: Run V2.0 Quality Validation
+        run: |
+          python -m pytest tests/v2/test_quality.py
+          python scripts/validate_quality_thresholds.py
+
+  build-and-deploy:
+    needs: quality-check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v2'
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
+      
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+      
+      - name: 'Configure Docker'
+        run: gcloud auth configure-docker us-central1-docker.pkg.dev
+      
+      - name: 'Build and Push V2.0 Image'
+        run: |
+          docker build -t us-central1-docker.pkg.dev/${{ vars.PROJECT }}/a2a-mcp-v2/orchestrator:${{ github.sha }} .
+          docker push us-central1-docker.pkg.dev/${{ vars.PROJECT }}/a2a-mcp-v2/orchestrator:${{ github.sha }}
+      
+      - name: 'Deploy to Cloud Run'
+        run: |
+          gcloud run deploy a2a-mcp-orchestrator-v2 \
+            --image=us-central1-docker.pkg.dev/${{ vars.PROJECT }}/a2a-mcp-v2/orchestrator:${{ github.sha }} \
+            --region=us-central1 \
+            --set-env-vars="@.github/env-v2.yaml" \
+            --service-account=a2a-v2-sa@${{ vars.PROJECT }}.iam.gserviceaccount.com
+      
+      - name: 'Run Smoke Tests'
+        run: |
+          SERVICE_URL=$(gcloud run services describe a2a-mcp-orchestrator-v2 --region=us-central1 --format='value(status.url)')
+          python scripts/smoke_test_v2.py --url=$SERVICE_URL
+
+  deploy-agents:
+    needs: build-and-deploy
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        agent: [finance-analyst, risk-assessor, compliance-monitor]
+    
+    steps:
+      - uses: actions/checkout@v3
+      - name: Deploy ${{ matrix.agent }} Agent
+        run: |
+          gcloud run deploy ${{ matrix.agent }}-v2 \
+            --source=./agents/${{ matrix.agent }} \
+            --region=us-central1 \
+            --set-env-vars="ORCHESTRATOR_URL=${{ needs.build-and-deploy.outputs.service-url }}"
 ```
 
-This comprehensive tutorial enables full cloud deployment of your A2A-MCP agent ecosystem using Google's ADK platform!
+### Terraform Infrastructure as Code:
+```hcl
+# terraform/main.tf
+terraform {
+  required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = "~> 5.0"
+    }
+  }
+}
+
+resource "google_cloud_run_v2_service" "orchestrator" {
+  name     = "a2a-mcp-orchestrator-v2"
+  location = var.region
+  
+  template {
+    service_account = google_service_account.a2a_v2.email
+    
+    scaling {
+      min_instance_count = 2
+      max_instance_count = 1000
+    }
+    
+    containers {
+      image = "us-central1-docker.pkg.dev/${var.project}/a2a-mcp-v2/orchestrator:latest"
+      
+      resources {
+        limits = {
+          cpu    = "4"
+          memory = "8Gi"
+        }
+        cpu_idle = false
+      }
+      
+      env {
+        name  = "ENABLE_PHASE_7_STREAMING"
+        value = "true"
+      }
+      
+      env {
+        name  = "ENABLE_OBSERVABILITY"
+        value = "true"
+      }
+    }
+    
+    vpc_access {
+      connector = google_vpc_access_connector.connector.id
+      egress    = "ALL_TRAFFIC"
+    }
+  }
+  
+  traffic {
+    type    = "TRAFFIC_TARGET_ALLOCATION_TYPE_LATEST"
+    percent = 100
+  }
+}
+```
+
+## 🎆 V2.0 Production Checklist
+
+☐ Enable all V2.0 features (streaming, observability, quality)
+☐ Configure connection pooling with appropriate size
+☐ Set up monitoring dashboards and alerts
+☐ Implement SLOs for quality scores and latency
+☐ Deploy to multiple regions for high availability
+☐ Enable Cloud Armor for DDoS protection
+☐ Configure backup and disaster recovery
+☐ Set up CI/CD with quality gates
+☐ Document runbooks for common issues
+☐ Load test with expected traffic patterns
+
+This comprehensive V2.0 deployment guide enables you to leverage all the enhanced features of the A2A-MCP Framework V2.0 on Google Cloud Platform!

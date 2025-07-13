@@ -4,7 +4,7 @@ import os
 from google.adk.agents.llm_agent import Agent
 from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, StdioServerParameters
 
-from remote_mcp_agent.prompt import NOTION_PROMPT
+from remote_mcp_agent.notion_prompt import NOTION_PROMPT
 
 # ---- MCP Library ----
 # https://github.com/modelcontextprotocol/servers
@@ -24,7 +24,7 @@ NOTION_MCP_HEADERS = json.dumps(
 )
 
 root_agent = Agent(
-    model="gemini-2.0-flash",
+    model="gemini-2.5-pro-preview-06-05",
     name="Notion_MCP_Agent",
     instruction=NOTION_PROMPT,
     tools=[
