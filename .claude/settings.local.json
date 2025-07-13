@@ -114,7 +114,8 @@
       "Bash(if [ -f \".venv/bin/activate\" ])",
       "Bash(then)",
       "Bash(else)",
-      "Bash(fi)"
+      "Bash(fi)",
+      "Bash(diff:*)"
     ],
     "deny": []
   },

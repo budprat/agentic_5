@@ -28,8 +28,8 @@ You should use the following configuration to guide your behavior.
 - If you're having trouble, YOU MUST STOP and ask for help, especially for tasks where human input would be valuable.
 
 # Rules
-- Save Session Summary in the file SPECS/SESSION.md about every code change you make
-- Remember no simpler tests, shortcuts or mock data and bypass tests, instead try to fix issues without taking shortcuts, its a main rule from now on and use mcp context7 and others to solve issues.
+  - Rule 1: Save Session Summary in the file SPECS/SESSION.md about every code change you make
+  - Rule 2: Remember no simpler tests, shortcuts or mock data and bypass tests, instead try to fix issues without taking shortcuts, its a main rule from now on and use mcp context7 and others to solve issues.
 
 # How to add or edit Claude rules in our project
 ## Claude Rules Location
