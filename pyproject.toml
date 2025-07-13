@@ -6,7 +6,7 @@ name = "a2a-mcp-framework"
 version = "0.1.0"
 description = "A2A-MCP Framework - Production-ready foundation for multi-agent systems"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 keywords = ["mcp", "agents", "ai", "framework", "a2a", "multi-agent"]
 authors = [
     {name = "Your Name", email = "your.email@example.com"}
@@ -17,19 +17,36 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 
 dependencies = [
+    # A2A SDK (Critical for A2A protocol)
+    "a2a-sdk>=0.2.9",
+    
     # Core MCP Dependencies
     "mcp[cli]>=1.5.0",
     "fastmcp>=1.0",
     
     # Google AI Platform Dependencies (for StandardizedAgentBase)
     "google-adk>=1.0.0",
+    "google-cloud-aiplatform>=1.91.0",
+    "google-generativeai>=0.8.5",
+    
+    # LangChain & LangGraph Dependencies (for MasterOrchestratorTemplate)
+    "langchain-google-genai>=2.0.10",
+    "langchain-mcp-adapters>=0.0.9",
+    "langgraph>=0.4.1",
+    
+    # Data Processing & Analysis (for finance agents)
+    "numpy>=2.2.5",
+    "pandas>=2.2.3",
+    "networkx>=3.4.2",
+    
+    # CLI Framework
+    "click>=8.1.8",
     
     # Core Python Dependencies
     "httpx>=0.28.1",
@@ -37,6 +54,7 @@ dependencies = [
     "python-dotenv>=1.0.0",
     "aiohttp>=3.9.0",
     "aiofiles>=23.0.0",
+    "rich>=13.0.0",
     
     # Logging and Utils
     "structlog>=23.1.0",
@@ -57,7 +75,8 @@ dev = [
 ]
 
 [project.scripts]
-# Main launchers
+# A2A MCP Framework entry points
+a2a-mcp = "a2a_mcp:main"
 launch-system = "launch.launch_system:main"
 start-mcp = "a2a_mcp.mcp.server:main"
 
@@ -99,7 +118,7 @@ branch = true
 source = ["src/a2a_mcp"]
 
 [tool.ruff]
-target-version = "py311"
+target-version = "py313"
 line-length = 88
 select = [
     "E",  # pycodestyle errors
@@ -112,5 +131,5 @@ ignore = [
 ]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.13"
 ignore_missing_imports = true

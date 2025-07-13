@@ -59,3 +59,31 @@ __all__ = [
     "A2AProtocolClient",
     "QualityThresholdFramework",
 ]
+
+
+def main():
+    """Main entry point for the A2A MCP Framework CLI."""
+    import sys
+    from pathlib import Path
+    
+    # Add the agents module to path for easy access
+    agents_path = Path(__file__).parent / "agents"
+    if agents_path.exists():
+        sys.path.insert(0, str(agents_path))
+    
+    # Import and run the main agents entry point
+    try:
+        from a2a_mcp.agents.__main__ import main as agents_main
+        agents_main()
+    except ImportError:
+        print("A2A MCP Framework - Available modules:")
+        print("  - agents: Multi-agent system components")
+        print("  - common: Shared utilities and base classes")
+        print("  - mcp: Model Context Protocol server")
+        print("  - core: Core abstractions and protocols")
+        print("\nUse 'start-mcp' command to launch MCP server")
+        print("Use 'launch-system' command to launch multi-agent system")
+
+
+if __name__ == "__main__":
+    main()
