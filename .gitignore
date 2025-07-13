@@ -3,6 +3,8 @@
 # ========================================
 # Comprehensive ignore patterns for multi-agent systems with MCP integration
 
+adc_credentials.json
+
 # ============================================
 # PYTHON & PACKAGE MANAGEMENT
 # ============================================
