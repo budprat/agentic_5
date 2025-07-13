@@ -195,6 +195,12 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
         self.qa_templates: Dict[str, str] = {}  # qa_type -> response template
         self.expert_responses: Dict[str, Dict[str, Any]] = {}  # response_id -> expert response data
         
+        # PHASE 6: Enhanced Summary Generation from Collected Artifacts
+        self.summary_templates: Dict[str, Dict[str, Any]] = {}  # template_name -> template config
+        self.generated_summaries: Dict[str, Dict[str, Any]] = {}  # summary_id -> summary data
+        self.summary_preferences: Dict[str, Any] = {}  # User preferences for summary generation
+        self.summary_analytics: Dict[str, Any] = {}  # Analytics on summary generation patterns
+        
         logger.info(f"Refactored {domain_name} Master Orchestrator initialized with Enhanced Planner")
 
     def _get_default_quality_thresholds(self, quality_domain: QualityDomain) -> Dict[str, Any]:
@@ -242,6 +248,10 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
             
             # Step 3: Synthesize final results
             final_result = await self._synthesize_results(orchestration_result, execution_plan, query)
+            
+            # PHASE 6: Generate enhanced summary from collected artifacts
+            enhanced_summary = await self._generate_enhanced_summary(sessionId, final_result, execution_plan)
+            final_result['enhanced_summary'] = enhanced_summary
             
             # PHASE 2: Record execution history and update context
             self._record_execution_history(sessionId, {
@@ -2834,6 +2844,1114 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
             'high_confidence_answers': len([qa for qa in self.qa_knowledge_base.values() if qa.get('confidence', 0) > 0.8])
         }
     
+    # ============================================================================
+    # PHASE 6: Enhanced Summary Generation from Collected Artifacts Methods
+    # ============================================================================
+    
+    async def _generate_enhanced_summary(self, session_id: str, final_result: Dict[str, Any], execution_plan: Dict[str, Any]) -> Dict[str, Any]:
+        """Generate comprehensive summary from collected artifacts and execution context."""
+        try:
+            # Collect all relevant data for summary
+            summary_context = await self._build_summary_context(session_id, final_result, execution_plan)
+            
+            # Generate different types of summaries
+            summary = {
+                'summary_id': str(uuid.uuid4()),
+                'session_id': session_id,
+                'generated_at': datetime.now().isoformat(),
+                'executive_summary': await self._generate_executive_summary(summary_context),
+                'detailed_analysis': await self._generate_detailed_analysis(summary_context),
+                'performance_summary': await self._generate_performance_summary(summary_context),
+                'artifact_summary': await self._generate_artifact_summary(summary_context),
+                'insights_and_recommendations': await self._generate_insights_and_recommendations(summary_context),
+                'key_metrics': await self._extract_key_metrics(summary_context),
+                'timeline_summary': await self._generate_timeline_summary(summary_context)
+            }
+            
+            # Store generated summary
+            await self._store_generated_summary(summary)
+            
+            # Update summary analytics
+            self._update_summary_analytics(summary)
+            
+            return summary
+            
+        except Exception as e:
+            logger.error(f"Error generating enhanced summary: {e}")
+            return {
+                'error': f"Failed to generate enhanced summary: {str(e)}",
+                'timestamp': datetime.now().isoformat()
+            }
+    
+    async def _build_summary_context(self, session_id: str, final_result: Dict[str, Any], execution_plan: Dict[str, Any]) -> Dict[str, Any]:
+        """Build comprehensive context for summary generation."""
+        context = {
+            'session_id': session_id,
+            'domain': self.domain_name,
+            'timestamp': datetime.now().isoformat(),
+            'execution_plan': execution_plan,
+            'final_result': final_result
+        }
+        
+        # Add session artifacts
+        context['session_artifacts'] = self.get_session_artifacts(session_id)
+        
+        # Add execution history
+        context['execution_history'] = self.execution_history.get(session_id, [])
+        
+        # Add performance metrics
+        context['performance_metrics'] = self.performance_metrics.get(session_id, {})
+        
+        # Add context tracking
+        context['session_context'] = self.session_contexts.get(session_id, {})
+        
+        # Add workflow state if available
+        if self.dynamic_workflow:
+            context['workflow_stats'] = self.dynamic_workflow.get_workflow_stats()
+        
+        # Add Q&A history
+        context['qa_history'] = [
+            qa for qa in self.qa_knowledge_base.values() 
+            if qa.get('session_id') == session_id
+        ]
+        
+        # Add result collections
+        session_collections = [
+            collection for collection in self.result_collections.values()
+            if collection.get('session_id') == session_id
+        ]
+        context['result_collections'] = session_collections
+        
+        return context
+    
+    async def _generate_executive_summary(self, context: Dict[str, Any]) -> str:
+        """Generate executive summary for leadership overview."""
+        summary_parts = []
+        
+        # Header
+        summary_parts.append(f"Executive Summary - {context['domain']} Orchestration")
+        summary_parts.append(f"Session: {context['session_id']}")
+        summary_parts.append(f"Generated: {context['timestamp']}")
+        summary_parts.append("")
+        
+        # Key Results
+        final_result = context.get('final_result', {})
+        if final_result:
+            summary_parts.append("KEY RESULTS:")
+            summary_parts.append(f"• Overall Status: {final_result.get('status', 'unknown').upper()}")
+            
+            if final_result.get('orchestration_metrics'):
+                metrics = final_result['orchestration_metrics']
+                summary_parts.append(f"• Total Execution Time: {metrics.get('total_time', 0):.1f} seconds")
+                summary_parts.append(f"• Tasks Completed: {metrics.get('completed_tasks', 0)}")
+                summary_parts.append(f"• Success Rate: {metrics.get('success_rate', 0):.1%}")
+        
+        # Artifacts Generated
+        artifacts = context.get('session_artifacts', [])
+        if artifacts:
+            artifact_types = {}
+            for artifact in artifacts:
+                artifact_type = artifact.get('artifact_type', 'unknown')
+                artifact_types[artifact_type] = artifact_types.get(artifact_type, 0) + 1
+            
+            summary_parts.append("")
+            summary_parts.append("DELIVERABLES:")
+            for artifact_type, count in artifact_types.items():
+                summary_parts.append(f"• {artifact_type.replace('_', ' ').title()}: {count} items")
+        
+        # Performance Insights
+        performance = context.get('performance_metrics', {})
+        if performance:
+            summary_parts.append("")
+            summary_parts.append("PERFORMANCE HIGHLIGHTS:")
+            summary_parts.append(f"• Average Task Duration: {performance.get('avg_duration', 0):.1f}s")
+            summary_parts.append(f"• System Efficiency: {performance.get('avg_success_rate', 0):.1%}")
+            summary_parts.append(f"• Complexity Handled: {performance.get('avg_complexity', 0):.1f}/1.0")
+        
+        return "\n".join(summary_parts)
+    
+    async def _generate_detailed_analysis(self, context: Dict[str, Any]) -> str:
+        """Generate detailed technical analysis."""
+        analysis_parts = []
+        
+        # Execution Analysis
+        analysis_parts.append("DETAILED EXECUTION ANALYSIS")
+        analysis_parts.append("=" * 40)
+        
+        execution_history = context.get('execution_history', [])
+        if execution_history:
+            analysis_parts.append(f"\nExecution Timeline ({len(execution_history)} events):")
+            
+            # Group by event type
+            event_types = {}
+            for event in execution_history:
+                event_type = event.get('event_type', 'unknown')
+                event_types[event_type] = event_types.get(event_type, 0) + 1
+            
+            for event_type, count in event_types.items():
+                analysis_parts.append(f"• {event_type.replace('_', ' ').title()}: {count} events")
+        
+        # Workflow Analysis
+        workflow_stats = context.get('workflow_stats', {})
+        if workflow_stats:
+            analysis_parts.append(f"\nWorkflow Structure:")
+            analysis_parts.append(f"• Total Nodes: {workflow_stats.get('total_nodes', 0)}")
+            analysis_parts.append(f"• Execution Layers: {workflow_stats.get('execution_layers', 0)}")
+            analysis_parts.append(f"• Has Cycles: {'Yes' if workflow_stats.get('has_cycles') else 'No'}")
+            
+            node_states = workflow_stats.get('node_states', {})
+            if node_states:
+                analysis_parts.append("• Node State Distribution:")
+                for state, count in node_states.items():
+                    if count > 0:
+                        analysis_parts.append(f"  - {state.title()}: {count}")
+        
+        # Collection Analysis
+        collections = context.get('result_collections', [])
+        if collections:
+            analysis_parts.append(f"\nResult Collections ({len(collections)} collections):")
+            for collection in collections:
+                analysis_parts.append(f"• {collection.get('collection_type', 'unknown').title()}: {len(collection.get('artifact_ids', []))} artifacts")
+        
+        return "\n".join(analysis_parts)
+    
+    async def _generate_performance_summary(self, context: Dict[str, Any]) -> str:
+        """Generate performance analysis summary."""
+        performance_parts = []
+        
+        performance_parts.append("PERFORMANCE SUMMARY")
+        performance_parts.append("=" * 30)
+        
+        # Session Performance
+        performance = context.get('performance_metrics', {})
+        if performance:
+            performance_parts.append("\nSession Metrics:")
+            performance_parts.append(f"• Total Executions: {performance.get('total_executions', 0)}")
+            performance_parts.append(f"• Average Duration: {performance.get('avg_duration', 0):.2f} seconds")
+            performance_parts.append(f"• Success Rate: {performance.get('avg_success_rate', 0):.1%}")
+            performance_parts.append(f"• Average Complexity: {performance.get('avg_complexity', 0):.2f}")
+            
+            # Performance trends
+            trends = performance.get('performance_trends', [])
+            if len(trends) > 1:
+                latest_trend = trends[-1]
+                prev_trend = trends[-2]
+                
+                duration_change = latest_trend.get('avg_duration', 0) - prev_trend.get('avg_duration', 0)
+                success_change = latest_trend.get('success_rate', 0) - prev_trend.get('success_rate', 0)
+                
+                performance_parts.append("\nTrend Analysis:")
+                performance_parts.append(f"• Duration Trend: {'↑' if duration_change > 0 else '↓'} {abs(duration_change):.2f}s")
+                performance_parts.append(f"• Success Trend: {'↑' if success_change > 0 else '↓'} {abs(success_change):.1%}")
+        
+        # Resource Utilization
+        final_result = context.get('final_result', {})
+        if final_result.get('orchestration_metrics'):
+            metrics = final_result['orchestration_metrics']
+            performance_parts.append("\nResource Utilization:")
+            performance_parts.append(f"• Coordination Overhead: {metrics.get('coordination_time', 0):.2f} seconds")
+            performance_parts.append(f"• Parallel Efficiency: {metrics.get('parallelism_efficiency', 0):.1%}")
+            performance_parts.append(f"• Agent Utilization: {metrics.get('agent_utilization', 0):.1%}")
+        
+        return "\n".join(performance_parts)
+    
+    async def _generate_artifact_summary(self, context: Dict[str, Any]) -> str:
+        """Generate summary of artifacts produced."""
+        artifact_parts = []
+        
+        artifact_parts.append("ARTIFACT SUMMARY")
+        artifact_parts.append("=" * 25)
+        
+        artifacts = context.get('session_artifacts', [])
+        if artifacts:
+            # Group by type
+            type_groups = {}
+            total_size = 0
+            
+            for artifact in artifacts:
+                artifact_type = artifact.get('artifact_type', 'unknown')
+                if artifact_type not in type_groups:
+                    type_groups[artifact_type] = []
+                type_groups[artifact_type].append(artifact)
+                total_size += artifact.get('content_size', 0)
+            
+            artifact_parts.append(f"\nArtifact Overview:")
+            artifact_parts.append(f"• Total Artifacts: {len(artifacts)}")
+            artifact_parts.append(f"• Total Size: {total_size:,} bytes")
+            artifact_parts.append(f"• Artifact Types: {len(type_groups)}")
+            
+            artifact_parts.append(f"\nBy Type:")
+            for artifact_type, type_artifacts in type_groups.items():
+                type_size = sum(a.get('content_size', 0) for a in type_artifacts)
+                artifact_parts.append(f"• {artifact_type.replace('_', ' ').title()}:")
+                artifact_parts.append(f"  - Count: {len(type_artifacts)}")
+                artifact_parts.append(f"  - Size: {type_size:,} bytes")
+            
+            # Recent artifacts
+            recent_artifacts = sorted(artifacts, key=lambda x: x.get('created_at', ''), reverse=True)[:5]
+            if recent_artifacts:
+                artifact_parts.append(f"\nRecent Artifacts:")
+                for artifact in recent_artifacts:
+                    created_at = artifact.get('created_at', 'unknown')
+                    artifact_parts.append(f"• {artifact.get('artifact_type', 'unknown')} - {created_at}")
+        else:
+            artifact_parts.append("\nNo artifacts were generated in this session.")
+        
+        return "\n".join(artifact_parts)
+    
+    async def _generate_insights_and_recommendations(self, context: Dict[str, Any]) -> str:
+        """Generate insights and actionable recommendations."""
+        insights_parts = []
+        
+        insights_parts.append("INSIGHTS & RECOMMENDATIONS")
+        insights_parts.append("=" * 35)
+        
+        insights = []
+        recommendations = []
+        
+        # Performance insights
+        performance = context.get('performance_metrics', {})
+        if performance:
+            success_rate = performance.get('avg_success_rate', 0)
+            avg_duration = performance.get('avg_duration', 0)
+            complexity = performance.get('avg_complexity', 0)
+            
+            if success_rate < 0.8:
+                insights.append(f"Success rate ({success_rate:.1%}) indicates potential reliability issues")
+                recommendations.append("Review error patterns and implement additional error handling")
+            
+            if avg_duration > 30:
+                insights.append(f"Average duration ({avg_duration:.1f}s) suggests performance optimization opportunities")
+                recommendations.append("Consider parallel execution or caching strategies")
+            
+            if complexity > 0.7:
+                insights.append(f"High complexity tasks ({complexity:.1f}) may benefit from decomposition")
+                recommendations.append("Break down complex tasks into smaller, manageable components")
+        
+        # Workflow insights
+        workflow_stats = context.get('workflow_stats', {})
+        if workflow_stats:
+            if workflow_stats.get('has_cycles'):
+                insights.append("Workflow contains cycles, which may indicate dependency issues")
+                recommendations.append("Review task dependencies to eliminate circular references")
+            
+            execution_layers = workflow_stats.get('execution_layers', 0)
+            total_nodes = workflow_stats.get('total_nodes', 0)
+            if execution_layers > 0 and total_nodes / execution_layers > 5:
+                insights.append("High parallelization potential detected in workflow structure")
+                recommendations.append("Enable parallel execution to improve throughput")
+        
+        # Artifact insights
+        artifacts = context.get('session_artifacts', [])
+        if artifacts:
+            artifact_types = set(a.get('artifact_type', 'unknown') for a in artifacts)
+            if len(artifact_types) > 5:
+                insights.append(f"Diverse artifact types ({len(artifact_types)}) suggest comprehensive processing")
+                recommendations.append("Consider artifact categorization and automated organization")
+        
+        # Q&A insights
+        qa_history = context.get('qa_history', [])
+        if qa_history:
+            avg_confidence = sum(qa.get('confidence', 0) for qa in qa_history) / len(qa_history)
+            if avg_confidence < 0.7:
+                insights.append(f"Q&A confidence ({avg_confidence:.1%}) suggests knowledge gaps")
+                recommendations.append("Enhance domain knowledge base and contextual understanding")
+        
+        # Build output
+        if insights:
+            insights_parts.append("\nKey Insights:")
+            for i, insight in enumerate(insights, 1):
+                insights_parts.append(f"{i}. {insight}")
+        
+        if recommendations:
+            insights_parts.append("\nRecommendations:")
+            for i, recommendation in enumerate(recommendations, 1):
+                insights_parts.append(f"{i}. {recommendation}")
+        
+        if not insights and not recommendations:
+            insights_parts.append("\nNo specific insights or recommendations identified for this session.")
+            insights_parts.append("Performance appears to be within normal parameters.")
+        
+        return "\n".join(insights_parts)
+    
+    async def _extract_key_metrics(self, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Extract key performance metrics for dashboard display."""
+        metrics = {
+            'session_id': context['session_id'],
+            'domain': context['domain'],
+            'timestamp': context['timestamp']
+        }
+        
+        # Performance metrics
+        performance = context.get('performance_metrics', {})
+        metrics.update({
+            'total_executions': performance.get('total_executions', 0),
+            'avg_duration': performance.get('avg_duration', 0),
+            'success_rate': performance.get('avg_success_rate', 0),
+            'complexity_score': performance.get('avg_complexity', 0)
+        })
+        
+        # Artifact metrics
+        artifacts = context.get('session_artifacts', [])
+        metrics.update({
+            'total_artifacts': len(artifacts),
+            'total_artifact_size': sum(a.get('content_size', 0) for a in artifacts),
+            'artifact_types_count': len(set(a.get('artifact_type', 'unknown') for a in artifacts))
+        })
+        
+        # Workflow metrics
+        workflow_stats = context.get('workflow_stats', {})
+        metrics.update({
+            'workflow_nodes': workflow_stats.get('total_nodes', 0),
+            'execution_layers': workflow_stats.get('execution_layers', 0),
+            'has_cycles': workflow_stats.get('has_cycles', False)
+        })
+        
+        # Q&A metrics
+        qa_history = context.get('qa_history', [])
+        metrics.update({
+            'qa_interactions': len(qa_history),
+            'avg_qa_confidence': sum(qa.get('confidence', 0) for qa in qa_history) / len(qa_history) if qa_history else 0
+        })
+        
+        # Final result metrics
+        final_result = context.get('final_result', {})
+        if final_result.get('orchestration_metrics'):
+            orch_metrics = final_result['orchestration_metrics']
+            metrics.update({
+                'coordination_time': orch_metrics.get('coordination_time', 0),
+                'parallelism_efficiency': orch_metrics.get('parallelism_efficiency', 0),
+                'agent_utilization': orch_metrics.get('agent_utilization', 0)
+            })
+        
+        return metrics
+    
+    async def _generate_timeline_summary(self, context: Dict[str, Any]) -> str:
+        """Generate chronological timeline of session events."""
+        timeline_parts = []
+        
+        timeline_parts.append("SESSION TIMELINE")
+        timeline_parts.append("=" * 25)
+        
+        # Collect all timestamped events
+        events = []
+        
+        # Execution history events
+        execution_history = context.get('execution_history', [])
+        for event in execution_history:
+            events.append({
+                'timestamp': event.get('timestamp', ''),
+                'type': 'execution',
+                'description': f"{event.get('event_type', 'unknown').replace('_', ' ').title()}: {event.get('description', '')}"
+            })
+        
+        # Artifact creation events
+        artifacts = context.get('session_artifacts', [])
+        for artifact in artifacts:
+            events.append({
+                'timestamp': artifact.get('created_at', ''),
+                'type': 'artifact',
+                'description': f"Created {artifact.get('artifact_type', 'unknown').replace('_', ' ')} artifact"
+            })
+        
+        # Q&A events
+        qa_history = context.get('qa_history', [])
+        for qa in qa_history:
+            events.append({
+                'timestamp': qa.get('timestamp', ''),
+                'type': 'qa',
+                'description': f"Q&A: {qa.get('question', '')[:50]}{'...' if len(qa.get('question', '')) > 50 else ''}"
+            })
+        
+        # Sort events by timestamp
+        events.sort(key=lambda x: x['timestamp'])
+        
+        if events:
+            timeline_parts.append(f"\nChronological Events ({len(events)} total):")
+            
+            # Group events by time windows for readability
+            current_time_window = None
+            for event in events:
+                timestamp = event['timestamp']
+                if timestamp:
+                    try:
+                        # Extract hour:minute for grouping
+                        time_part = timestamp.split('T')[1][:5] if 'T' in timestamp else timestamp[:5]
+                        if time_part != current_time_window:
+                            timeline_parts.append(f"\n{time_part}:")
+                            current_time_window = time_part
+                        
+                        timeline_parts.append(f"  • [{event['type'].upper()}] {event['description']}")
+                    except Exception:
+                        timeline_parts.append(f"  • [{event['type'].upper()}] {event['description']}")
+        else:
+            timeline_parts.append("\nNo timestamped events found in session history.")
+        
+        return "\n".join(timeline_parts)
+    
+    async def _store_generated_summary(self, summary: Dict[str, Any]):
+        """Store the generated summary as an artifact."""
+        session_id = summary['session_id']
+        
+        # Store as artifact
+        await self.store_artifact(
+            content=summary,
+            artifact_type='enhanced_summary',
+            source_info={
+                'summary_type': 'comprehensive_session_summary',
+                'generation_method': 'enhanced_orchestrator_v2'
+            },
+            session_id=session_id,
+            tags=['summary', 'analytics', 'session_complete'],
+            metadata={
+                'summary_components': list(summary.keys()),
+                'generation_timestamp': summary['generated_at']
+            }
+        )
+        
+        # Store in summary history
+        if not hasattr(self, 'summary_history'):
+            self.summary_history = {}
+        
+        if session_id not in self.summary_history:
+            self.summary_history[session_id] = []
+        
+        self.summary_history[session_id].append({
+            'summary_id': summary['summary_id'],
+            'generated_at': summary['generated_at'],
+            'components': list(summary.keys())
+        })
+        
+        logger.info(f"Stored enhanced summary {summary['summary_id']} for session {session_id}")
+    
+    def _update_summary_analytics(self, summary: Dict[str, Any]):
+        """Update analytics about summary generation."""
+        if not hasattr(self, 'summary_analytics'):
+            self.summary_analytics = {
+                'total_summaries_generated': 0,
+                'summary_component_usage': {},
+                'avg_generation_frequency': 0,
+                'summary_quality_scores': []
+            }
+        
+        self.summary_analytics['total_summaries_generated'] += 1
+        
+        # Track component usage
+        for component in summary.keys():
+            if component not in ['summary_id', 'session_id', 'generated_at']:
+                component_usage = self.summary_analytics['summary_component_usage']
+                component_usage[component] = component_usage.get(component, 0) + 1
+        
+        # Estimate quality score based on completeness
+        expected_components = ['executive_summary', 'detailed_analysis', 'performance_summary', 
+                             'artifact_summary', 'insights_and_recommendations', 'key_metrics', 'timeline_summary']
+        
+        quality_score = len([c for c in expected_components if c in summary and summary[c]]) / len(expected_components)
+        self.summary_analytics['summary_quality_scores'].append(quality_score)
+        
+        # Keep only last 20 quality scores
+        if len(self.summary_analytics['summary_quality_scores']) > 20:
+            self.summary_analytics['summary_quality_scores'] = self.summary_analytics['summary_quality_scores'][-20:]
+        
+        # Add session context
+        context['session_context'] = self.session_contexts.get(session_id, {})
+        
+        # Add domain insights
+        context['domain_insights'] = self.get_domain_insights()
+        
+        # Add Q&A interactions
+        context['qa_interactions'] = [
+            qa for qa in self.qa_knowledge_base.values() 
+            if qa.get('session_id') == session_id
+        ]
+        
+        # Add workflow state if available
+        if self.dynamic_workflow:
+            context['workflow_stats'] = self.dynamic_workflow.get_workflow_stats()
+        
+        return context
+    
+    async def _generate_executive_summary(self, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Generate high-level executive summary."""
+        session_id = context['session_id']
+        execution_plan = context['execution_plan']
+        final_result = context['final_result']
+        performance_metrics = context.get('performance_metrics', {})
+        
+        # Extract key information
+        total_tasks = len(execution_plan.get('tasks', []))
+        coordination_strategy = execution_plan.get('coordination_strategy', 'sequential')
+        orchestration_summary = final_result.get('orchestration_summary', {})
+        
+        executive_summary = {
+            'overview': f"Executed {total_tasks} tasks using {coordination_strategy} coordination strategy in {self.domain_name} domain.",
+            'success_metrics': {
+                'total_tasks': total_tasks,
+                'completed_tasks': orchestration_summary.get('completed_tasks', 0),
+                'success_rate': orchestration_summary.get('success_rate', 0),
+                'coordination_efficiency': orchestration_summary.get('coordination_efficiency', 0)
+            },
+            'session_performance': {
+                'total_executions': performance_metrics.get('total_executions', 0),
+                'avg_success_rate': performance_metrics.get('avg_success_rate', 0),
+                'avg_duration': performance_metrics.get('avg_duration', 0)
+            },
+            'domain_context': self.domain_name,
+            'planning_approach': final_result.get('planning_summary', {}).get('planner_used', 'Unknown')
+        }
+        
+        # Add status assessment
+        success_rate = orchestration_summary.get('success_rate', 0)
+        if success_rate >= 0.9:
+            executive_summary['status_assessment'] = 'Excellent execution with high success rate'
+        elif success_rate >= 0.7:
+            executive_summary['status_assessment'] = 'Good execution with acceptable success rate'
+        else:
+            executive_summary['status_assessment'] = 'Execution completed with some challenges'
+        
+        return executive_summary
+    
+    async def _generate_detailed_analysis(self, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Generate detailed analysis of execution and results."""
+        execution_plan = context['execution_plan']
+        final_result = context['final_result']
+        session_artifacts = context['session_artifacts']
+        
+        detailed_analysis = {
+            'planning_analysis': {
+                'planning_mode': final_result.get('planning_summary', {}).get('planning_mode', 'unknown'),
+                'tasks_planned': len(execution_plan.get('tasks', [])),
+                'coordination_strategy': execution_plan.get('coordination_strategy', 'sequential'),
+                'risk_level': final_result.get('planning_summary', {}).get('risk_assessment', 'unknown')
+            },
+            'execution_analysis': self._analyze_execution_details(execution_plan, final_result),
+            'artifact_analysis': self._analyze_artifacts(session_artifacts),
+            'specialist_utilization': self._analyze_specialist_utilization(execution_plan, final_result),
+            'workflow_efficiency': self._analyze_workflow_efficiency(context)
+        }
+        
+        return detailed_analysis
+    
+    def _analyze_execution_details(self, execution_plan: Dict[str, Any], final_result: Dict[str, Any]) -> Dict[str, Any]:
+        """Analyze execution details and patterns."""
+        tasks = execution_plan.get('tasks', [])
+        orchestration_result = final_result.get('execution_results', {})
+        
+        # Analyze task complexity distribution
+        complexity_analysis = {}
+        if tasks:
+            complexity_scores = []
+            for task in tasks:
+                complexity = self._assess_execution_complexity([task])
+                complexity_scores.append(complexity)
+            
+            complexity_analysis = {
+                'avg_complexity': sum(complexity_scores) / len(complexity_scores),
+                'max_complexity': max(complexity_scores),
+                'min_complexity': min(complexity_scores),
+                'complexity_variance': self._calculate_variance(complexity_scores)
+            }
+        
+        return {
+            'coordination_strategy': execution_plan.get('coordination_strategy', 'sequential'),
+            'task_complexity_analysis': complexity_analysis,
+            'execution_metrics': orchestration_result.get('orchestration_metrics', {}),
+            'execution_duration': final_result.get('planning_summary', {}).get('execution_duration', 0)
+        }
+    
+    def _analyze_artifacts(self, artifacts: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Analyze collected artifacts for insights."""
+        if not artifacts:
+            return {'total_artifacts': 0, 'analysis': 'No artifacts collected'}
+        
+        # Categorize artifacts by type
+        artifact_types = {}
+        total_size = 0
+        
+        for artifact in artifacts:
+            artifact_type = artifact.get('artifact_type', 'unknown')
+            artifact_types[artifact_type] = artifact_types.get(artifact_type, 0) + 1
+            total_size += artifact.get('content_size', 0)
+        
+        # Find most valuable artifacts (by relationships)
+        highly_connected = [
+            artifact for artifact in artifacts 
+            if len(artifact.get('relationships', [])) > 2
+        ]
+        
+        return {
+            'total_artifacts': len(artifacts),
+            'type_distribution': artifact_types,
+            'total_size_bytes': total_size,
+            'avg_size_bytes': total_size / len(artifacts),
+            'highly_connected_artifacts': len(highly_connected),
+            'most_common_type': max(artifact_types.items(), key=lambda x: x[1])[0] if artifact_types else 'none'
+        }
+    
+    def _analyze_specialist_utilization(self, execution_plan: Dict[str, Any], final_result: Dict[str, Any]) -> Dict[str, Any]:
+        """Analyze how domain specialists were utilized."""
+        tasks = execution_plan.get('tasks', [])
+        specialist_assignments = execution_plan.get('orchestrator_metadata', {}).get('specialist_assignments', {})
+        
+        # Count specialist usage
+        specialist_usage = {}
+        for assignment in specialist_assignments.values():
+            specialist = assignment.get('specialist', 'unknown')
+            specialist_usage[specialist] = specialist_usage.get(specialist, 0) + 1
+        
+        # Analyze task-specialist matching
+        total_tasks = len(tasks)
+        specialized_tasks = len([task for task in tasks if task.get('agent_type') != 'generalist'])
+        
+        return {
+            'total_specialists_used': len(specialist_usage),
+            'specialist_distribution': specialist_usage,
+            'specialization_ratio': specialized_tasks / total_tasks if total_tasks > 0 else 0,
+            'most_utilized_specialist': max(specialist_usage.items(), key=lambda x: x[1])[0] if specialist_usage else 'none'
+        }
+    
+    def _analyze_workflow_efficiency(self, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Analyze workflow execution efficiency."""
+        workflow_stats = context.get('workflow_stats')
+        execution_plan = context['execution_plan']
+        
+        efficiency_analysis = {
+            'coordination_strategy': execution_plan.get('coordination_strategy', 'sequential'),
+            'parallel_potential': self._assess_parallel_potential(execution_plan),
+            'dependency_complexity': self._assess_dependency_complexity(execution_plan)
+        }
+        
+        if workflow_stats:
+            efficiency_analysis.update({
+                'workflow_state': workflow_stats.get('state', 'unknown'),
+                'execution_layers': workflow_stats.get('execution_layers', 0),
+                'has_cycles': workflow_stats.get('has_cycles', False)
+            })
+        
+        return efficiency_analysis
+    
+    def _assess_parallel_potential(self, execution_plan: Dict[str, Any]) -> float:
+        """Assess how much of the execution could have been parallelized."""
+        tasks = execution_plan.get('tasks', [])
+        if not tasks:
+            return 0.0
+        
+        independent_tasks = len([task for task in tasks if not task.get('dependencies', [])])
+        return independent_tasks / len(tasks)
+    
+    def _assess_dependency_complexity(self, execution_plan: Dict[str, Any]) -> Dict[str, Any]:
+        """Assess the complexity of task dependencies."""
+        tasks = execution_plan.get('tasks', [])
+        if not tasks:
+            return {'complexity': 'none', 'max_depth': 0}
+        
+        dependency_counts = [len(task.get('dependencies', [])) for task in tasks]
+        max_dependencies = max(dependency_counts) if dependency_counts else 0
+        avg_dependencies = sum(dependency_counts) / len(dependency_counts) if dependency_counts else 0
+        
+        complexity_level = 'low'
+        if max_dependencies > 3:
+            complexity_level = 'high'
+        elif max_dependencies > 1:
+            complexity_level = 'medium'
+        
+        return {
+            'complexity': complexity_level,
+            'max_dependencies': max_dependencies,
+            'avg_dependencies': avg_dependencies,
+            'total_dependencies': sum(dependency_counts)
+        }
+    
+    def _calculate_variance(self, values: List[float]) -> float:
+        """Calculate variance of a list of values."""
+        if not values:
+            return 0.0
+        
+        mean = sum(values) / len(values)
+        squared_diffs = [(x - mean) ** 2 for x in values]
+        return sum(squared_diffs) / len(squared_diffs)
+    
+    async def _generate_performance_summary(self, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Generate performance-focused summary."""
+        performance_metrics = context.get('performance_metrics', {})
+        execution_history = context.get('execution_history', [])
+        final_result = context['final_result']
+        
+        # Current execution performance
+        current_performance = {
+            'success_rate': final_result.get('orchestration_summary', {}).get('success_rate', 0),
+            'coordination_efficiency': final_result.get('orchestration_summary', {}).get('coordination_efficiency', 0),
+            'specialists_utilized': final_result.get('orchestration_summary', {}).get('specialists_utilized', 0)
+        }
+        
+        # Session performance trends
+        session_trends = {
+            'total_executions': performance_metrics.get('total_executions', 0),
+            'avg_success_rate': performance_metrics.get('avg_success_rate', 0),
+            'avg_duration': performance_metrics.get('avg_duration', 0),
+            'avg_complexity': performance_metrics.get('avg_complexity', 0)
+        }
+        
+        # Performance comparison
+        domain_insights = context.get('domain_insights', {})
+        comparison = {
+            'session_vs_domain_success': session_trends.get('avg_success_rate', 0) - domain_insights.get('avg_success_rate', 0),
+            'session_vs_domain_complexity': session_trends.get('avg_complexity', 0) - domain_insights.get('avg_complexity', 0)
+        }
+        
+        return {
+            'current_execution': current_performance,
+            'session_trends': session_trends,
+            'domain_comparison': comparison,
+            'performance_grade': self._calculate_performance_grade(session_trends),
+            'improvement_areas': self._identify_improvement_areas(session_trends, comparison)
+        }
+    
+    def _calculate_performance_grade(self, session_trends: Dict[str, Any]) -> str:
+        """Calculate overall performance grade."""
+        success_rate = session_trends.get('avg_success_rate', 0)
+        
+        if success_rate >= 0.95:
+            return 'A+ (Excellent)'
+        elif success_rate >= 0.9:
+            return 'A (Very Good)'
+        elif success_rate >= 0.8:
+            return 'B (Good)'
+        elif success_rate >= 0.7:
+            return 'C (Acceptable)'
+        else:
+            return 'D (Needs Improvement)'
+    
+    def _identify_improvement_areas(self, session_trends: Dict[str, Any], comparison: Dict[str, Any]) -> List[str]:
+        """Identify areas for performance improvement."""
+        improvements = []
+        
+        if session_trends.get('avg_success_rate', 0) < 0.8:
+            improvements.append('Task decomposition and planning optimization')
+        
+        if session_trends.get('avg_duration', 0) > 10.0:  # More than 10 seconds average
+            improvements.append('Execution speed optimization')
+        
+        if session_trends.get('avg_complexity', 0) > 0.8:
+            improvements.append('Complexity management and specialist utilization')
+        
+        if comparison.get('session_vs_domain_success', 0) < -0.1:  # 10% below domain average
+            improvements.append('Performance alignment with domain standards')
+        
+        return improvements or ['Performance is meeting expectations']
+    
+    async def _generate_artifact_summary(self, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Generate artifact-focused summary."""
+        session_artifacts = context['session_artifacts']
+        
+        if not session_artifacts:
+            return {
+                'total_artifacts': 0,
+                'summary': 'No artifacts were collected during this execution.'
+            }
+        
+        # Categorize artifacts
+        artifact_categories = {}
+        key_artifacts = []
+        
+        for artifact in session_artifacts:
+            category = artifact.get('artifact_type', 'unknown')
+            artifact_categories[category] = artifact_categories.get(category, 0) + 1
+            
+            # Identify key artifacts (with high relationship count)
+            if len(artifact.get('relationships', [])) > 1:
+                key_artifacts.append({
+                    'id': artifact.get('artifact_id'),
+                    'type': category,
+                    'source': artifact.get('source_info', {}).get('task_id', 'unknown'),
+                    'relationships': len(artifact.get('relationships', []))
+                })
+        
+        # Generate textual summary
+        summary_text = f"Generated {len(session_artifacts)} artifacts across {len(artifact_categories)} categories. "
+        if key_artifacts:
+            summary_text += f"Identified {len(key_artifacts)} key artifacts with significant relationships. "
+        
+        most_common_type = max(artifact_categories.items(), key=lambda x: x[1])[0]
+        summary_text += f"Most common artifact type: {most_common_type}."
+        
+        return {
+            'total_artifacts': len(session_artifacts),
+            'categories': artifact_categories,
+            'key_artifacts': key_artifacts[:5],  # Top 5 key artifacts
+            'summary': summary_text,
+            'coverage_analysis': self._analyze_artifact_coverage(session_artifacts)
+        }
+    
+    def _analyze_artifact_coverage(self, artifacts: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Analyze how well artifacts cover the execution."""
+        # Analyze by source tasks
+        task_coverage = {}
+        for artifact in artifacts:
+            task_id = artifact.get('source_info', {}).get('task_id', 'unknown')
+            task_coverage[task_id] = task_coverage.get(task_id, 0) + 1
+        
+        return {
+            'tasks_with_artifacts': len(task_coverage),
+            'avg_artifacts_per_task': sum(task_coverage.values()) / len(task_coverage) if task_coverage else 0,
+            'max_artifacts_per_task': max(task_coverage.values()) if task_coverage else 0
+        }
+    
+    async def _generate_insights_and_recommendations(self, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Generate insights and actionable recommendations."""
+        performance_metrics = context.get('performance_metrics', {})
+        domain_insights = context.get('domain_insights', {})
+        execution_plan = context['execution_plan']
+        
+        insights = []
+        recommendations = []
+        
+        # Performance insights
+        success_rate = performance_metrics.get('avg_success_rate', 0)
+        if success_rate > 0.9:
+            insights.append('Excellent execution performance with high success rates')
+        elif success_rate < 0.7:
+            insights.append('Performance below optimal levels, indicating potential issues')
+            recommendations.append('Review task decomposition strategy and specialist assignments')
+        
+        # Complexity insights
+        complexity = performance_metrics.get('avg_complexity', 0)
+        if complexity > 0.8:
+            insights.append('High complexity tasks are being handled regularly')
+            recommendations.append('Consider implementing task complexity reduction strategies')
+        
+        # Coordination insights
+        coordination_strategy = execution_plan.get('coordination_strategy', 'sequential')
+        if coordination_strategy == 'sequential' and self._assess_parallel_potential(execution_plan) > 0.5:
+            insights.append('Significant parallel execution potential detected')
+            recommendations.append('Consider using hybrid or parallel coordination for better performance')
+        
+        # Domain-specific insights
+        query_patterns = domain_insights.get('query_patterns', {})
+        if query_patterns:
+            most_common = max(query_patterns.items(), key=lambda x: x[1])[0]
+            insights.append(f'Most common query pattern in domain: {most_common}')
+            recommendations.append(f'Optimize templates and specialists for {most_common} workflows')
+        
+        return {
+            'key_insights': insights,
+            'actionable_recommendations': recommendations,
+            'optimization_opportunities': self._identify_optimization_opportunities(context),
+            'next_steps': self._suggest_next_steps(context)
+        }
+    
+    def _identify_optimization_opportunities(self, context: Dict[str, Any]) -> List[str]:
+        """Identify specific optimization opportunities."""
+        opportunities = []
+        
+        performance_metrics = context.get('performance_metrics', {})
+        execution_plan = context['execution_plan']
+        
+        # Parallel execution opportunity
+        if self._assess_parallel_potential(execution_plan) > 0.4:
+            opportunities.append('Enable parallel execution for independent tasks')
+        
+        # Specialist optimization
+        if performance_metrics.get('avg_success_rate', 0) < 0.85:
+            opportunities.append('Refine specialist assignments and task matching')
+        
+        # Planning optimization
+        if context.get('final_result', {}).get('planning_summary', {}).get('planning_mode') == 'simple':
+            opportunities.append('Upgrade to sophisticated planning mode for complex scenarios')
+        
+        return opportunities
+    
+    def _suggest_next_steps(self, context: Dict[str, Any]) -> List[str]:
+        """Suggest concrete next steps for improvement."""
+        next_steps = []
+        
+        # Based on performance
+        success_rate = context.get('performance_metrics', {}).get('avg_success_rate', 0)
+        if success_rate < 0.8:
+            next_steps.append('Conduct detailed error analysis to identify failure patterns')
+            next_steps.append('Review and optimize task decomposition strategies')
+        
+        # Based on artifacts
+        artifacts = context['session_artifacts']
+        if len(artifacts) < 3:
+            next_steps.append('Enhance artifact collection to improve result tracking')
+        
+        # Based on domain insights
+        qa_interactions = context.get('qa_interactions', [])
+        if len(qa_interactions) < 2:
+            next_steps.append('Engage with Q&A system to better understand capabilities')
+        
+        return next_steps or ['Continue monitoring performance and optimizing based on results']
+    
+    async def _extract_key_metrics(self, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Extract and organize key metrics."""
+        final_result = context['final_result']
+        performance_metrics = context.get('performance_metrics', {})
+        execution_plan = context['execution_plan']
+        
+        return {
+            'execution_metrics': {
+                'total_tasks': len(execution_plan.get('tasks', [])),
+                'success_rate': final_result.get('orchestration_summary', {}).get('success_rate', 0),
+                'coordination_efficiency': final_result.get('orchestration_summary', {}).get('coordination_efficiency', 0),
+                'execution_duration': performance_metrics.get('avg_duration', 0)
+            },
+            'session_metrics': {
+                'total_executions': performance_metrics.get('total_executions', 0),
+                'avg_success_rate': performance_metrics.get('avg_success_rate', 0),
+                'avg_complexity': performance_metrics.get('avg_complexity', 0),
+                'total_tasks_executed': performance_metrics.get('total_tasks_executed', 0)
+            },
+            'artifact_metrics': {
+                'total_artifacts': len(context['session_artifacts']),
+                'artifact_types': len(set(a.get('artifact_type') for a in context['session_artifacts'])),
+                'total_size': sum(a.get('content_size', 0) for a in context['session_artifacts'])
+            },
+            'domain_metrics': context.get('domain_insights', {})
+        }
+    
+    async def _generate_timeline_summary(self, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Generate timeline-based summary of execution."""
+        execution_history = context.get('execution_history', [])
+        session_context = context.get('session_context', {})
+        
+        timeline_events = []
+        
+        # Session start
+        session_start = session_context.get('session_start')
+        if session_start:
+            timeline_events.append({
+                'timestamp': session_start,
+                'event': 'Session started',
+                'type': 'session'
+            })
+        
+        # Execution events
+        for execution in execution_history:
+            timeline_events.append({
+                'timestamp': execution.get('timestamp'),
+                'event': f'Executed query: {execution.get("query", "Unknown")[:50]}...',
+                'type': 'execution',
+                'duration': execution.get('execution_duration', 0)
+            })
+        
+        # Sort by timestamp
+        timeline_events.sort(key=lambda x: x.get('timestamp', ''))
+        
+        # Calculate session duration
+        session_duration = None
+        if timeline_events and len(timeline_events) > 1:
+            try:
+                start_time = datetime.fromisoformat(timeline_events[0]['timestamp'])
+                end_time = datetime.fromisoformat(timeline_events[-1]['timestamp'])
+                session_duration = (end_time - start_time).total_seconds()
+            except Exception:
+                pass
+        
+        return {
+            'timeline_events': timeline_events[-10:],  # Last 10 events
+            'session_duration_seconds': session_duration,
+            'total_events': len(timeline_events),
+            'execution_frequency': len([e for e in timeline_events if e['type'] == 'execution'])
+        }
+    
+    async def _store_generated_summary(self, summary: Dict[str, Any]):
+        """Store generated summary for future reference."""
+        summary_id = summary['summary_id']
+        self.generated_summaries[summary_id] = summary
+        
+        # Keep only last 20 summaries to manage memory
+        if len(self.generated_summaries) > 20:
+            oldest_summary = min(self.generated_summaries.items(), key=lambda x: x[1]['generated_at'])
+            del self.generated_summaries[oldest_summary[0]]
+        
+        logger.debug(f"Stored generated summary {summary_id}")
+    
+    def _update_summary_analytics(self, summary: Dict[str, Any]):
+        """Update analytics on summary generation patterns."""
+        if 'summary_generation' not in self.summary_analytics:
+            self.summary_analytics['summary_generation'] = {
+                'total_generated': 0,
+                'avg_artifacts_per_summary': 0,
+                'common_insights': {}
+            }
+        
+        analytics = self.summary_analytics['summary_generation']
+        analytics['total_generated'] += 1
+        
+        # Track insights patterns
+        insights = summary.get('insights_and_recommendations', {}).get('key_insights', [])
+        for insight in insights:
+            common_insights = analytics['common_insights']
+            # Use first few words as insight key
+            insight_key = ' '.join(insight.split()[:5])
+            common_insights[insight_key] = common_insights.get(insight_key, 0) + 1
+    
+    async def generate_custom_summary(
+        self, 
+        session_id: str, 
+        summary_type: str = 'comprehensive',
+        focus_areas: List[str] = None,
+        include_artifacts: bool = True
+    ) -> Dict[str, Any]:
+        """Generate custom summary based on user preferences."""
+        try:
+            # Build context
+            final_result = {'orchestration_summary': {}, 'planning_summary': {}}
+            execution_plan = {'tasks': [], 'coordination_strategy': 'sequential'}
+            
+            context = await self._build_summary_context(session_id, final_result, execution_plan)
+            
+            summary = {
+                'summary_id': str(uuid.uuid4()),
+                'session_id': session_id,
+                'summary_type': summary_type,
+                'generated_at': datetime.now().isoformat(),
+                'focus_areas': focus_areas or ['all']
+            }
+            
+            # Generate based on type
+            if summary_type == 'executive':
+                summary['content'] = await self._generate_executive_summary(context)
+            elif summary_type == 'performance':
+                summary['content'] = await self._generate_performance_summary(context)
+            elif summary_type == 'artifacts':
+                summary['content'] = await self._generate_artifact_summary(context)
+            else:  # comprehensive
+                summary['content'] = {
+                    'executive': await self._generate_executive_summary(context),
+                    'performance': await self._generate_performance_summary(context),
+                    'insights': await self._generate_insights_and_recommendations(context)
+                }
+                if include_artifacts:
+                    summary['content']['artifacts'] = await self._generate_artifact_summary(context)
+            
+            await self._store_generated_summary(summary)
+            return summary
+            
+        except Exception as e:
+            logger.error(f"Error generating custom summary: {e}")
+            return {
+                'error': f"Failed to generate custom summary: {str(e)}",
+                'timestamp': datetime.now().isoformat()
+            }
+    
+    def get_summary_analytics(self) -> Dict[str, Any]:
+        """Get analytics about summary generation."""
+        return {
+            'total_summaries_generated': len(self.generated_summaries),
+            'summary_analytics': self.summary_analytics,
+            'recent_summaries': [
+                {
+                    'summary_id': summary['summary_id'],
+                    'session_id': summary['session_id'],
+                    'generated_at': summary['generated_at'],
+                    'type': summary.get('summary_type', 'enhanced')
+                }
+                for summary in sorted(self.generated_summaries.values(), key=lambda x: x['generated_at'], reverse=True)[:5]
+            ]
+        }
+    
     def get_paused_node_id(self) -> Optional[str]:
         """Get the ID of the paused node."""
         if self.dynamic_workflow:
@@ -3021,6 +4139,20 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
                 'Q&A interaction storage and similarity matching',
                 'Confidence scoring and source attribution for answers'
             ],
+            'enhanced_summary_generation_capabilities': [
+                'Comprehensive session summary generation from collected artifacts',
+                'Executive summary generation for leadership overview',
+                'Detailed technical analysis with execution insights',
+                'Performance summary with metrics and trend analysis',
+                'Artifact summary with categorization and organization',
+                'Insights and actionable recommendations extraction',
+                'Key metrics extraction for dashboard and reporting',
+                'Timeline summary with chronological event tracking',
+                'Multi-format summary output with rich analytics',
+                'Summary storage and historical tracking',
+                'Summary quality scoring and improvement analytics',
+                'Automated summary generation at session completion'
+            ],
             'backward_compatibility': 'Full API compatibility with original MasterOrchestratorTemplate',
             'enhanced_features': 'All capabilities enhanced via EnhancedGenericPlannerAgent integration',
             'phase_completion_status': {
@@ -3029,6 +4161,7 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
                 'phase_2_5_clear_state_management': True,
                 'phase_3_enhanced_state_management': True,
                 'phase_4_artifact_management': True,
-                'phase_5_intelligent_qa': True
+                'phase_5_intelligent_qa': True,
+                'phase_6_enhanced_summary_generation': True
             }
         }
