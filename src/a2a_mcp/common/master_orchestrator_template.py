@@ -43,6 +43,13 @@ from a2a_mcp.common.parallel_workflow import (
     ParallelWorkflowNode,
     Status
 )
+from a2a_mcp.common.enhanced_workflow import (
+    DynamicWorkflowGraph,
+    WorkflowNode, 
+    WorkflowState,
+    NodeState,
+    workflow_manager
+)
 
 # Google ADK imports
 from google.adk.agents import Agent
@@ -86,7 +93,8 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
         quality_thresholds: Optional[Dict[str, Any]] = None,
         planning_instructions: Optional[str] = None,
         synthesis_prompt: Optional[str] = None,
-        enable_parallel: bool = True
+        enable_parallel: bool = True,
+        enable_dynamic_workflow: bool = True
     ):
         """
         Initialize refactored Master Orchestrator that delegates planning to Enhanced Planner.
@@ -100,6 +108,7 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
             planning_instructions: Domain-specific planning instructions (optional)
             synthesis_prompt: Domain-specific synthesis prompt (optional)
             enable_parallel: Enable parallel execution of independent tasks
+            enable_dynamic_workflow: Enable dynamic workflow graph capabilities (Phase 1)
         """
         init_api_key()
         
@@ -122,6 +131,7 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
         self.domain_description = domain_description
         self.domain_specialists = domain_specialists
         self.enable_parallel = enable_parallel
+        self.enable_dynamic_workflow = enable_dynamic_workflow
         
         # Initialize Enhanced Planner Agent for all planning tasks
         planning_mode = 'sophisticated'  # Always use sophisticated mode for enterprise features
@@ -140,11 +150,23 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
         self.quality_framework = QualityThresholdFramework()
         self.quality_framework.configure_domain(quality_domain)
         
-        # Execution tracking
+        # Execution tracking (legacy)
         self.active_agents = {}
         self.execution_context = {}
         self.coordination_history = []
         self.workflow_graph = None
+        
+        # Enhanced workflow capabilities (Phase 1)
+        self.dynamic_workflow: Optional[DynamicWorkflowGraph] = None
+        self.current_session_id: Optional[str] = None
+        
+        # PHASE 2: Context & History Tracking
+        self.session_contexts: Dict[str, Dict[str, Any]] = {}  # session_id -> context data
+        self.execution_history: Dict[str, List[Dict[str, Any]]] = {}  # session_id -> execution records
+        self.domain_context: Dict[str, Any] = {}  # Persistent domain-specific context
+        self.context_evolution: List[Dict[str, Any]] = []  # Track context changes over time
+        self.query_patterns: Dict[str, int] = {}  # Track query patterns for intelligence
+        self.performance_metrics: Dict[str, Dict[str, Any]] = {}  # Track performance by session
         
         logger.info(f"Refactored {domain_name} Master Orchestrator initialized with Enhanced Planner")
 
@@ -161,6 +183,10 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
         """Main orchestration entry point - delegates planning to Enhanced Planner."""
         try:
             logger.info(f"Master orchestrator processing: {query[:100]}...")
+            
+            # PHASE 2: Initialize context and track query
+            self._initialize_session_context(sessionId, query)
+            execution_start = datetime.now()
             
             # Step 1: Delegate all planning to Enhanced Planner Agent
             plan_response = await self._get_strategic_plan(query, sessionId)
@@ -179,6 +205,16 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
             
             # Step 3: Synthesize final results
             final_result = await self._synthesize_results(orchestration_result, execution_plan, query)
+            
+            # PHASE 2: Record execution history and update context
+            self._record_execution_history(sessionId, {
+                'query': query,
+                'execution_plan': execution_plan,
+                'orchestration_result': orchestration_result,
+                'final_result': final_result,
+                'execution_duration': (datetime.now() - execution_start).total_seconds(),
+                'timestamp': execution_start.isoformat()
+            })
             
             return self._format_orchestrator_response(final_result)
             
@@ -288,6 +324,7 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
                     'orchestrator_type': 'master_template_refactored',
                     'domain': self.domain_name,
                     'parallel_enabled': self.enable_parallel,
+                    'dynamic_workflow_enabled': self.enable_dynamic_workflow,
                     'specialist_assignments': self._assign_specialists_to_tasks(plan_content.get('tasks', [])),
                     'coordination_strategy': plan_content.get('coordination_strategy', 'sequential')
                 }
@@ -579,6 +616,527 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
         """Format orchestrator response for consistency."""
         return json.dumps(result, indent=2)
 
+    # ============================================================================
+    # PHASE 1: Dynamic Workflow Graph Capabilities
+    # ============================================================================
+    
+    def _ensure_dynamic_workflow(self, session_id: str) -> DynamicWorkflowGraph:
+        """Ensure dynamic workflow exists for session."""
+        if not self.enable_dynamic_workflow:
+            logger.debug("Dynamic workflow disabled, using legacy workflow")
+            return None
+            
+        # Create new workflow if session changed or no workflow exists
+        if (self.current_session_id != session_id or 
+            self.dynamic_workflow is None):
+            
+            # Clean up previous session workflows if session changed
+            if (self.current_session_id and 
+                self.current_session_id != session_id):
+                self.clear_session_state()
+            
+            self.current_session_id = session_id
+            self.dynamic_workflow = workflow_manager.create_workflow(session_id)
+            logger.info(f"Created dynamic workflow {self.dynamic_workflow.workflow_id} for session {session_id}")
+        
+        return self.dynamic_workflow
+    
+    # ============================================================================
+    # PHASE 2: Context & History Tracking Methods
+    # ============================================================================
+    
+    def _initialize_session_context(self, session_id: str, query: str):
+        """Initialize or update session context with query information."""
+        if session_id not in self.session_contexts:
+            self.session_contexts[session_id] = {
+                'session_start': datetime.now().isoformat(),
+                'domain': self.domain_name,
+                'total_queries': 0,
+                'query_types': {},
+                'specialists_used': set(),
+                'performance_summary': {},
+                'context_version': 1
+            }
+        
+        # Update session context
+        context = self.session_contexts[session_id]
+        context['total_queries'] += 1
+        context['last_query'] = query
+        context['last_activity'] = datetime.now().isoformat()
+        
+        # Track query patterns
+        query_type = self._classify_query_type(query)
+        context['query_types'][query_type] = context['query_types'].get(query_type, 0) + 1
+        
+        # Update global query patterns
+        self.query_patterns[query_type] = self.query_patterns.get(query_type, 0) + 1
+        
+        logger.debug(f"Initialized context for session {session_id}, query type: {query_type}")
+    
+    def _classify_query_type(self, query: str) -> str:
+        """Classify query into categories for pattern tracking."""
+        query_lower = query.lower()
+        
+        # Domain-specific classification
+        if any(word in query_lower for word in ['analyze', 'analysis', 'report', 'summary']):
+            return 'analysis'
+        elif any(word in query_lower for word in ['create', 'build', 'generate', 'develop']):
+            return 'creation'
+        elif any(word in query_lower for word in ['plan', 'strategy', 'roadmap', 'organize']):
+            return 'planning'
+        elif any(word in query_lower for word in ['optimize', 'improve', 'enhance', 'better']):
+            return 'optimization'
+        elif any(word in query_lower for word in ['fix', 'solve', 'resolve', 'debug']):
+            return 'problem_solving'
+        elif any(word in query_lower for word in ['research', 'find', 'search', 'discover']):
+            return 'research'
+        else:
+            return 'general'
+    
+    def _record_execution_history(self, session_id: str, execution_record: Dict[str, Any]):
+        """Record detailed execution history for analysis and learning."""
+        if session_id not in self.execution_history:
+            self.execution_history[session_id] = []
+        
+        # Enhance record with context
+        enhanced_record = {
+            **execution_record,
+            'record_id': str(uuid.uuid4()),
+            'domain': self.domain_name,
+            'orchestrator_version': 'v2.0_refactored',
+            'planner_mode': self.planner.planning_mode,
+            'context_snapshot': self._get_context_snapshot(session_id)
+        }
+        
+        # Add performance metrics
+        plan_tasks = execution_record.get('execution_plan', {}).get('tasks', [])
+        enhanced_record['performance_metrics'] = {
+            'tasks_planned': len(plan_tasks),
+            'execution_duration': execution_record.get('execution_duration', 0),
+            'success_rate': self._calculate_success_rate(execution_record.get('orchestration_result', {})),
+            'complexity_score': self._assess_execution_complexity(plan_tasks)
+        }
+        
+        self.execution_history[session_id].append(enhanced_record)
+        
+        # Update session performance metrics
+        self._update_session_performance(session_id, enhanced_record)
+        
+        # Track context evolution
+        self._track_context_evolution(session_id, enhanced_record)
+        
+        logger.info(f"Recorded execution history for session {session_id}: {enhanced_record['record_id']}")
+    
+    def _get_context_snapshot(self, session_id: str) -> Dict[str, Any]:
+        """Get current context snapshot for historical record."""
+        return {
+            'session_context': self.session_contexts.get(session_id, {}),
+            'active_agents_count': len(self.active_agents),
+            'workflow_state': self.dynamic_workflow.state.value if self.dynamic_workflow else 'none',
+            'domain_context_keys': list(self.domain_context.keys()),
+            'timestamp': datetime.now().isoformat()
+        }
+    
+    def _calculate_success_rate(self, orchestration_result: Dict[str, Any]) -> float:
+        """Calculate success rate from orchestration results."""
+        metrics = orchestration_result.get('orchestration_metrics', {})
+        total_tasks = metrics.get('total_tasks', 1)
+        completed_tasks = metrics.get('completed_tasks', 0)
+        
+        return completed_tasks / total_tasks if total_tasks > 0 else 0.0
+    
+    def _assess_execution_complexity(self, tasks: List[Dict[str, Any]]) -> float:
+        """Assess execution complexity based on task characteristics."""
+        if not tasks:
+            return 0.0
+        
+        complexity_factors = {
+            'task_count': len(tasks),
+            'parallel_tasks': len([t for t in tasks if not t.get('dependencies', [])]),
+            'dependent_tasks': len([t for t in tasks if t.get('dependencies', [])]),
+            'specialist_diversity': len(set(t.get('agent_type', 'generic') for t in tasks))
+        }
+        
+        # Weighted complexity score
+        score = (
+            complexity_factors['task_count'] * 0.3 +
+            complexity_factors['parallel_tasks'] * 0.2 +
+            complexity_factors['dependent_tasks'] * 0.3 +
+            complexity_factors['specialist_diversity'] * 0.2
+        )
+        
+        return min(score / 10.0, 1.0)  # Normalize to 0-1 scale
+    
+    def get_session_context(self, session_id: str) -> Dict[str, Any]:
+        """Get complete session context for analysis or debugging."""
+        return {
+            'session_context': self.session_contexts.get(session_id, {}),
+            'execution_history': self.execution_history.get(session_id, []),
+            'performance_metrics': self.performance_metrics.get(session_id, {}),
+            'context_evolution': [
+                entry for entry in self.context_evolution 
+                if entry['session_id'] == session_id
+            ][-10:]  # Last 10 evolution entries
+        }
+    
+    def get_domain_insights(self) -> Dict[str, Any]:
+        """Get domain-wide insights from accumulated context and history."""
+        total_sessions = len(self.session_contexts)
+        total_executions = sum(
+            len(history) for history in self.execution_history.values()
+        )
+        
+        # Calculate domain-wide averages
+        all_performance = list(self.performance_metrics.values())
+        avg_success_rate = sum(p['avg_success_rate'] for p in all_performance) / len(all_performance) if all_performance else 0
+        avg_complexity = sum(p['avg_complexity'] for p in all_performance) / len(all_performance) if all_performance else 0
+        
+        return {
+            'domain': self.domain_name,
+            'total_sessions': total_sessions,
+            'total_executions': total_executions,
+            'query_patterns': self.query_patterns,
+            'avg_success_rate': avg_success_rate,
+            'avg_complexity': avg_complexity,
+            'most_common_query_type': max(self.query_patterns.items(), key=lambda x: x[1])[0] if self.query_patterns else 'none',
+            'performance_insights': self._generate_performance_insights()
+        }
+    
+    def _generate_performance_insights(self) -> List[str]:
+        """Generate actionable performance insights."""
+        insights = []
+        
+        if not self.performance_metrics:
+            return ['Insufficient data for performance analysis']
+        
+        # Analyze success rates
+        success_rates = [m['avg_success_rate'] for m in self.performance_metrics.values()]
+        avg_success = sum(success_rates) / len(success_rates)
+        
+        if avg_success < 0.8:
+            insights.append('Success rate below optimal threshold - consider task decomposition review')
+        elif avg_success > 0.95:
+            insights.append('Excellent success rate - current strategies are highly effective')
+        
+        # Analyze complexity trends
+        complexities = [m['avg_complexity'] for m in self.performance_metrics.values()]
+        avg_complexity = sum(complexities) / len(complexities)
+        
+        if avg_complexity > 0.7:
+            insights.append('High complexity tasks detected - consider specialist diversification')
+        
+        # Analyze query patterns
+        if self.query_patterns:
+            most_common = max(self.query_patterns.items(), key=lambda x: x[1])
+            insights.append(f'Most common query pattern: {most_common[0]} ({most_common[1]} occurrences)')
+        
+        return insights
+    
+    def _update_session_performance(self, session_id: str, execution_record: Dict[str, Any]):
+        """Update session-level performance metrics."""
+        if session_id not in self.performance_metrics:
+            self.performance_metrics[session_id] = {
+                'total_executions': 0,
+                'avg_duration': 0.0,
+                'avg_success_rate': 0.0,
+                'avg_complexity': 0.0,
+                'total_tasks_executed': 0,
+                'performance_trend': []
+            }
+        
+        metrics = self.performance_metrics[session_id]
+        perf = execution_record['performance_metrics']
+        
+        # Update aggregated metrics
+        metrics['total_executions'] += 1
+        n = metrics['total_executions']
+        
+        # Running averages
+        metrics['avg_duration'] = ((metrics['avg_duration'] * (n-1)) + perf['execution_duration']) / n
+        metrics['avg_success_rate'] = ((metrics['avg_success_rate'] * (n-1)) + perf['success_rate']) / n
+        metrics['avg_complexity'] = ((metrics['avg_complexity'] * (n-1)) + perf['complexity_score']) / n
+        metrics['total_tasks_executed'] += perf['tasks_planned']
+        
+        # Track performance trend
+        metrics['performance_trend'].append({
+            'timestamp': execution_record['timestamp'],
+            'duration': perf['execution_duration'],
+            'success_rate': perf['success_rate'],
+            'complexity': perf['complexity_score']
+        })
+        
+        # Keep only last 50 trend points to avoid memory bloat
+        if len(metrics['performance_trend']) > 50:
+            metrics['performance_trend'] = metrics['performance_trend'][-50:]
+    
+    def _track_context_evolution(self, session_id: str, execution_record: Dict[str, Any]):
+        """Track how context evolves over time."""
+        evolution_entry = {
+            'session_id': session_id,
+            'timestamp': execution_record['timestamp'],
+            'query_type': self._classify_query_type(execution_record['query']),
+            'complexity_change': self._detect_complexity_change(session_id, execution_record),
+            'new_patterns': self._detect_new_patterns(execution_record),
+            'context_version': self.session_contexts[session_id]['context_version']
+        }
+        
+        self.context_evolution.append(evolution_entry)
+        
+        # Keep only last 100 evolution entries
+        if len(self.context_evolution) > 100:
+            self.context_evolution = self.context_evolution[-100:]
+    
+    def _detect_complexity_change(self, session_id: str, execution_record: Dict[str, Any]) -> str:
+        """Detect if execution complexity is trending up, down, or stable."""
+        if session_id not in self.performance_metrics:
+            return 'initial'
+        
+        current_complexity = execution_record['performance_metrics']['complexity_score']
+        avg_complexity = self.performance_metrics[session_id]['avg_complexity']
+        
+        if current_complexity > avg_complexity * 1.2:
+            return 'increasing'
+        elif current_complexity < avg_complexity * 0.8:
+            return 'decreasing'
+        else:
+            return 'stable'
+    
+    def _detect_new_patterns(self, execution_record: Dict[str, Any]) -> List[str]:
+        """Detect new patterns in execution that might indicate context shift."""
+        patterns = []
+        
+        # Check for new specialist types
+        plan_tasks = execution_record.get('execution_plan', {}).get('tasks', [])
+        specialist_types = set(t.get('agent_type', 'generic') for t in plan_tasks)
+        
+        for specialist in specialist_types:
+            if specialist not in self.domain_specialists:
+                patterns.append(f'new_specialist:{specialist}')
+        
+        # Check for coordination strategy changes
+        coord_strategy = execution_record.get('execution_plan', {}).get('coordination_strategy', 'sequential')
+        if coord_strategy != 'sequential':  # Default strategy
+            patterns.append(f'coordination:{coord_strategy}')
+        
+        # Check for execution duration anomalies
+        duration = execution_record.get('execution_duration', 0)
+        if duration > 30:  # Longer than 30 seconds
+            patterns.append('long_execution')
+        
+        return patterns
+    
+    def add_graph_node(
+        self,
+        task_id: str,
+        context_id: str, 
+        query: str,
+        node_id: Optional[str] = None,
+        node_key: Optional[str] = None,
+        node_label: Optional[str] = None
+    ) -> Optional[WorkflowNode]:
+        """
+        Add a node to the dynamic workflow graph.
+        
+        Args:
+            task_id: Task identifier
+            context_id: Context identifier (session ID)
+            query: Task query/description
+            node_id: Parent node ID to connect to (optional)
+            node_key: Node type key (optional)
+            node_label: Human-readable label (optional)
+            
+        Returns:
+            Created WorkflowNode or None if dynamic workflow disabled
+        """
+        workflow = self._ensure_dynamic_workflow(context_id)
+        if not workflow:
+            return None
+            
+        # Create new workflow node
+        node = WorkflowNode(
+            task=query,
+            node_key=node_key,
+            node_label=node_label or f"{self.domain_name} Task"
+        )
+        
+        # Add metadata
+        node.set_attributes({
+            'task_id': task_id,
+            'context_id': context_id,
+            'domain': self.domain_name,
+            'orchestrator_type': 'master_template_refactored'
+        })
+        
+        # Add to workflow
+        workflow.add_node(node)
+        
+        # Add edge if parent specified
+        if node_id and node_id in workflow.nodes:
+            workflow.add_edge(node_id, node.id)
+        
+        logger.info(f"Added workflow node {node.id} ({node_key}) to {workflow.workflow_id}")
+        return node
+    
+    def set_node_attributes(
+        self, 
+        node_id: str, 
+        task_id: Optional[str] = None,
+        context_id: Optional[str] = None, 
+        query: Optional[str] = None,
+        **additional_attrs
+    ):
+        """
+        Set attributes on a workflow node.
+        
+        Args:
+            node_id: Target node ID
+            task_id: Task ID to set (optional)
+            context_id: Context ID to set (optional)
+            query: Query to update (optional)
+            **additional_attrs: Additional attributes to set
+        """
+        if not self.dynamic_workflow:
+            logger.debug("No dynamic workflow available for setting node attributes")
+            return
+            
+        attributes = {}
+        if task_id:
+            attributes['task_id'] = task_id
+        if context_id:
+            attributes['context_id'] = context_id
+        if query:
+            # Update node task as well
+            node = self.dynamic_workflow.get_node(node_id)
+            if node:
+                node.task = query
+        
+        attributes.update(additional_attrs)
+        
+        if attributes:
+            self.dynamic_workflow.set_node_attributes(node_id, attributes)
+    
+    def get_workflow_stats(self) -> Dict[str, Any]:
+        """Get current workflow statistics."""
+        if not self.dynamic_workflow:
+            return {'dynamic_workflow_enabled': False}
+            
+        stats = self.dynamic_workflow.get_workflow_stats()
+        stats['dynamic_workflow_enabled'] = True
+        stats['domain'] = self.domain_name
+        return stats
+    
+    def clear_session_state(self):
+        """Clear state for session transitions."""
+        if self.current_session_id:
+            workflow_manager.cleanup_session(self.current_session_id)
+            logger.info(f"Cleared session state for {self.current_session_id}")
+        
+        # Reset instance state
+        self.dynamic_workflow = None
+        self.current_session_id = None
+        self.active_agents.clear()
+        self.execution_context.clear()
+        self.coordination_history.clear()
+        self.workflow_graph = None
+    
+    def pause_workflow(self, paused_node_id: Optional[str] = None):
+        """Pause the current workflow."""
+        if self.dynamic_workflow:
+            self.dynamic_workflow.pause_workflow(paused_node_id)
+            logger.info(f"Paused workflow at node {paused_node_id}")
+    
+    def resume_workflow(self):
+        """Resume the current workflow."""
+        if self.dynamic_workflow:
+            self.dynamic_workflow.resume_workflow()
+            logger.info("Resumed workflow execution")
+    
+    def get_paused_node_id(self) -> Optional[str]:
+        """Get the ID of the paused node."""
+        if self.dynamic_workflow:
+            return self.dynamic_workflow.paused_node_id
+        return None
+    
+    def is_workflow_paused(self) -> bool:
+        """Check if workflow is currently paused."""
+        if self.dynamic_workflow:
+            return self.dynamic_workflow.state == WorkflowState.PAUSED
+        return False
+    
+    def get_executable_nodes(self) -> List[WorkflowNode]:
+        """Get nodes that can be executed now."""
+        if self.dynamic_workflow:
+            return self.dynamic_workflow.get_executable_nodes()
+        return []
+    
+    def _build_workflow_from_plan(self, execution_plan: Dict[str, Any], session_id: str) -> Optional[str]:
+        """
+        Build dynamic workflow graph from execution plan.
+        
+        Args:
+            execution_plan: Plan from Enhanced Planner Agent
+            session_id: Session identifier
+            
+        Returns:
+            Starting node ID or None if dynamic workflow disabled
+        """
+        workflow = self._ensure_dynamic_workflow(session_id)
+        if not workflow:
+            return None
+            
+        tasks = execution_plan.get('tasks', [])
+        if not tasks:
+            logger.warning("No tasks in execution plan for workflow building")
+            return None
+        
+        # Start workflow execution
+        workflow.start_workflow()
+        
+        # Create planner node as root
+        planner_node = self.add_graph_node(
+            task_id="planner",
+            context_id=session_id,
+            query="Strategic planning and task decomposition",
+            node_key="planner",
+            node_label="Strategic Planner"
+        )
+        
+        if not planner_node:
+            return None
+            
+        # Mark planner as completed since we have the plan
+        planner_node.complete_execution(execution_plan)
+        
+        # Add task nodes based on coordination strategy
+        coordination_strategy = execution_plan.get('coordination_strategy', 'sequential')
+        current_node_id = planner_node.id
+        
+        for idx, task in enumerate(tasks):
+            task_node = self.add_graph_node(
+                task_id=task.get('id', f"task_{idx}"),
+                context_id=session_id,
+                query=task.get('description', f"Execute task {idx + 1}"),
+                node_id=current_node_id if coordination_strategy == 'sequential' else planner_node.id,
+                node_key=task.get('specialist_type', 'generic'),
+                node_label=task.get('title', f"Task {idx + 1}")
+            )
+            
+            if task_node:
+                # Add task-specific metadata
+                task_node.set_attributes({
+                    'task_data': task,
+                    'specialist_type': task.get('specialist_type'),
+                    'priority': task.get('priority', 'medium'),
+                    'estimated_duration': task.get('estimated_duration')
+                })
+                
+                # Update current node for sequential chaining
+                if coordination_strategy == 'sequential':
+                    current_node_id = task_node.id
+        
+        logger.info(f"Built dynamic workflow with {len(tasks)} task nodes, strategy: {coordination_strategy}")
+        return planner_node.id
+
     def get_orchestrator_capabilities(self) -> dict:
         """Get comprehensive orchestrator capabilities."""
         return {
@@ -609,6 +1167,33 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
                 'Performance monitoring and metrics',
                 'Health checking and diagnostics'
             ],
+            'dynamic_workflow_capabilities': [
+                'Dynamic graph building with nodes and edges',
+                'Task metadata and execution tracking', 
+                'State management (RUNNING, PAUSED, COMPLETED)',
+                'Node attribute management for orchestration',
+                'Workflow pause and resume functionality',
+                'Session-based workflow isolation',
+                'Dependency resolution and execution ordering',
+                'Integration with Enhanced Planner Agent'
+            ] if self.enable_dynamic_workflow else [],
+            'context_history_capabilities': [
+                'Session-based context tracking and management',
+                'Query pattern recognition and classification',
+                'Execution history recording with rich metadata',
+                'Performance metrics tracking and analysis',
+                'Context evolution monitoring and trend analysis',
+                'Domain-wide insights and performance optimization',
+                'Context snapshots for historical analysis',
+                'Complexity change detection and alerting',
+                'Pattern-based intelligence for future planning'
+            ],
             'backward_compatibility': 'Full API compatibility with original MasterOrchestratorTemplate',
-            'enhanced_features': 'All capabilities enhanced via EnhancedGenericPlannerAgent integration'
+            'enhanced_features': 'All capabilities enhanced via EnhancedGenericPlannerAgent integration',
+            'phase_completion_status': {
+                'phase_1_dynamic_workflow': True,
+                'phase_2_context_history': True,
+                'phase_3_state_management': False,
+                'phase_4_artifact_management': False
+            }
         }
