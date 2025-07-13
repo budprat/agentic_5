@@ -60,7 +60,7 @@ def main():
     try:
         # Import required libraries
         import vertexai
-        from vertexai import rag
+        from vertexai.preview import rag  # Use preview.rag
         from google import genai
         from google.genai.types import (
             GenerateContentConfig, 
@@ -85,41 +85,40 @@ def main():
         rag_corpus = rag.create_corpus(
             display_name=RAG_CORPUS_DISPLAY_NAME,
             description=f"Codebase files from {GITHUB_URL}",
-            backend_config=rag.RagVectorDbConfig(
-                rag_embedding_model_config=rag.RagEmbeddingModelConfig(
-                    vertex_prediction_endpoint=rag.VertexPredictionEndpoint(
-                        publisher_model=f"publishers/google/models/{EMBEDDING_MODEL}"
-                    )
-                )
-            )
         )
         log(f"Created corpus: {rag_corpus.display_name}")
         log(f"Corpus resource name: {rag_corpus.name}")
         
-        # Step 2: Import files from GCS
+        # Step 2: Import files from GCS with lower QPM to avoid quota issues
         log(f"Importing files from {GCS_IMPORT_URI}...")
-        import_response = rag.import_files(
-            corpus_name=rag_corpus.name,
-            paths=[GCS_IMPORT_URI],
-            transformation_config=rag.TransformationConfig(
-                chunking_config=rag.ChunkingConfig(
-                    chunk_size=CHUNK_SIZE,
-                    chunk_overlap=CHUNK_OVERLAP
-                )
-            ),
-        )
-        log("File import initiated. This may take several minutes...")
+        log("Note: Using lower embedding rate to avoid quota limits")
         
-        # Wait for import to complete (optional - can be async)
-        # In production, you might want to check the operation status
-        time.sleep(30)  # Brief wait before first query
+        try:
+            import_response = rag.import_files(
+                corpus_name=rag_corpus.name,
+                paths=[GCS_IMPORT_URI],
+                chunk_size=CHUNK_SIZE,
+                chunk_overlap=CHUNK_OVERLAP,
+                max_embedding_requests_per_min=100,  # Lower QPM to avoid quota
+            )
+            log("File import initiated. This may take several minutes...")
+            
+            # Wait for import to complete (optional - can be async)
+            log("Waiting for initial file processing...")
+            time.sleep(60)  # Wait 1 minute before first query
+            
+        except Exception as e:
+            log(f"Import error (may be quota-related): {str(e)}")
+            log("The corpus was created successfully. Files may still be importing in the background.")
         
         # Step 3: Create retrieval tool
         log("Creating retrieval tool...")
         rag_retrieval_tool = Tool(
             retrieval=Retrieval(
                 vertex_rag_store=VertexRagStore(
-                    rag_corpora=[rag_corpus.name],
+                    rag_resources=[{
+                        "rag_corpus": rag_corpus.name
+                    }],
                     similarity_top_k=10,
                     vector_distance_threshold=0.5,
                 )
@@ -130,16 +129,20 @@ def main():
         log("Testing RAG with a sample query...")
         test_query = "What is the primary purpose or main functionality of this codebase?"
         
-        response = client.models.generate_content(
-            model=MODEL_ID,
-            contents=test_query,
-            config=GenerateContentConfig(tools=[rag_retrieval_tool]),
-        )
-        
-        log("Query Response:")
-        print("-" * 80)
-        print(response.text)
-        print("-" * 80)
+        try:
+            response = client.models.generate_content(
+                model=MODEL_ID,
+                contents=test_query,
+                config=GenerateContentConfig(tools=[rag_retrieval_tool]),
+            )
+            
+            log("Query Response:")
+            print("-" * 80)
+            print(response.text)
+            print("-" * 80)
+        except Exception as e:
+            log(f"Query test error: {str(e)}")
+            log("This is normal if files are still being imported. Try again later.")
         
         # Generate Vertex AI Studio link
         encoded_corpus_name = rag_corpus.name.replace("/", "%2F")
@@ -172,6 +175,47 @@ def main():
             json.dump(config_data, f, indent=2)
         
         log("Configuration saved to rag_config.json")
+        
+        # Create a test script for later use
+        test_script = f'''#!/usr/bin/env python3
+# Test script for RAG corpus created at {datetime.now().isoformat()}
+
+import vertexai
+from google import genai
+from google.genai.types import GenerateContentConfig, Retrieval, Tool, VertexRagStore
+
+# Initialize
+vertexai.init(project="{PROJECT_ID}", location="{LOCATION}")
+client = genai.Client(vertexai=True, project="{PROJECT_ID}", location="{LOCATION}")
+
+# Create retrieval tool
+rag_retrieval_tool = Tool(
+    retrieval=Retrieval(
+        vertex_rag_store=VertexRagStore(
+            rag_resources=[{{"rag_corpus": "{rag_corpus.name}"}}],
+            similarity_top_k=10,
+            vector_distance_threshold=0.5,
+        )
+    )
+)
+
+# Test query
+query = input("Enter your question about the codebase: ")
+response = client.models.generate_content(
+    model="{MODEL_ID}",
+    contents=query,
+    config=GenerateContentConfig(tools=[rag_retrieval_tool]),
+)
+
+print("\\nResponse:")
+print(response.text)
+'''
+        
+        with open("test_rag_query.py", "w") as f:
+            f.write(test_script)
+        os.chmod("test_rag_query.py", 0o755)
+        
+        log("Created test_rag_query.py for future queries")
         
     except Exception as e:
         log(f"Error: {str(e)}")
