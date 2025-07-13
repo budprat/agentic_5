@@ -168,6 +168,10 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
         self.query_patterns: Dict[str, int] = {}  # Track query patterns for intelligence
         self.performance_metrics: Dict[str, Dict[str, Any]] = {}  # Track performance by session
         
+        # PHASE 2.5: Clear State Management
+        self.domain_specialist_usage: Dict[str, int] = {}  # Track specialist usage patterns
+        self.archived_sessions: Dict[str, Dict[str, Any]] = {}  # Archived session summaries
+        
         logger.info(f"Refactored {domain_name} Master Orchestrator initialized with Enhanced Planner")
 
     def _get_default_quality_thresholds(self, quality_domain: QualityDomain) -> Dict[str, Any]:
@@ -184,9 +188,16 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
         try:
             logger.info(f"Master orchestrator processing: {query[:100]}...")
             
+            # PHASE 2.5: Auto-clear context if significant change detected
+            context_cleared = self.auto_clear_on_context_change(query, sessionId)
+            
             # PHASE 2: Initialize context and track query
             self._initialize_session_context(sessionId, query)
             execution_start = datetime.now()
+            
+            # Log context change detection
+            if context_cleared:
+                logger.info(f"Context auto-cleared for session {sessionId} before processing query")
             
             # Step 1: Delegate all planning to Enhanced Planner Agent
             plan_response = await self._get_strategic_plan(query, sessionId)
@@ -1025,19 +1036,266 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
         stats['domain'] = self.domain_name
         return stats
     
-    def clear_session_state(self):
-        """Clear state for session transitions."""
-        if self.current_session_id:
-            workflow_manager.cleanup_session(self.current_session_id)
-            logger.info(f"Cleared session state for {self.current_session_id}")
+    def clear_session_state(self, session_id: Optional[str] = None, preserve_domain_context: bool = True):
+        """Enhanced clear state for session transitions - PHASE 2.5 implementation.
         
-        # Reset instance state
-        self.dynamic_workflow = None
-        self.current_session_id = None
-        self.active_agents.clear()
-        self.execution_context.clear()
-        self.coordination_history.clear()
-        self.workflow_graph = None
+        Args:
+            session_id: Specific session to clear (if None, clears current session)
+            preserve_domain_context: Whether to preserve domain-wide learning context
+        """
+        target_session = session_id or self.current_session_id
+        
+        if target_session:
+            # PHASE 2.5: Intelligent context preservation before clearing
+            self._preserve_valuable_context(target_session, preserve_domain_context)
+            
+            # Clean up workflow manager
+            workflow_manager.cleanup_session(target_session)
+            
+            # PHASE 2.5: Clear PHASE 2 context & history data
+            self._clear_phase2_context_data(target_session)
+            
+            logger.info(f"Enhanced session state clearing completed for {target_session}")
+        
+        # Reset instance state (only if clearing current session)
+        if not session_id or session_id == self.current_session_id:
+            self.dynamic_workflow = None
+            self.current_session_id = None
+            self.active_agents.clear()
+            self.execution_context.clear()
+            self.coordination_history.clear()
+            self.workflow_graph = None
+            
+            # Reset planner state if needed
+            if hasattr(self.planner, 'clear_session_context'):
+                self.planner.clear_session_context(target_session)
+    
+    # ============================================================================
+    # PHASE 2.5: Clear State Management - Context Change Detection & Auto-Clear
+    # ============================================================================
+    
+    def _preserve_valuable_context(self, session_id: str, preserve_domain_context: bool):
+        """Preserve valuable context before clearing session state."""
+        if session_id in self.session_contexts:
+            session_context = self.session_contexts[session_id]
+            
+            # Extract valuable patterns for domain learning
+            if preserve_domain_context:
+                self._extract_domain_learnings(session_context, session_id)
+            
+            # Archive session summary for future reference
+            self._archive_session_summary(session_id, session_context)
+    
+    def _clear_phase2_context_data(self, session_id: str):
+        """Clear PHASE 2 context and history data for specific session."""
+        # Clear session-specific data
+        if session_id in self.session_contexts:
+            del self.session_contexts[session_id]
+        
+        if session_id in self.execution_history:
+            del self.execution_history[session_id]
+        
+        if session_id in self.performance_metrics:
+            del self.performance_metrics[session_id]
+        
+        # Remove session-specific context evolution entries
+        self.context_evolution = [
+            entry for entry in self.context_evolution 
+            if entry['session_id'] != session_id
+        ]
+        
+        logger.debug(f"Cleared PHASE 2 context data for session {session_id}")
+    
+    def _extract_domain_learnings(self, session_context: Dict[str, Any], session_id: str):
+        """Extract valuable learnings to preserve in domain context."""
+        # Extract query patterns for domain intelligence
+        query_types = session_context.get('query_types', {})
+        for query_type, count in query_types.items():
+            self.query_patterns[query_type] = self.query_patterns.get(query_type, 0) + count
+        
+        # Extract specialist usage patterns
+        specialists_used = session_context.get('specialists_used', set())
+        if not hasattr(self, 'domain_specialist_usage'):
+            self.domain_specialist_usage = {}
+        
+        for specialist in specialists_used:
+            self.domain_specialist_usage[specialist] = self.domain_specialist_usage.get(specialist, 0) + 1
+        
+        # Store high-level performance insights in domain context
+        if session_id in self.performance_metrics:
+            perf = self.performance_metrics[session_id]
+            if perf['avg_success_rate'] > 0.9:  # High-performing sessions
+                if 'high_performance_patterns' not in self.domain_context:
+                    self.domain_context['high_performance_patterns'] = []
+                
+                self.domain_context['high_performance_patterns'].append({
+                    'session_type': session_context.get('query_types', {}),
+                    'success_rate': perf['avg_success_rate'],
+                    'avg_complexity': perf['avg_complexity'],
+                    'timestamp': datetime.now().isoformat()
+                })
+        
+        logger.debug(f"Extracted domain learnings from session {session_id}")
+    
+    def _archive_session_summary(self, session_id: str, session_context: Dict[str, Any]):
+        """Archive session summary for potential future reference."""
+        if not hasattr(self, 'archived_sessions'):
+            self.archived_sessions = {}
+        
+        # Keep only essential summary to avoid memory bloat
+        summary = {
+            'session_start': session_context.get('session_start'),
+            'total_queries': session_context.get('total_queries', 0),
+            'dominant_query_type': max(session_context.get('query_types', {}).items(), key=lambda x: x[1])[0] if session_context.get('query_types') else 'unknown',
+            'archived_at': datetime.now().isoformat()
+        }
+        
+        self.archived_sessions[session_id] = summary
+        
+        # Keep only last 20 archived sessions to prevent memory issues
+        if len(self.archived_sessions) > 20:
+            oldest_sessions = sorted(self.archived_sessions.items(), key=lambda x: x[1]['archived_at'])[:5]
+            for old_session_id, _ in oldest_sessions:
+                del self.archived_sessions[old_session_id]
+    
+    def detect_context_change(self, current_query: str, session_id: str) -> Dict[str, Any]:
+        """Detect if current query represents a significant context change."""
+        if session_id not in self.session_contexts:
+            return {'context_change': False, 'reason': 'new_session'}
+        
+        session_context = self.session_contexts[session_id]
+        current_query_type = self._classify_query_type(current_query)
+        
+        # Analyze context change indicators
+        change_indicators = []
+        
+        # 1. Query type shift detection
+        query_types = session_context.get('query_types', {})
+        if query_types:
+            dominant_type = max(query_types.items(), key=lambda x: x[1])[0]
+            if current_query_type != dominant_type and query_types.get(current_query_type, 0) == 0:
+                change_indicators.append('query_type_shift')
+        
+        # 2. Domain terminology shift detection
+        last_query = session_context.get('last_query', '')
+        if self._detect_domain_shift(current_query, last_query):
+            change_indicators.append('domain_terminology_shift')
+        
+        # 3. Complexity shift detection
+        if session_id in self.performance_metrics:
+            recent_complexity = self.performance_metrics[session_id].get('avg_complexity', 0)
+            current_complexity = self._estimate_query_complexity(current_query)
+            if abs(current_complexity - recent_complexity) > 0.4:  # Significant complexity change
+                change_indicators.append('complexity_shift')
+        
+        # 4. Time gap detection
+        last_activity = session_context.get('last_activity')
+        if last_activity:
+            time_gap = (datetime.now() - datetime.fromisoformat(last_activity)).total_seconds()
+            if time_gap > 1800:  # More than 30 minutes
+                change_indicators.append('time_gap')
+        
+        # Determine if context change is significant enough to trigger clear
+        significant_change = len(change_indicators) >= 2 or 'domain_terminology_shift' in change_indicators
+        
+        return {
+            'context_change': significant_change,
+            'indicators': change_indicators,
+            'confidence': len(change_indicators) / 4.0,  # Normalized confidence score
+            'recommendation': 'clear_context' if significant_change else 'continue',
+            'query_type_change': current_query_type
+        }
+    
+    def _detect_domain_shift(self, current_query: str, last_query: str) -> bool:
+        """Detect significant domain/topic shift between queries."""
+        if not last_query:
+            return False
+        
+        # Simple keyword-based domain shift detection
+        current_keywords = set(current_query.lower().split())
+        last_keywords = set(last_query.lower().split())
+        
+        # Remove common words
+        common_words = {'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'up', 'about', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'between', 'among', 'can', 'could', 'should', 'would', 'will', 'shall', 'may', 'might', 'must', 'need', 'want', 'like', 'know', 'think', 'say', 'get', 'make', 'go', 'do', 'see', 'come', 'take', 'use', 'find', 'give', 'tell', 'ask', 'work', 'seem', 'feel', 'try', 'leave', 'call'}
+        
+        current_meaningful = current_keywords - common_words
+        last_meaningful = last_keywords - common_words
+        
+        if not last_meaningful:
+            return False
+        
+        # Calculate keyword overlap
+        overlap = len(current_meaningful & last_meaningful)
+        total_unique = len(current_meaningful | last_meaningful)
+        
+        overlap_ratio = overlap / total_unique if total_unique > 0 else 0
+        
+        # Domain shift if less than 20% keyword overlap
+        return overlap_ratio < 0.2
+    
+    def _estimate_query_complexity(self, query: str) -> float:
+        """Estimate query complexity for context change detection."""
+        complexity_factors = {
+            'length': len(query.split()) / 50.0,  # Normalized by 50 words
+            'technical_terms': len([w for w in query.lower().split() if len(w) > 8]) / 10.0,
+            'question_complexity': len([w for w in query.lower().split() if w in ['analyze', 'compare', 'evaluate', 'synthesize', 'optimize']]) / 5.0,
+            'coordination_indicators': len([w for w in query.lower().split() if w in ['coordinate', 'orchestrate', 'manage', 'integrate', 'combine']]) / 3.0
+        }
+        
+        # Weighted complexity score
+        complexity = (
+            complexity_factors['length'] * 0.2 +
+            complexity_factors['technical_terms'] * 0.3 +
+            complexity_factors['question_complexity'] * 0.3 +
+            complexity_factors['coordination_indicators'] * 0.2
+        )
+        
+        return min(complexity, 1.0)  # Cap at 1.0
+    
+    def auto_clear_on_context_change(self, query: str, session_id: str) -> bool:
+        """Automatically clear context if significant change detected."""
+        change_analysis = self.detect_context_change(query, session_id)
+        
+        if change_analysis['context_change'] and change_analysis['confidence'] > 0.6:
+            logger.info(f"Auto-clearing context for session {session_id}: {change_analysis['indicators']}")
+            
+            # Preserve domain context but clear session-specific state
+            self.clear_session_state(session_id, preserve_domain_context=True)
+            
+            # Log context change for analysis
+            self.context_evolution.append({
+                'session_id': session_id,
+                'timestamp': datetime.now().isoformat(),
+                'event_type': 'auto_context_clear',
+                'change_indicators': change_analysis['indicators'],
+                'confidence': change_analysis['confidence'],
+                'query_type_change': change_analysis['query_type_change']
+            })
+            
+            return True
+        
+        return False
+    
+    def get_context_change_stats(self) -> Dict[str, Any]:
+        """Get statistics about context changes and auto-clears."""
+        context_events = [e for e in self.context_evolution if e.get('event_type') == 'auto_context_clear']
+        
+        if not context_events:
+            return {'total_auto_clears': 0, 'most_common_indicator': 'none'}
+        
+        all_indicators = []
+        for event in context_events:
+            all_indicators.extend(event.get('change_indicators', []))
+        
+        from collections import Counter
+        indicator_counts = Counter(all_indicators)
+        
+        return {
+            'total_auto_clears': len(context_events),
+            'most_common_indicator': indicator_counts.most_common(1)[0][0] if indicator_counts else 'none',
+            'indicator_distribution': dict(indicator_counts),
+            'avg_confidence': sum(e.get('confidence', 0) for e in context_events) / len(context_events)
+        }
     
     def pause_workflow(self, paused_node_id: Optional[str] = None):
         """Pause the current workflow."""
@@ -1188,11 +1446,23 @@ class MasterOrchestratorTemplate(StandardizedAgentBase):
                 'Complexity change detection and alerting',
                 'Pattern-based intelligence for future planning'
             ],
+            'clear_state_management_capabilities': [
+                'Automatic context change detection and clearing',
+                'Intelligent context preservation during state transitions',
+                'Domain learning extraction before context clearing',
+                'Query type shift and domain terminology change detection',
+                'Complexity and time gap analysis for context changes',
+                'Configurable auto-clear triggers and thresholds',
+                'Session archiving with essential summary preservation',
+                'Context change statistics and pattern analysis',
+                'Manual and automatic state clearing with selective preservation'
+            ],
             'backward_compatibility': 'Full API compatibility with original MasterOrchestratorTemplate',
             'enhanced_features': 'All capabilities enhanced via EnhancedGenericPlannerAgent integration',
             'phase_completion_status': {
                 'phase_1_dynamic_workflow': True,
                 'phase_2_context_history': True,
+                'phase_2_5_clear_state_management': True,
                 'phase_3_state_management': False,
                 'phase_4_artifact_management': False
             }
