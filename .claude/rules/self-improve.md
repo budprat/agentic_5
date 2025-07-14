@@ -1,5 +1,5 @@
 ---
-description: Guidelines for continuously improving Cursor rules based on emerging code patterns and best practices.
+description: Guidelines for continuously improving Claude rules based on emerging code patterns and best practices.
 globs: **/*
 alwaysApply: true
 ---
