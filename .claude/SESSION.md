@@ -10,6 +10,7 @@
 - ✅ Implemented BaseMemoryService following Google ADK patterns
 - ✅ Created VertexAIMemoryBankService for Vertex AI Agent Engine integration
 - ✅ Created MemoryIntegration helper class
+- ✅ Cleaned up unnecessary files
 
 ### Final Components (After Cleanup):
 
@@ -58,6 +59,22 @@
    - Agents can function without memory if not configured
    - Clean separation between memory and agent logic
 
+### Key Clarifications:
+
+**ADK vs Vertex AI Memory Bank:**
+- ADK provides the code pattern/interface (how to structure memory code)
+- Vertex AI Memory Bank is the actual storage service (managed by Google Cloud)
+- We implement ADK's interface pattern to connect to Vertex AI's service
+
+**Why "No Custom RAG Needed":**
+- Vertex AI Memory Bank is a managed RAG service
+- It automatically handles:
+  - Text → Embedding conversion
+  - Vector storage and indexing
+  - Semantic similarity search
+  - Scaling and performance
+- You just send text, it handles all the RAG complexity
+
 ### Usage Requirements:
 
 1. **Prerequisites:**
@@ -84,11 +101,24 @@ The memory service integrates seamlessly with StandardizedAgentBase:
 - Memory provides long-term context
 - Compatible with existing A2A protocol
 
+### Final File Structure:
+```
+src/a2a_mcp/memory/
+├── __init__.py                  # Module exports
+├── base.py                      # Base classes (Session, Event, BaseMemoryService)
+├── vertex_ai_memory_bank.py    # Vertex AI Memory Bank implementation
+└── memory_integration.py        # Helper for session management
+
+examples/
+└── memory_enabled_agent.py      # Complete example
+```
+
 ### Next Steps:
 1. Add memory configuration to agent YAML configs
 2. Create memory-aware prompt templates
 3. Add memory metrics and monitoring
 4. Document memory best practices
+5. Test with actual Agent Engine instance
 
 ---
 
@@ -98,3 +128,4 @@ The memory service integrates seamlessly with StandardizedAgentBase:
 - No need for separate vector database
 - Memory Bank automatically manages retention and scaling
 - Supports metadata filtering for multi-tenant scenarios
+- Requires Agent Engine ID from Vertex AI Console
