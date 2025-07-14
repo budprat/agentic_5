@@ -209,7 +209,17 @@ examples/
    - Expanded Technology Guidelines section to explicitly list all rule files
    - Ensures compliance with CLAUDE.md requirement to follow rules from .claude/rules/
 
+4. **Created project-structure.md rule**:
+   - Comprehensive documentation of A2A MCP Framework directory structure
+   - Listed all important directories and their purposes
+   - Documented key files and their roles
+   - Added guidelines for adding new components
+   - Included best practices for project navigation
+
 #### Key Learnings:
 - The .claude/rules/ directory contains modular rule files that supplement CLAUDE.md
 - CLAUDE_COMPLIANCE_CHECKLIST.md needed updating to reflect this requirement
 - Rules can have metadata (description, globs, alwaysApply) for conditional application
+- Project follows clean Python architecture with no TypeScript files
+- Memory integration is fully implemented with Vertex AI Memory Bank
+- Extensive examples and documentation throughout the project
