@@ -10,6 +10,7 @@ This file ensures Claude follows ALL rules in CLAUDE.md in every session.
 - [ ] Read .claude/SPECS.md
 - [ ] Check .claude/TODO.md
 - [ ] Load previous .claude/SESSION.md
+- [ ] Read ALL rules in .claude/rules/ directory
 
 ### During Session:
 - [ ] Address user as "NU" always
@@ -143,7 +144,10 @@ This file ensures Claude follows ALL rules in CLAUDE.md in every session.
 
 ## 📚 Technology Guidelines
 
-- [ ] Follow .claude/rules/typescript-best-practices.md
+- [ ] Follow ALL rules in .claude/rules/ directory:
+  - [ ] claude-rules.md - Structure for creating/editing rules
+  - [ ] self-improve.md - Guidelines for continuous improvement
+  - [ ] typescript-best-practices.md - TypeScript specific guidelines
 - [ ] Check .claude/docs/python.md
 - [ ] Check .claude/docs/source-control.md
 - [ ] Check .claude/docs/using-uv.md
