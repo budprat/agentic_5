@@ -1,0 +1,81 @@
+{
+  "name": "MemoryEnabledAgent",
+  "type": "specialist",
+  "tier": 2,
+  "port": 10202,
+  "description": "Example agent demonstrating memory service integration for context-aware responses",
+  "version": "2.0.0",
+  "capabilities": [
+    "context_aware_responses",
+    "conversation_history",
+    "user_preference_tracking",
+    "long_term_memory",
+    "session_management"
+  ],
+  "required_tools": [
+    "memory_service",
+    "session_tracker",
+    "context_analyzer"
+  ],
+  "configuration": {
+    "model": "gpt-4",
+    "temperature": 0.7,
+    "max_tokens": 4000,
+    "memory": {
+      "enabled": true,
+      "provider": "vertex_ai_memory_bank",
+      "app_name": "memory_enabled_agent",
+      "settings": {
+        "search_before_response": true,
+        "auto_save_sessions": true,
+        "save_interval": 300,
+        "context_window": 20,
+        "search_top_k": 5,
+        "similarity_threshold": 0.75,
+        "metadata_tags": ["domain", "user_id", "session_type"],
+        "retention_policy": {
+          "days": 90,
+          "important_sessions": 365
+        }
+      },
+      "session_config": {
+        "track_tool_calls": true,
+        "track_a2a_interactions": true,
+        "summarize_long_sessions": true,
+        "max_events_per_session": 500
+      },
+      "search_config": {
+        "include_system_prompts": false,
+        "include_tool_outputs": true,
+        "format": "conversational"
+      }
+    }
+  },
+  "metadata": {
+    "author": "Framework Team",
+    "created": "2024-01-14",
+    "tags": ["tier2", "specialist", "memory", "context-aware"]
+  },
+  "interaction_patterns": {
+    "input_format": "conversational",
+    "output_format": "context_aware_response",
+    "communication_style": "adaptive",
+    "memory_patterns": {
+      "pre_response_search": true,
+      "post_response_save": true,
+      "context_injection": "automatic",
+      "memory_summarization": "periodic"
+    }
+  },
+  "hierarchy": {
+    "tier": 2,
+    "manages": [],
+    "reports_to": ["tier1"],
+    "coordination_scope": "domain"
+  },
+  "memory_prompts": {
+    "system_enhancement": "You have access to conversation history and user context through the memory service. Use this information to provide more personalized and contextually relevant responses.",
+    "search_instruction": "Before responding, relevant past conversations and context will be retrieved to inform your response.",
+    "no_memory_fallback": "If no relevant memory is found, proceed with the current context only."
+  }
+}

@@ -114,11 +114,73 @@ examples/
 ```
 
 ### Next Steps:
-1. Add memory configuration to agent YAML configs
-2. Create memory-aware prompt templates
+1. ✅ Add memory configuration to agent YAML configs
+2. ✅ Create memory-aware prompt templates
 3. Add memory metrics and monitoring
 4. Document memory best practices
 5. Test with actual Agent Engine instance
+
+### Session Update - 2025-01-14 (Continued)
+
+#### Task 1: Add Memory Configuration to Agent YAML Configs ✅
+
+**Completed:**
+
+1. **Updated framework.yaml** with comprehensive memory configuration:
+   - Added global memory service configuration section
+   - Defined provider settings for Vertex AI Memory Bank
+   - Added session management and search configuration
+   - Updated all example agents with memory settings
+
+2. **Created memory_enabled_agent.json** example:
+   - Comprehensive agent card showing all memory options
+   - Includes session tracking, search config, and retention policies
+   - Demonstrates best practices for memory-enabled agents
+
+3. **Created memory_config_schema.md** documentation:
+   - Complete reference for memory configuration options
+   - Examples for different agent types and use cases
+   - Environment variable overrides
+   - Best practices and naming conventions
+
+**Key Configuration Additions:**
+
+- Global memory settings in framework.yaml
+- Per-agent memory configuration options
+- Support for multiple memory providers (future-proofed)
+- Flexible metadata filtering and search options
+- Session lifecycle management
+- Retention and compliance settings
+
+#### Task 2: Create Memory-Aware Prompt Templates ✅
+
+**Completed:**
+
+1. **Created memory_prompts.py** module:
+   - System prompts for different agent types (base, orchestrator, specialist)
+   - Context injection templates (conversational, structured, summary)
+   - Memory result formatting options
+   - Helper methods for building memory-aware prompts
+
+2. **Created prompt_config.yaml**:
+   - Configuration for how different agent tiers use memory
+   - Integration patterns (pre-response search, progressive context, task continuation)
+   - Enhancement rules for context relevance and recency
+   - Response templates with memory acknowledgment
+
+3. **Created memory_prompt_usage.py** example:
+   - Demonstrates how to use MemoryPrompts class
+   - Shows different prompt patterns and formats
+   - Practical integration with MemoryIntegration
+   - Examples of enhanced prompts with memory context
+
+**Key Features:**
+
+- **Agent-Type Specific Prompts**: Different prompt strategies for orchestrators vs specialists
+- **Flexible Context Injection**: Multiple ways to include memory in prompts
+- **Format Options**: Conversational, structured, or concise memory presentation
+- **Search Integration**: Prompts designed to work with memory search results
+- **Error Handling**: Graceful fallbacks when memory is unavailable
 
 ---
 

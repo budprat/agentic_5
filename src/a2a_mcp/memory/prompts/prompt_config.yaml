@@ -1,0 +1,146 @@
+# Memory-Aware Prompt Configuration
+# This file defines how different agent types should use memory in their prompts
+
+prompt_configurations:
+  # Tier 1: Orchestrators
+  orchestrator:
+    memory_style: "structured"
+    context_position: "before_task"  # before_task, inline, after_task
+    max_context_results: 10
+    include_summaries: true
+    system_prompt_additions: |
+      Use memory to track:
+      - Ongoing multi-agent workflows and their status
+      - Previous task delegations and their outcomes
+      - Agent performance patterns and optimal routing decisions
+      - User preferences for task handling
+    search_queries:
+      - "previous {task_type} delegations"
+      - "agent performance for {capability}"
+      - "workflow status {workflow_id}"
+    
+  # Tier 2: Specialists
+  specialist:
+    memory_style: "conversational"
+    context_position: "inline"
+    max_context_results: 5
+    include_summaries: true
+    system_prompt_additions: |
+      Leverage memory to:
+      - Maintain consistency in domain-specific advice
+      - Remember user's domain preferences and constraints
+      - Build upon previous analyses and recommendations
+      - Track evolving requirements and decisions
+    search_queries:
+      - "{domain} preferences"
+      - "previous {domain} analysis"
+      - "decisions about {topic}"
+  
+  # Tier 3: Service Agents
+  service:
+    memory_style: "concise"
+    context_position: "after_task"
+    max_context_results: 3
+    include_summaries: false
+    system_prompt_additions: |
+      Memory usage for services:
+      - Cache frequently requested information
+      - Remember API patterns and common queries
+      - Track service-specific optimizations
+    search_queries:
+      - "cached {service_type} results"
+      - "common {api_name} patterns"
+
+# Memory integration patterns
+integration_patterns:
+  pre_response_search:
+    description: "Search memory before generating any response"
+    steps:
+      1: "Extract key topics from user query"
+      2: "Search memory for relevant context"
+      3: "Inject context into prompt"
+      4: "Generate response considering context"
+    suitable_for: ["orchestrator", "specialist"]
+  
+  progressive_context:
+    description: "Build context progressively through conversation"
+    steps:
+      1: "Start with minimal context"
+      2: "Add more context based on conversation flow"
+      3: "Summarize when context becomes too large"
+    suitable_for: ["specialist", "long_conversations"]
+  
+  task_continuation:
+    description: "Continue previous tasks using memory"
+    steps:
+      1: "Search for incomplete tasks"
+      2: "Load task state and context"
+      3: "Resume from last checkpoint"
+      4: "Update task progress in memory"
+    suitable_for: ["orchestrator", "workflow_agents"]
+
+# Prompt enhancement rules
+enhancement_rules:
+  - name: "context_relevance"
+    description: "Only include highly relevant context"
+    threshold: 0.8
+    max_age_days: 30
+    
+  - name: "recency_bias"
+    description: "Prefer recent memories for active topics"
+    boost_recent: true
+    recency_window_hours: 168  # 1 week
+    
+  - name: "user_specific"
+    description: "Filter memories by user_id when available"
+    require_user_match: true
+    fallback_to_general: true
+
+# Memory-aware response templates
+response_templates:
+  with_context:
+    format: |
+      {context_acknowledgment}
+      
+      {main_response}
+      
+      {continuity_note}
+    
+  no_context:
+    format: |
+      {main_response}
+      
+      {new_topic_note}
+  
+  error_fallback:
+    format: |
+      {main_response}
+      
+      Note: I couldn't access previous conversation history, but I'm happy to help with your current question.
+
+# Examples of memory-enhanced prompts
+examples:
+  orchestrator_task_delegation: |
+    Based on previous delegations, {agent_name} has successfully handled similar {task_type} tasks 
+    with a {success_rate}% success rate. Delegating this task to {agent_name}.
+  
+  specialist_consistency: |
+    In our previous discussion about {topic} on {date}, we established {decision}. 
+    Continuing with that approach, here's my recommendation...
+  
+  service_cache_hit: |
+    I have recent results for this query from {timestamp}. Using cached data for faster response...
+
+# Memory prompt variables
+# These variables can be used in prompts and will be replaced with actual values
+variables:
+  - "{user_name}": "User's name from memory"
+  - "{last_interaction}": "Date of last interaction"
+  - "{preference_summary}": "Summary of user preferences"
+  - "{task_history}": "Recent task history"
+  - "{agent_name}": "Name of the agent"
+  - "{success_rate}": "Historical success rate"
+  - "{domain}": "Agent's domain"
+  - "{topic}": "Current topic"
+  - "{timestamp}": "Timestamp of memory"
+  - "{session_count}": "Number of previous sessions"

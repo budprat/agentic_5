@@ -73,6 +73,12 @@ agents:
       - "orchestration"
       - "task_delegation"
       - "response_aggregation"
+    memory:
+      enabled: true
+      provider: "vertex_ai_memory_bank"  # Override default provider if needed
+      app_name: "master_orchestrator"
+      search_before_response: true
+      auto_save_sessions: true
 
   # Example Tier 2 Domain Specialist
   technical_specialist:
@@ -89,6 +95,11 @@ agents:
       - "code_analysis"
       - "architecture_design"
       - "technical_documentation"
+    memory:
+      enabled: true
+      app_name: "technical_specialist"
+      search_before_response: true
+      context_window: 10  # Number of previous interactions to consider
 
   # Example Tier 3 Service Agent
   code_analyzer:
@@ -105,6 +116,43 @@ agents:
       - "static_analysis"
       - "complexity_metrics"
       - "dependency_analysis"
+    memory:
+      enabled: false  # Service agents might not need memory
+      # Can be enabled per use case
+
+# Memory Service Configuration
+memory:
+  enabled: false  # Global flag to enable/disable memory services
+  default_provider: "vertex_ai_memory_bank"
+  providers:
+    vertex_ai_memory_bank:
+      project_id: "${GOOGLE_CLOUD_PROJECT}"
+      location: "${GOOGLE_CLOUD_LOCATION:-us-central1}"
+      agent_engine_id: "${VERTEX_AI_AGENT_ENGINE_ID}"
+      batch_size: 10
+      search_top_k: 5
+      metadata_filters:
+        - "app_name"
+        - "user_id"
+        - "session_id"
+    # Future providers can be added here:
+    # pinecone:
+    #   api_key: "${PINECONE_API_KEY}"
+    #   index_name: "a2a-memory"
+    # chromadb:
+    #   persist_directory: "./chroma_db"
+  
+  # Session management
+  session:
+    auto_save_interval: 300  # Save session to memory every 5 minutes
+    max_events_per_session: 1000
+    retention_days: 90
+  
+  # Memory search configuration
+  search:
+    include_metadata: true
+    max_results: 10
+    similarity_threshold: 0.7
 
 # Environment Variable Override Examples:
 # A2A_MCP_LOG_LEVEL=DEBUG
@@ -113,3 +161,5 @@ agents:
 # A2A_MCP_CONNECTION_POOL_ENABLED=true
 # A2A_MCP_METRICS_ENABLED=true
 # A2A_MCP_FEATURES='{"prometheus_metrics": true}'
+# A2A_MCP_MEMORY_ENABLED=true
+# A2A_MCP_MEMORY_DEFAULT_PROVIDER=vertex_ai_memory_bank
