@@ -115,7 +115,8 @@
       "Bash(then)",
       "Bash(else)",
       "Bash(fi)",
-      "Bash(diff:*)"
+      "Bash(diff:*)",
+      "WebFetch(domain:google.github.io)"
     ],
     "deny": []
   },
