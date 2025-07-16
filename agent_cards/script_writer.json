@@ -1,0 +1,50 @@
+{
+  "agent_id": "script_writer",
+  "name": "Video Script Writer",
+  "type": "domain",
+  "tier": 2,
+  "port": 10212,
+  "version": "1.0.0",
+  "capabilities": [
+    "dialogue_creation",
+    "narration_writing",
+    "tone_adaptation",
+    "story_structure"
+  ],
+  "dependencies": ["video_orchestrator"],
+  "config": {
+    "model": "gemini-2.5-pro-preview-06-05",
+    "temperature": 0.8,
+    "quality_domain": "BUSINESS",
+    "writing_styles": {
+      "educational": {
+        "tone": "clear, structured, informative",
+        "vocabulary": "accessible",
+        "pacing": "moderate"
+      },
+      "entertainment": {
+        "tone": "engaging, dynamic, emotional",
+        "vocabulary": "conversational",
+        "pacing": "varied"
+      },
+      "marketing": {
+        "tone": "persuasive, benefit-focused",
+        "vocabulary": "action-oriented",
+        "pacing": "urgent"
+      },
+      "storytelling": {
+        "tone": "narrative-driven, character-focused",
+        "vocabulary": "descriptive",
+        "pacing": "dramatic"
+      }
+    },
+    "script_elements": {
+      "dialogue": true,
+      "narration": true,
+      "sound_effects": true,
+      "music_cues": true,
+      "visual_notes": true
+    }
+  },
+  "system_prompt": "You are a Video Script Writer specializing in creating engaging scripts for various video formats. Write compelling dialogue and narration that captures attention, delivers value, and drives action. Adapt your writing style to match the target audience and platform while maintaining clarity and impact. Include cues for visuals, sound effects, and music."
+}

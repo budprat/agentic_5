@@ -1,0 +1,135 @@
+# ABOUTME: Prometheus configuration for Video Generation System monitoring
+# ABOUTME: Scrapes metrics from all video generation agents and the orchestrator
+
+global:
+  scrape_interval: 15s       # How often to scrape targets
+  evaluation_interval: 15s   # How often to evaluate rules
+  external_labels:
+    monitor: 'video-generation-monitor'
+    environment: 'production'
+
+# Alerting configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - localhost:9093
+
+# Load rules once and periodically evaluate them
+rule_files:
+  - 'video_generation_alerts.yml'
+
+# Scrape configurations
+scrape_configs:
+  # Framework metrics endpoint
+  - job_name: 'a2a_mcp_framework'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          component: 'framework'
+    metrics_path: '/metrics'
+
+  # Video Orchestrator metrics
+  - job_name: 'video_orchestrator'
+    static_configs:
+      - targets: ['localhost:10211']
+        labels:
+          component: 'orchestrator'
+          tier: '1'
+    metrics_path: '/metrics'
+
+  # Script Writer agent
+  - job_name: 'script_writer'
+    static_configs:
+      - targets: ['localhost:10212']
+        labels:
+          component: 'agent'
+          agent_type: 'script_writer'
+          tier: '2'
+    metrics_path: '/metrics'
+
+  # Scene Designer agent
+  - job_name: 'scene_designer'
+    static_configs:
+      - targets: ['localhost:10213']
+        labels:
+          component: 'agent'
+          agent_type: 'scene_designer'
+          tier: '2'
+    metrics_path: '/metrics'
+
+  # Timing Coordinator agent
+  - job_name: 'timing_coordinator'
+    static_configs:
+      - targets: ['localhost:10214']
+        labels:
+          component: 'agent'
+          agent_type: 'timing_coordinator'
+          tier: '2'
+    metrics_path: '/metrics'
+
+  # Hook Creator agent
+  - job_name: 'hook_creator'
+    static_configs:
+      - targets: ['localhost:10215']
+        labels:
+          component: 'agent'
+          agent_type: 'hook_creator'
+          tier: '3'
+    metrics_path: '/metrics'
+
+  # Shot Describer agent
+  - job_name: 'shot_describer'
+    static_configs:
+      - targets: ['localhost:10216']
+        labels:
+          component: 'agent'
+          agent_type: 'shot_describer'
+          tier: '3'
+    metrics_path: '/metrics'
+
+  # Transition Planner agent
+  - job_name: 'transition_planner'
+    static_configs:
+      - targets: ['localhost:10217']
+        labels:
+          component: 'agent'
+          agent_type: 'transition_planner'
+          tier: '3'
+    metrics_path: '/metrics'
+
+  # CTA Generator agent
+  - job_name: 'cta_generator'
+    static_configs:
+      - targets: ['localhost:10218']
+        labels:
+          component: 'agent'
+          agent_type: 'cta_generator'
+          tier: '3'
+    metrics_path: '/metrics'
+
+  # Redis cache metrics (if using Redis Exporter)
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['localhost:9121']
+        labels:
+          component: 'cache'
+          cache_type: 'redis'
+
+  # API Server metrics
+  - job_name: 'api_server'
+    static_configs:
+      - targets: ['localhost:8000']
+        labels:
+          component: 'api'
+          api_type: 'rest'
+    metrics_path: '/metrics'
+
+  # WebSocket Server metrics
+  - job_name: 'websocket_server'
+    static_configs:
+      - targets: ['localhost:8001']
+        labels:
+          component: 'api'
+          api_type: 'websocket'
+    metrics_path: '/metrics'

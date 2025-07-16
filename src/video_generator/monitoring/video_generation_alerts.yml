@@ -1,0 +1,208 @@
+# ABOUTME: Prometheus alerting rules for Video Generation System
+# ABOUTME: Defines alerts for performance degradation, errors, and quality issues
+
+groups:
+  - name: video_generation_performance
+    interval: 30s
+    rules:
+      # Agent request duration alerts
+      - alert: HighAgentRequestDuration
+        expr: |
+          histogram_quantile(0.95, 
+            sum(rate(a2a_mcp_framework_agent_request_duration_seconds_bucket[5m])) 
+            by (agent_name, le)
+          ) > 10
+        for: 5m
+        labels:
+          severity: warning
+          component: agent
+        annotations:
+          summary: "High request duration for agent {{ $labels.agent_name }}"
+          description: "95th percentile request duration is {{ $value }}s (threshold: 10s)"
+
+      - alert: CriticalAgentRequestDuration
+        expr: |
+          histogram_quantile(0.99, 
+            sum(rate(a2a_mcp_framework_agent_request_duration_seconds_bucket[5m])) 
+            by (agent_name, le)
+          ) > 30
+        for: 2m
+        labels:
+          severity: critical
+          component: agent
+        annotations:
+          summary: "Critical request duration for agent {{ $labels.agent_name }}"
+          description: "99th percentile request duration is {{ $value }}s (threshold: 30s)"
+
+      # Agent error rate alerts
+      - alert: HighAgentErrorRate
+        expr: |
+          sum(rate(a2a_mcp_framework_agent_requests_total{status="error"}[5m])) by (agent_name)
+          / 
+          sum(rate(a2a_mcp_framework_agent_requests_total[5m])) by (agent_name)
+          > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          component: agent
+        annotations:
+          summary: "High error rate for agent {{ $labels.agent_name }}"
+          description: "Error rate is {{ $value | humanizePercentage }} (threshold: 5%)"
+
+      # A2A communication alerts
+      - alert: HighA2ALatency
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(a2a_mcp_framework_a2a_message_latency_seconds_bucket[5m]))
+            by (source_agent, target_agent, le)
+          ) > 2
+        for: 5m
+        labels:
+          severity: warning
+          component: a2a_communication
+        annotations:
+          summary: "High A2A latency between {{ $labels.source_agent }} and {{ $labels.target_agent }}"
+          description: "95th percentile latency is {{ $value }}s (threshold: 2s)"
+
+      # Connection pool alerts
+      - alert: LowConnectionReuse
+        expr: |
+          a2a_mcp_framework_connection_pool_reused_total
+          /
+          (a2a_mcp_framework_connection_pool_created_total + a2a_mcp_framework_connection_pool_reused_total)
+          < 0.8
+        for: 10m
+        labels:
+          severity: warning
+          component: connection_pool
+        annotations:
+          summary: "Low connection reuse rate for pool {{ $labels.pool_name }}"
+          description: "Connection reuse rate is {{ $value | humanizePercentage }} (threshold: 80%)"
+
+  - name: video_generation_quality
+    interval: 30s
+    rules:
+      # Quality validation alerts
+      - alert: LowScriptCoherence
+        expr: |
+          a2a_mcp_framework_quality_score{domain="video_generation", metric="script_coherence"} < 0.85
+        for: 5m
+        labels:
+          severity: warning
+          component: quality
+          quality_metric: script_coherence
+        annotations:
+          summary: "Low script coherence score"
+          description: "Script coherence is {{ $value }} (threshold: 0.85)"
+
+      - alert: LowVisualFeasibility
+        expr: |
+          a2a_mcp_framework_quality_score{domain="video_generation", metric="visual_feasibility"} < 0.80
+        for: 5m
+        labels:
+          severity: warning
+          component: quality
+          quality_metric: visual_feasibility
+        annotations:
+          summary: "Low visual feasibility score"
+          description: "Visual feasibility is {{ $value }} (threshold: 0.80)"
+
+      - alert: LowEngagementPotential
+        expr: |
+          a2a_mcp_framework_quality_score{domain="video_generation", metric="engagement_potential"} < 0.75
+        for: 5m
+        labels:
+          severity: warning
+          component: quality
+          quality_metric: engagement_potential
+        annotations:
+          summary: "Low engagement potential score"
+          description: "Engagement potential is {{ $value }} (threshold: 0.75)"
+
+      # Quality validation failure rate
+      - alert: HighQualityValidationFailure
+        expr: |
+          sum(rate(a2a_mcp_framework_quality_validations_total{status="failed"}[5m])) by (domain)
+          /
+          sum(rate(a2a_mcp_framework_quality_validations_total[5m])) by (domain)
+          > 0.1
+        for: 5m
+        labels:
+          severity: critical
+          component: quality
+        annotations:
+          summary: "High quality validation failure rate for {{ $labels.domain }}"
+          description: "Failure rate is {{ $value | humanizePercentage }} (threshold: 10%)"
+
+  - name: video_generation_capacity
+    interval: 30s
+    rules:
+      # Active request alerts
+      - alert: HighActiveRequests
+        expr: |
+          sum(a2a_mcp_framework_agent_active_requests) by (agent_name) > 10
+        for: 5m
+        labels:
+          severity: warning
+          component: capacity
+        annotations:
+          summary: "High number of active requests for {{ $labels.agent_name }}"
+          description: "{{ $value }} active requests (threshold: 10)"
+
+      # Workflow duration alerts
+      - alert: LongWorkflowDuration
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(workflow_duration_seconds_bucket[5m]))
+            by (workflow_type, le)
+          ) > 120
+        for: 5m
+        labels:
+          severity: warning
+          component: workflow
+        annotations:
+          summary: "Long workflow duration for {{ $labels.workflow_type }}"
+          description: "95th percentile duration is {{ $value }}s (threshold: 120s)"
+
+  - name: video_generation_cache
+    interval: 30s
+    rules:
+      # Cache hit rate alerts
+      - alert: LowCacheHitRate
+        expr: |
+          sum(rate(cache_hits_total[5m])) by (cache_type)
+          /
+          (sum(rate(cache_hits_total[5m])) by (cache_type) + sum(rate(cache_misses_total[5m])) by (cache_type))
+          < 0.3
+        for: 10m
+        labels:
+          severity: warning
+          component: cache
+        annotations:
+          summary: "Low cache hit rate for {{ $labels.cache_type }}"
+          description: "Hit rate is {{ $value | humanizePercentage }} (threshold: 30%)"
+
+  - name: video_generation_availability
+    interval: 30s
+    rules:
+      # Agent availability
+      - alert: AgentDown
+        expr: up{component="agent"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: agent
+        annotations:
+          summary: "Agent {{ $labels.agent_type }} is down"
+          description: "Agent on {{ $labels.instance }} has been down for more than 1 minute"
+
+      # Orchestrator availability
+      - alert: OrchestratorDown
+        expr: up{component="orchestrator"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          component: orchestrator
+        annotations:
+          summary: "Video Orchestrator is down"
+          description: "Orchestrator on {{ $labels.instance }} has been down for more than 30 seconds"

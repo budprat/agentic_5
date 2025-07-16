@@ -22,7 +22,7 @@ import os
 from typing import Dict, Any, Optional, Callable, List
 from functools import wraps
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import datetime, timezone
 import asyncio
 
 # OpenTelemetry imports
@@ -84,7 +84,7 @@ class StructuredLogger:
         
         def format(self, record: logging.LogRecord) -> str:
             log_data = {
-                'timestamp': datetime.utcnow().isoformat(),
+                'timestamp': datetime.now(timezone.utc).isoformat(),
                 'level': record.levelname,
                 'logger': record.name,
                 'message': record.getMessage(),
@@ -115,8 +115,24 @@ class StructuredLogger:
     
     def _log(self, level: int, msg: str, **kwargs):
         """Internal log method with context injection."""
+        # Extract special logging kwargs that shouldn't go in extra
+        exc_info = kwargs.pop('exc_info', None)
+        stack_info = kwargs.pop('stack_info', None)
+        stacklevel = kwargs.pop('stacklevel', None)
+        
+        # Remaining kwargs go in extra
         extra = {**self.context, **kwargs}
-        self.logger.log(level, msg, extra=extra)
+        
+        # Build logging kwargs
+        log_kwargs = {'extra': extra}
+        if exc_info is not None:
+            log_kwargs['exc_info'] = exc_info
+        if stack_info is not None:
+            log_kwargs['stack_info'] = stack_info
+        if stacklevel is not None:
+            log_kwargs['stacklevel'] = stacklevel
+            
+        self.logger.log(level, msg, **log_kwargs)
     
     def debug(self, msg: str, **kwargs):
         self._log(logging.DEBUG, msg, **kwargs)

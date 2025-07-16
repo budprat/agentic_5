@@ -1,0 +1,82 @@
+name: blog_content_pipeline
+description: Multi-agent blog content generation with parallel processing
+version: 1.0.0
+
+nodes:
+  - id: topic_analysis
+    agent: content_orchestrator
+    action: analyze_topic
+    inputs:
+      topic: "${input.topic}"
+      keywords: "${input.keywords}"
+    outputs:
+      - content_outline
+      - research_queries
+      - seo_targets
+
+  - id: parallel_research
+    agent: research_agent
+    action: gather_information
+    inputs:
+      queries: "${topic_analysis.research_queries}"
+    outputs:
+      - research_data
+      - statistics
+      - sources
+    parallel: true
+
+  - id: parallel_seo_prep
+    agent: seo_agent
+    action: prepare_optimization
+    inputs:
+      keywords: "${input.keywords}"
+      outline: "${topic_analysis.content_outline}"
+    outputs:
+      - seo_guidelines
+      - keyword_map
+    parallel: true
+
+  - id: content_writing
+    agent: writer_agent
+    action: create_content
+    inputs:
+      outline: "${topic_analysis.content_outline}"
+      research: "${parallel_research.research_data}"
+      seo_guide: "${parallel_seo_prep.seo_guidelines}"
+    outputs:
+      - draft_content
+
+  - id: optimization
+    agent: seo_agent
+    action: optimize_content
+    inputs:
+      content: "${content_writing.draft_content}"
+      keyword_map: "${parallel_seo_prep.keyword_map}"
+    outputs:
+      - optimized_content
+      - meta_tags
+
+  - id: final_edit
+    agent: editor_agent
+    action: polish_content
+    inputs:
+      content: "${optimization.optimized_content}"
+      style_guide: "${input.style_guide}"
+    outputs:
+      - final_content
+      - quality_score
+
+edges:
+  - from: topic_analysis
+    to: [parallel_research, parallel_seo_prep]
+  - from: [parallel_research, parallel_seo_prep]
+    to: content_writing
+  - from: content_writing
+    to: optimization
+  - from: optimization
+    to: final_edit
+
+config:
+  max_parallel: 3
+  timeout: 1800
+  quality_threshold: 0.85

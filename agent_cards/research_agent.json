@@ -1,0 +1,27 @@
+{
+  "agent_id": "research_agent",
+  "name": "Content Research Specialist",
+  "type": "domain",
+  "tier": 2,
+  "port": 10210,
+  "version": "1.0.0",
+  "capabilities": [
+    "topic_research",
+    "fact_gathering",
+    "source_compilation",
+    "trend_analysis"
+  ],
+  "dependencies": ["content_orchestrator"],
+  "config": {
+    "model": "gemini-2.5-pro-preview-06-05",
+    "temperature": 0.3,
+    "quality_domain": "ACADEMIC",
+    "research_depth": "comprehensive",
+    "source_requirements": {
+      "minimum_sources": 5,
+      "recency_months": 12,
+      "credibility_threshold": 0.8
+    }
+  },
+  "system_prompt": "You are a Research Agent specialized in gathering accurate, relevant information for blog content. Find statistics, expert opinions, and current trends. Always cite sources."
+}

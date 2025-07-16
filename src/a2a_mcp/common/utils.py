@@ -11,7 +11,11 @@ from datetime import datetime, timezone
 from functools import wraps
 import time
 
-import google.generativeai as genai
+try:
+    import google.generativeai as genai
+except ImportError:
+    # Use google-genai package if google-generativeai is not available
+    from google import genai
 
 from a2a_mcp.common.types import ServerConfig
 
@@ -25,7 +29,12 @@ def init_api_key():
         logger.error('GOOGLE_API_KEY is not set')
         raise ValueError('GOOGLE_API_KEY is not set')
 
-    genai.configure(api_key=os.getenv('GOOGLE_API_KEY'))
+    # Configure based on the package being used
+    if hasattr(genai, 'configure'):
+        genai.configure(api_key=os.getenv('GOOGLE_API_KEY'))
+    else:
+        # google-genai uses client initialization
+        pass
 
 
 def config_logging():

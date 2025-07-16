@@ -1,0 +1,33 @@
+name: a2a-mcp
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.12
+  - grpcio
+  - grpcio-tools
+  - numpy
+  - pandas
+  - networkx
+  - redis-py
+  - psutil
+  - pyyaml
+  - cryptography
+  - pip
+  - pip:
+    - httpx>=0.24.0
+    - pydantic>=2.0.0
+    - prometheus-client>=0.16.0
+    - fastapi>=0.100.0
+    - uvicorn>=0.22.0
+    - websockets>=11.0
+    - python-multipart>=0.0.6
+    - google-genai>=0.1.0
+    - aioredis>=2.0.0
+    - aiofiles>=23.0.0
+    - click>=8.0.0
+    - rich>=13.0.0
+    - pytest>=7.0.0
+    - pytest-asyncio>=0.21.0
+    - pytest-cov>=4.0.0
+    - mcp>=1.0.0

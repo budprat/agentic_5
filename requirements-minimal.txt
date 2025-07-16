@@ -1,0 +1,30 @@
+# Minimal requirements for video generation system
+# Use this if full pyproject.toml dependencies fail
+
+# Core dependencies
+redis>=4.5.0
+httpx>=0.24.0
+pydantic>=2.0.0
+networkx>=3.0
+prometheus-client>=0.16.0
+fastapi>=0.100.0
+uvicorn>=0.22.0
+websockets>=11.0
+python-multipart>=0.0.6
+
+# Async support
+aioredis>=2.0.0
+aiofiles>=23.0.0
+
+# Monitoring
+psutil>=5.9.0
+
+# CLI and utilities
+click>=8.0.0
+rich>=13.0.0
+pyyaml>=6.0
+
+# Testing (optional)
+pytest>=7.0.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.0.0

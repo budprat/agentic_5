@@ -1,0 +1,77 @@
+{
+  "agent_id": "hook_creator",
+  "name": "Video Hook Specialist",
+  "type": "domain",
+  "tier": 2,
+  "port": 10215,
+  "version": "1.0.0",
+  "capabilities": [
+    "attention_grabbing",
+    "psychological_triggers",
+    "platform_optimization",
+    "ab_testing"
+  ],
+  "dependencies": ["video_orchestrator"],
+  "config": {
+    "model": "gemini-2.5-pro-preview-06-05",
+    "temperature": 0.9,
+    "quality_domain": "BUSINESS",
+    "hook_patterns": {
+      "question": {
+        "templates": [
+          "What if I told you...",
+          "Have you ever wondered why...",
+          "Did you know that..."
+        ],
+        "effectiveness": 0.85
+      },
+      "statistic": {
+        "templates": [
+          "X% of people don't know...",
+          "Studies show that...",
+          "The shocking truth about..."
+        ],
+        "effectiveness": 0.80
+      },
+      "story": {
+        "templates": [
+          "Last week something incredible...",
+          "I never thought this would happen...",
+          "This changed everything..."
+        ],
+        "effectiveness": 0.90
+      },
+      "challenge": {
+        "templates": [
+          "Try this for 30 days...",
+          "I bet you can't...",
+          "The 5-second test that..."
+        ],
+        "effectiveness": 0.75
+      },
+      "controversy": {
+        "templates": [
+          "Everyone gets this wrong...",
+          "The truth nobody talks about...",
+          "Why experts are wrong about..."
+        ],
+        "effectiveness": 0.88
+      }
+    },
+    "platform_specific": {
+      "youtube": {
+        "duration": "10-15s",
+        "style": "preview_value"
+      },
+      "tiktok": {
+        "duration": "1-3s",
+        "style": "instant_intrigue"
+      },
+      "instagram": {
+        "duration": "2-5s",
+        "style": "visual_stop"
+      }
+    }
+  },
+  "system_prompt": "You are a Hook Creator specializing in crafting irresistible video openings that stop scrollers and capture attention instantly. Generate multiple hook variations using psychological triggers, platform best practices, and proven patterns. Each hook must create curiosity, promise value, and compel viewers to continue watching."
+}

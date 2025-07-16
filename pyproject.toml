@@ -6,7 +6,7 @@ name = "a2a-mcp-framework"
 version = "0.1.0"
 description = "A2A-MCP Framework - Production-ready foundation for multi-agent systems"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.12"
 keywords = ["mcp", "agents", "ai", "framework", "a2a", "multi-agent"]
 authors = [
     {name = "Your Name", email = "your.email@example.com"}
@@ -17,6 +17,7 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
@@ -104,6 +105,9 @@ include = [
     "/LICENSE",
 ]
 
+[tool.hatch.build.targets.wheel]
+packages = ["src/a2a_mcp", "src/video_generator"]
+
 [tool.pytest.ini_options]
 minversion = "6.0"
 addopts = "-ra -q --strict-markers"
@@ -118,7 +122,7 @@ branch = true
 source = ["src/a2a_mcp"]
 
 [tool.ruff]
-target-version = "py313"
+target-version = "py312"
 line-length = 88
 select = [
     "E",  # pycodestyle errors
@@ -131,5 +135,5 @@ ignore = [
 ]
 
 [tool.mypy]
-python_version = "3.13"
+python_version = "3.12"
 ignore_missing_imports = true

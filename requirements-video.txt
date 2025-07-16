@@ -1,0 +1,82 @@
+# ABOUTME: Comprehensive requirements for video generation system with all dependencies
+# ABOUTME: Includes AI/ML, caching, API frameworks, and testing tools for production use
+
+# Core Video Generation Dependencies
+# ==================================
+
+# Google AI/ML Dependencies
+google-generativeai>=0.8.5
+google-cloud-aiplatform>=1.91.0
+google-adk>=1.0.0
+
+# Async HTTP and Networking
+aiohttp>=3.9.0
+httpx>=0.28.1
+aiofiles>=23.0.0
+websockets>=11.0
+
+# Caching Infrastructure
+redis>=5.0.0
+redis[hiredis]>=5.0.0  # C extension for better performance
+
+# API Frameworks
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0  # ASGI server with standard extras
+starlette>=0.27.0  # FastAPI dependency
+python-multipart>=0.0.6  # For form data handling
+
+# Data Processing and Validation
+pydantic>=2.5.0
+pydantic-settings>=2.0.0
+jsonschema>=4.20.0
+PyYAML>=6.0
+
+# Testing Frameworks
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+pytest-mock>=3.12.0
+pytest-timeout>=2.2.0
+pytest-xdist>=3.5.0  # For parallel test execution
+
+# Development and Code Quality
+black>=23.0.0
+ruff>=0.1.0
+mypy>=1.7.0
+types-redis>=4.6.0  # Type stubs for Redis
+types-PyYAML>=6.0
+types-aiofiles>=23.0.0
+
+# Utilities and Support Libraries
+structlog>=24.0.0
+rich>=13.0.0
+click>=8.0.0
+python-dotenv>=1.0.0
+nest-asyncio>=1.6.0
+
+# Performance and Monitoring
+prometheus-client>=0.19.0  # For metrics
+opentelemetry-api>=1.21.0  # For tracing
+opentelemetry-sdk>=1.21.0
+opentelemetry-instrumentation-fastapi>=0.42b0
+opentelemetry-instrumentation-redis>=0.42b0
+opentelemetry-instrumentation-httpx>=0.42b0
+
+# Additional Production Dependencies
+gunicorn>=21.2.0  # Alternative production server
+grpcio>=1.60.0  # For gRPC support if needed
+protobuf>=4.25.0  # For protocol buffers
+
+# Optional but Recommended
+orjson>=3.9.0  # Fast JSON parsing
+ujson>=5.9.0  # Alternative fast JSON
+msgpack>=1.0.0  # Binary serialization
+lz4>=4.3.0  # Fast compression
+zstandard>=0.22.0  # Zstd compression
+
+# Video Processing Support (if needed later)
+# opencv-python>=4.8.0
+# pillow>=10.0.0
+# numpy>=1.24.0
+# imageio>=2.33.0
+# moviepy>=1.0.3

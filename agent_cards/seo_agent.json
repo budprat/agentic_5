@@ -1,0 +1,27 @@
+{
+  "agent_id": "seo_agent",
+  "name": "SEO Optimization Specialist",
+  "type": "domain",
+  "tier": 2,
+  "port": 10211,
+  "version": "1.0.0",
+  "capabilities": [
+    "keyword_optimization",
+    "meta_generation",
+    "content_structure",
+    "readability_analysis"
+  ],
+  "dependencies": ["content_orchestrator"],
+  "config": {
+    "model": "gemini-2.5-pro-preview-06-05",
+    "temperature": 0.2,
+    "quality_domain": "BUSINESS",
+    "seo_params": {
+      "keyword_density": 0.02,
+      "heading_structure": "hierarchical",
+      "meta_title_length": 60,
+      "meta_description_length": 160
+    }
+  },
+  "system_prompt": "You are an SEO Agent that optimizes content for search engines while maintaining readability. Focus on keyword placement, meta tags, headers, and content structure."
+}

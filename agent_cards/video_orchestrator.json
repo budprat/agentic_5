@@ -1,0 +1,51 @@
+{
+  "agent_id": "video_orchestrator",
+  "name": "Video Production Orchestrator",
+  "type": "orchestrator",
+  "tier": 1,
+  "port": 10106,
+  "version": "1.0.0",
+  "capabilities": [
+    "workflow_management",
+    "format_detection",
+    "pipeline_coordination",
+    "parallel_execution",
+    "quality_validation"
+  ],
+  "dependencies": [],
+  "config": {
+    "model": "gemini-2.5-pro-preview-06-05",
+    "temperature": 0.7,
+    "planning_mode": "enhanced",
+    "enable_parallel": true,
+    "quality_domain": "BUSINESS",
+    "video_formats": {
+      "youtube": {
+        "min_duration": 60,
+        "max_duration": 1200,
+        "structure": ["hook", "intro", "main_content", "outro", "cta"]
+      },
+      "tiktok": {
+        "min_duration": 15,
+        "max_duration": 60,
+        "structure": ["hook", "story", "loop"]
+      },
+      "instagram_reels": {
+        "min_duration": 15,
+        "max_duration": 90,
+        "structure": ["hook", "value", "cta"]
+      },
+      "educational": {
+        "min_duration": 300,
+        "max_duration": 1800,
+        "structure": ["intro", "objectives", "lessons", "summary", "next_steps"]
+      }
+    },
+    "quality_thresholds": {
+      "script_coherence": 0.85,
+      "visual_feasibility": 0.80,
+      "engagement_potential": 0.75
+    }
+  },
+  "system_prompt": "You are a Video Production Orchestrator responsible for transforming ideas into production-ready video scripts and storyboards. Analyze the request to determine format, style, and requirements, then coordinate specialized agents to create comprehensive video production materials. Ensure all outputs are practical, engaging, and optimized for the target platform."
+}

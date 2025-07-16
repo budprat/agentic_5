@@ -103,149 +103,86 @@ function badExample() {
 # TypeScript Guidelines
 - You MUST follow the guidelines in .claude/rules/typescript-best-practices.md for all TypeScript code
 
-## Legend
-@include .claude/commands/shared/universal-constants.yml#Universal_Legend
 
-## Core Configuration
-@include .claude/shared/superclaude-core.yml#Core_Philosophy
+# 🔄 Project Awareness & Context & Research
+- **Documentation is a source of truth** - Your knowledge is out of date, I will always give you the latest documentation before writing any files that use third party API's - that information was freshsly scraped and you should NOT use your own knowledge, but rather use the documentation as a source of absolute truth.
 
-## Thinking Modes
-@include .claude/commands/shared/flag-inheritance.yml#Universal Flags (All Commands)
+- **check all jina scrapes** - some Jina scrapes fail and have very little content in them - if this happens, try scraping again until it works and you get the actual content of the file.
+- **Always read `docs/GOOGLE_ADK_IMPLEMENTATION_PLAN.md` , `docs/A2A_MCP_ORACLE_FRAMEWORK.md` , `ARCHITECTURE_ANALYSIS.md` , `FRAMEWORK_COMPONENTS_AND_ORCHESTRATION_GUIDE.md` , `MULTI_AGENT_WORKFLOW_GUIDE.md` ** at the start of a new conversation to understand the project's architecture, goals, style, and constraints.
+- **Check `.claude/TODO.md`** before starting a new task. If the task isn’t listed, add it with a brief description and today's date.
+- **Use consistent naming conventions, file structure, and architecture patterns** as described in `docs/GOOGLE_ADK_IMPLEMENTATION_PLAN.md` , `docs/A2A_MCP_ORACLE_FRAMEWORK.md` , `ARCHITECTURE_ANALYSIS.md` , `FRAMEWORK_COMPONENTS_AND_ORCHESTRATION_GUIDE.md` , `MULTI_AGENT_WORKFLOW_GUIDE.md`.
 
-## Introspection Mode
-@include .claude/commands/shared/introspection-patterns.yml#Introspection_Mode
-@include .claude/shared/superclaude-rules.yml#Introspection_Standards
+- **Agents** - Agents should be designed as intelligent human beings by giving them decision making, ability to do detailed research using Jina, and not just your basic propmts that generate absolute shit. This is absolutely vital. They should not use programmatic solutions to problems - but rather use reasoning and AI decision making to solve all problems. Every agent should have at least 5 prompts in an agentic workflow to create truly unique content. Each agent should also have the context of what its previous iterations have made.
+- **Stick to OFFICIAL DOCUMENTATION PAGES ONLY** - For all research ONLY use official documentation pages. Use a r.jina scrape on the documentation page given to you in INITIAL.md and then create a llm.txt from it in your memory, then choose the exact pages that make sense for this project and scrape them using your internal scraping tool.
+**Create full production ready code**
+- **Ultrathink** - Use Ultrathink capabilities before every stage of the PRP generation and code generation, what informatoin to put into PRD etc.
+- **LLM Models** - Always look for the models page from the documentation links mentioned below and find the model that is mentioned in the INITIAL.md - do not change models, find the exact model name to use in the code.
+- **Always scrape around 30-100 pages in total when doing research** - If a page 404s or does not contain correct content, try to scrape again and find the actual page/content. Put the output of each SUCCESFUL Jina scrape into a new directory with the name of the technology researched, then inside it .md or .txt files of each output
+- **Refer to /research/ directory** - Before implementing any feature that uses something that requires documentation, refer to the relevant directory inside /research/ directory and use the .md files to ensure you're coding with great accuracy, never assume knowledge of a third party API, instead always use the documentation examples which are completely up to date.
+- **Take my tech as sacred truth, for example if I say a model name then research that model name for LLM usage - don't assume from your own knowledge at any point** 
+- **For Maximum efficiency, whenever you need to perform multiple independent operations, such as research, invoke all relevant tools simultaneously, rather that sequentially.**
 
-## Advanced Token Economy
-@include .claude/shared/superclaude-core.yml#Advanced_Token_Economy
+### 🧱 Code Structure & Modularity
+- **Never create a file longer than 500 lines of code.** If a file approaches this limit, refactor by splitting it into modules or helper files.
+- **When creating AI prompts do not hardcode examples but make everything dynamic or based off the context of what the prompt is for**
+- **Always refer to the specific Phase document you are on** - If you are on phase 1, use phase-1.md, if you are on phase 2, use phase-2.md, if you are on phase 3, use phase-3.md
+- **Agents should be designed as intelligent human beings** by giving them decision making, ability to do detailed research using Jina, and not just your basic propmts that generate absolute shit. This is absolutely vital.
+- **Organize code into clearly separated modules**, grouped by feature or responsibility.
+  For agents this looks like:
+    - `agent.py` - Main agent definition and execution logic 
+    - `tools.py` - Tool functions used by the agent 
+    - `prompts.py` - System prompts
+- **Use clear, consistent imports** (prefer relative imports within packages).
+- **Use clear, consistent imports** (prefer relative imports within packages).
+- **Use python_dotenv and load_env()** for environment variables.
 
-## UltraCompressed Mode Integration
-@include .claude/shared/superclaude-core.yml#UltraCompressed_Mode
+### 🧪 Testing & Reliability
+- **Always create Pytest unit tests for new features** (functions, classes, routes, etc).
+- **After updating any logic**, check whether existing unit tests need to be updated. If so, do it.
+- **Tests should live in a `/tests` folder** mirroring the main app structure.
+  - Include at least:
+    - 1 test for expected use
+    - 1 edge case
+    - 1 failure case
 
-## Code Economy
-@include .claude/shared/superclaude-core.yml#Code_Economy
+### ✅ Task Completion
+- **Mark completed tasks in `.claude/TODO.md`** immediately after finishing them.
+- Add new sub-tasks or TODOs discovered during development to `.claude/TODO.md` under a “Discovered During Work” section.
 
-## Cost & Performance Optimization
-@include .claude/shared/superclaude-core.yml#Cost_Performance_Optimization
+### 📎 Style & Conventions
+- **Use Python** as the primary language.
+- **Follow PEP8**, use type hints, and format with `black`.
+- **Use `pydantic` for data validation**.
+- Use `FastAPI` for APIs and `SQLAlchemy` or `SQLModel` for ORM if applicable.
+- Write **docstrings for every function** using the Google style:
+  ```python
+  def example():
+      """
+      Brief summary.
 
-## Intelligent Auto-Activation
-@include .claude/shared/superclaude-core.yml#Intelligent_Auto_Activation
+      Args:
+          param1 (type): Description.
 
-## Task Management
-@include .claude/shared/superclaude-core.yml#Task_Management
-@include .claude/commands/shared/task-management-patterns.yml#Task_Management_Hierarchy
+      Returns:
+          type: Description.
+      """
+  ```
 
-## Performance Standards
-@include .claude/shared/superclaude-core.yml#Performance_Standards
-@include .claude/commands/shared/compression-performance-patterns.yml#Performance_Baselines
+### 📚 Documentation & Explainability
+- **Update `README.md`** when new features are added, dependencies change, or setup steps are modified.
+- **Comment non-obvious code** and ensure everything is understandable to a mid-level developer.
+- When writing complex logic, **add an inline `# Reason:` comment** explaining the why, not just the what.
 
-## Output Organization
-@include .claude/shared/superclaude-core.yml#Output_Organization
+### 🧠 AI Behavior Rules
+- **Never assume missing context. Ask questions if uncertain.**
+- **Never hallucinate libraries or functions** – only use known, verified Python packages.
+- **Always confirm file paths and module names** exist before referencing them in code or tests.
+- **Never delete or overwrite existing code** unless explicitly instructed to or if part of a task from `.claude/TODO.md`.
 
+### Design
 
-## Session Management
-@include .claude/shared/superclaude-core.yml#Session_Management
-@include .claude/commands/shared/system-config.yml#Session_Settings
+- Stick to the design system inside `docs/GOOGLE_ADK_IMPLEMENTATION_PLAN.md` , `docs/A2A_MCP_ORACLE_FRAMEWORK.md` , ARCHITECTURE_ANALYSIS.md , FRAMEWORK_COMPONENTS_AND_ORCHESTRATION_GUIDE.md , MULTI_AGENT_WORKFLOW_GUIDE.md and  DESIGNSYSTEM.md - must be adhered to at all times for building any new features.
 
-## Rules & Standards
-
-### Evidence-Based Standards
-@include .claude/shared/superclaude-core.yml#Evidence_Based_Standards
-
-### Standards
-@include .claude/shared/superclaude-core.yml#Standards
-
-### Severity System
-@include .claude/commands/shared/quality-patterns.yml#Severity_Levels
-@include .claude/commands/shared/quality-patterns.yml#Validation_Sequence
-
-### Smart Defaults & Handling
-@include .claude/shared/superclaude-rules.yml#Smart_Defaults
-
-### Ambiguity Resolution
-@include .claude/shared/superclaude-rules.yml#Ambiguity_Resolution
-
-### Development Practices
-@include .claude/shared/superclaude-rules.yml#Development_Practices
-
-### Code Generation
-@include .claude/shared/superclaude-rules.yml#Code_Generation
-
-### Session Awareness
-@include .claude/shared/superclaude-rules.yml#Session_Awareness
-
-### Action & Command Efficiency
-@include .claude/shared/superclaude-rules.yml#Action_Command_Efficiency
-
-### Project Quality
-@include .claude/shared/superclaude-rules.yml#Project_Quality
-
-### Security Standards
-@include .claude/shared/superclaude-rules.yml#Security_Standards
-@include .claude/commands/shared/security-patterns.yml#OWASP_Top_10
-@include .claude/commands/shared/security-patterns.yml#Validation_Levels
-
-### Efficiency Management
-@include .claude/shared/superclaude-rules.yml#Efficiency_Management
-
-### Operations Standards
-@include .claude/shared/superclaude-rules.yml#Operations_Standards
-
-## Model Context Protocol (MCP) Integration
-
-### MCP Architecture
-@include .claude/commands/shared/flag-inheritance.yml#Universal Flags (All Commands)
-@include .claude/commands/shared/execution-patterns.yml#Servers
-
-### Server Capabilities Extended
-@include .claude/shared/superclaude-mcp.yml#Server_Capabilities_Extended
-
-### Token Economics
-@include .claude/shared/superclaude-mcp.yml#Token_Economics
-
-### Workflows
-@include .claude/shared/superclaude-mcp.yml#Workflows
-
-### Quality Control
-@include .claude/shared/superclaude-mcp.yml#Quality_Control
-
-### Command Integration
-@include .claude/shared/superclaude-mcp.yml#Command_Integration
-
-### Error Recovery
-@include .claude/shared/superclaude-mcp.yml#Error_Recovery
-
-### Best Practices
-@include .claude/shared/superclaude-mcp.yml#Best_Practices
-
-### Session Management
-@include .claude/shared/superclaude-mcp.yml#Session_Management
-
-## Cognitive Archetypes (Personas)
-
-### Persona Architecture
-@include .claude/commands/shared/flag-inheritance.yml#Universal Flags (All Commands)
-
-### All Personas
-@include .claude/shared/superclaude-personas.yml#All_Personas
-
-### Collaboration Patterns
-@include .claude/shared/superclaude-personas.yml#Collaboration_Patterns
-
-### Intelligent Activation Patterns
-@include .claude/shared/superclaude-personas.yml#Intelligent_Activation_Patterns
-
-### Command Specialization
-@include .claude/shared/superclaude-personas.yml#Command_Specialization
-
-### Integration Examples
-@include .claude/shared/superclaude-personas.yml#Integration_Examples
-
-### Advanced Features
-@include .claude/shared/superclaude-personas.yml#Advanced_Features
-
-### MCP + Persona Integration
-@include .claude/shared/superclaude-personas.yml#MCP_Persona_Integration
 
 
 # Memory Management

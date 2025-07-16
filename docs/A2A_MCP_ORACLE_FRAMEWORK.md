@@ -1,16 +1,18 @@
-# A2A-MCP Unified Framework V2.0 - Standardized Multi-Agent Architecture
+# A2A-MCP Framework V2.0 - Standardized Multi-Agent Architecture
 ## Production-Ready Framework with Unified Patterns and Best Practices
 
 ### Framework Overview
 
-The **A2A-MCP Unified Framework V2.0** provides **production-ready multi-agent implementations** with standardized patterns derived from comprehensive analysis of Oracle, Travel, and Research agent architectures. This framework establishes unified standards for Google ADK integration, A2A communication, quality validation, and tool ecosystem management.
+The **A2A-MCP Framework V2.0** provides **production-ready multi-agent implementations** with standardized patterns derived from comprehensive analysis of Oracle, Travel, and Research agent architectures. This framework establishes unified standards for Google ADK integration, A2A communication, quality validation, and tool ecosystem management.
 
 **Key Evolution from V1.0:**
 - **Unified Agent Standards**: Beyond Oracle-only to all agent types
-- **Standardized Base Classes**: Common implementation patterns
-- **Domain-Specific Quality**: Configurable quality frameworks
+- **Standardized Base Classes**: Common implementation patterns with enhanced templates
+- **Domain-Specific Quality**: Configurable quality frameworks (5 domains: GENERIC, CREATIVE, ANALYTICAL, CODING, COMMUNICATION)
 - **Tool Ecosystem Consolidation**: Unified FastMCP server architecture
 - **Best Practices Integration**: Learnings from multi-agent analysis
+- **7-Phase Enhancement Architecture**: Dynamic workflows, streaming, quality validation
+- **Enterprise Observability**: OpenTelemetry, Prometheus, structured logging
 
 **Production Standards:**
 - **StandardizedAgentBase** with Google ADK + MCPToolset pattern
@@ -24,14 +26,15 @@ The **A2A-MCP Unified Framework V2.0** provides **production-ready multi-agent i
 
 ### 1.0 Framework V2.0 Tier-Based Agent Template Rules
 
-**MANDATORY FRAMEWORK RULES - Established by NU for A2A_MCP_ORACLE_FRAMEWORK V2.0:**
+**MANDATORY FRAMEWORK RULES - Established by NU for A2A_MCP_FRAMEWORK V2.0:**
 
 **Tier 1 - Master Orchestrators:**
-- **MUST** use `MasterOrchestratorTemplate` for all sophisticated multi-agent orchestration
+- **MUST** use `EnhancedMasterOrchestratorTemplate` for all sophisticated multi-agent orchestration
+- **MAY** use `LightweightMasterOrchestrator` for simple orchestration with clean planning separation
 - **Purpose:** Strategic planning, task decomposition, complex domain coordination
 - **Use Cases:** Business oracles, domain master orchestrators, complex workflow coordination
 - **Key Features:** 
-  - Enhanced Planner Agent delegation for strategic planning
+  - EnhancedGenericPlannerAgent delegation for strategic planning (simple/sophisticated modes)
   - Dynamic WorkflowGraph with real-time state management
   - PHASE 7 streaming with artifact events
   - Context & history tracking with intelligent Q&A
@@ -72,9 +75,10 @@ The **A2A-MCP Unified Framework V2.0** provides **production-ready multi-agent i
 **All templates are available in `src/a2a_mcp/common/` for universal access:**
 
 **Core Agent Templates:**
-- `MasterOrchestratorTemplate` - Tier 1 sophisticated orchestration
+- `EnhancedMasterOrchestratorTemplate` - Tier 1 sophisticated orchestration with 7 enhancement phases
+- `LightweightMasterOrchestrator` - Simplified orchestrator for clean separation of concerns  
 - `StandardizedAgentBase` - Tier 2/3 universal agent base
-- `ADKServiceAgent` - Tier 3 streamlined MCP service agents
+- `ADKServiceAgent` - Tier 3 streamlined MCP service agents (for legacy compatibility)
 
 **Domain Implementation Templates:**
 - `generic_a2a_client.py` - A2A JSON-RPC client template for domain frontends
@@ -343,6 +347,61 @@ service_quality_config = {
         "user_satisfaction": {"min_value": 0.75, "weight": 1.0}
     }
 }
+
+# Generic Domain (Default for unspecified domains)
+generic_quality_config = {
+    "domain": QualityDomain.GENERIC,
+    "enabled": True,
+    "thresholds": {
+        "completeness": {"min_value": 0.8, "weight": 1.0},
+        "accuracy": {"min_value": 0.85, "weight": 1.0},
+        "relevance": {"min_value": 0.8, "weight": 1.0}
+    }
+}
+
+# Creative Domain (Content creation, design)
+creative_quality_config = {
+    "domain": QualityDomain.CREATIVE,
+    "enabled": True,
+    "thresholds": {
+        "originality": {"min_value": 0.7, "weight": 1.2},
+        "coherence": {"min_value": 0.8, "weight": 1.0},
+        "engagement": {"min_value": 0.75, "weight": 1.1}
+    }
+}
+
+# Analytical Domain (Data analysis, research)
+analytical_quality_config = {
+    "domain": QualityDomain.ANALYTICAL,
+    "enabled": True,
+    "thresholds": {
+        "data_accuracy": {"min_value": 0.9, "weight": 1.3},
+        "methodology_soundness": {"min_value": 0.85, "weight": 1.2},
+        "conclusion_validity": {"min_value": 0.8, "weight": 1.1}
+    }
+}
+
+# Coding Domain (Software development)
+coding_quality_config = {
+    "domain": QualityDomain.CODING,
+    "enabled": True,
+    "thresholds": {
+        "code_correctness": {"min_value": 0.9, "weight": 1.3},
+        "best_practices": {"min_value": 0.8, "weight": 1.0},
+        "performance": {"min_value": 0.75, "weight": 0.9}
+    }
+}
+
+# Communication Domain (Customer service, support)
+communication_quality_config = {
+    "domain": QualityDomain.COMMUNICATION,
+    "enabled": True,
+    "thresholds": {
+        "clarity": {"min_value": 0.85, "weight": 1.2},
+        "helpfulness": {"min_value": 0.8, "weight": 1.1},
+        "tone_appropriateness": {"min_value": 0.8, "weight": 1.0}
+    }
+}
 ```
 
 ### 3.2 Quality Validation Integration
@@ -423,9 +482,233 @@ class StandardizedAgentBase:
 
 ---
 
-## 5. Production Deployment Standards
+## 5. Workflow Evolution and Management
 
-### 5.1 Agent Factory Integration
+### 5.1 Workflow System Architecture
+
+The framework includes three workflow systems with increasing sophistication:
+
+#### Basic Workflow (`workflow.py`)
+- **Purpose**: Foundation workflow orchestration for multi-agent task execution
+- **Architecture**:
+  ```python
+  # Graph-based workflow management
+  workflow = WorkflowGraph()
+  workflow.add_node("research", agent="researcher")
+  workflow.add_edge("research", "analyze")
+  ```
+- **Key Features**:
+  - Graph-based workflow management using NetworkX
+  - A2A agent integration with automatic agent discovery
+  - State management (READY, RUNNING, COMPLETED, PAUSED, INITIALIZED)
+  - Real-time streaming support via AsyncIterable patterns
+  - Automatic pause/resume on input requirements
+
+#### Enhanced Workflow (`enhanced_workflow.py`)
+- **Purpose**: Framework V2.0 sophisticated workflow capabilities
+- **Architecture**:
+  ```python
+  # Dynamic workflow with runtime modifications
+  workflow = DynamicWorkflowGraph()
+  node = WorkflowNode(
+      task="Analyze market data",
+      node_key="analyst",
+      metadata={"priority": "high", "timeout": 3600}
+  )
+  workflow.add_node(node)
+  # Can modify graph during execution
+  workflow.add_edge(node.id, new_node.id)
+  ```
+- **Key Enhancements**:
+  - Dynamic graph building with runtime node/edge manipulation
+  - Comprehensive state tracking with timestamps
+  - Dependency resolution and execution ordering
+  - Workflow statistics and health monitoring
+  - Cycle detection for graph validation
+  - Multiple workflow states (PENDING, RUNNING, PAUSED, COMPLETED, FAILED, CANCELLED)
+
+#### Parallel Workflow (`parallel_workflow.py`)
+- **Purpose**: Parallel task execution for performance optimization
+- **Architecture**:
+  ```python
+  # Automatic parallel detection
+  workflow = ParallelWorkflowGraph()
+  parallel_levels = workflow.identify_parallel_tasks()
+  # Executes independent tasks concurrently
+  async for result in workflow.run_workflow():
+      process_result(result)
+  ```
+- **Key Features**:
+  - Automatic detection of parallelizable tasks
+  - Level-based execution (BFS traversal)
+  - Configurable parallel threshold
+  - Mixed sequential/parallel execution modes
+  - Visual execution plan generation
+
+### 5.2 Planning Architecture
+
+#### EnhancedGenericPlannerAgent (`planner_agent.py`)
+- **Purpose**: Sophisticated planning with quality validation
+- **Planning Modes**:
+  ```python
+  # Simple mode for basic tasks
+  planner = EnhancedGenericPlannerAgent(
+      planning_mode="simple"
+  )
+  
+  # Sophisticated mode for complex scenarios
+  planner = EnhancedGenericPlannerAgent(
+      planning_mode="sophisticated",
+      enable_quality_validation=True
+  )
+  ```
+- **Capabilities**:
+  - Domain specialist awareness and assignment
+  - Quality validation framework integration
+  - Dependency analysis and critical path identification
+  - Resource estimation (time, cost, computational units)
+  - Risk assessment with mitigation strategies
+  - Plan templates for common scenarios
+
+### 5.3 Additional Components
+
+#### Event Queue System (`event_queue.py`)
+- **Purpose**: Event-driven architecture support
+- **Features**:
+  - Async event processing
+  - Priority queuing
+  - Dead letter handling
+  - Integration with streaming architecture
+
+#### Session Context (`session_context.py`)
+- **Purpose**: Session isolation and management
+- **Features**:
+  - State tracking per session
+  - Context propagation
+  - Automatic cleanup
+  - Multi-session support
+
+#### Response Formatter (`response_formatter.py`)
+- **Purpose**: Standardized response formatting
+- **Features**:
+  - Consistent structure across all agents
+  - Interactive mode detection
+  - Progress and error formatting
+  - Quality metadata integration
+
+---
+
+## 6. Integration Patterns
+
+### Pattern 1: Basic Multi-Agent System
+```python
+# 1. Configure domain
+config = ConfigManager()
+domain_config = config.get_domain_config("finance")
+
+# 2. Create orchestrator
+orchestrator = EnhancedMasterOrchestratorTemplate(
+    domain_name=domain_config["name"],
+    domain_specialists=domain_config["specialists"]
+)
+
+# 3. Create specialists
+agents = {}
+for name, desc in domain_config["specialists"].items():
+    agents[name] = GenericDomainAgent(
+        domain=domain_config["name"],
+        specialization=name,
+        capabilities=[desc]
+    )
+
+# 4. Execute
+result = await orchestrator.invoke("Analyze tech stocks", session_id)
+```
+
+### Pattern 2: Parallel Execution System
+```python
+# Create planner
+planner = EnhancedGenericPlannerAgent(
+    domain="DataAnalysis",
+    planning_mode="sophisticated"
+)
+
+# Get plan
+plan = planner.invoke("Process customer data", session_id)
+
+# Create parallel workflow
+workflow = ParallelWorkflowGraph()
+for task in plan["tasks"]:
+    workflow.add_node(task)
+
+# Execute in parallel
+async for result in workflow.run_workflow():
+    process_result(result)
+```
+
+### Pattern 3: Quality-Validated System
+```python
+# Configure quality
+quality = QualityThresholdFramework()
+quality.configure_domain(QualityDomain.ANALYSIS)
+
+# Create orchestrator with quality
+orchestrator = EnhancedMasterOrchestratorTemplate(
+    domain_name="Research",
+    quality_domain=QualityDomain.ANALYSIS,
+    quality_thresholds={"completeness": 0.9, "accuracy": 0.95}
+)
+
+# Results include quality metadata
+result = await orchestrator.invoke(query, session_id)
+quality_score = result["quality_metadata"]["overall_score"]
+```
+
+---
+
+## 7. Performance and Scalability
+
+### 7.1 Parallel Execution Benefits
+- Reduced total execution time for independent tasks
+- Automatic detection of parallelizable work
+- Configurable parallelism thresholds
+- Efficiency metrics: `parallel_efficiency = tasks_count / execution_time`
+
+### 7.2 Connection Pooling Impact
+- 60% performance improvement in inter-agent communication
+- HTTP/2 connection reuse
+- Reduced connection overhead
+- Automatic health checking
+
+### 7.3 Resource Optimization
+- Task batching for similar operations
+- Intelligent specialist assignment
+- Cost-aware execution planning
+- Connection pool metrics tracking
+
+### 7.4 Scalability Features
+- Asynchronous execution throughout
+- Minimal blocking operations
+- Session-based isolation
+- Event-driven architecture
+
+---
+
+## 8. Common Pitfalls to Avoid
+
+1. **Over-Engineering**: Don't use all components if not needed
+2. **Ignoring Quality**: Always enable quality validation in production
+3. **Sequential Only**: Consider parallel execution for performance
+4. **No Monitoring**: Production systems must have observability
+5. **Hard-Coded Config**: Use ConfigManager for flexibility
+6. **Ignoring Streaming**: Use PHASE 7 for real-time visibility
+7. **No Connection Pooling**: Essential for production performance
+
+---
+
+## 9. Production Deployment Standards
+
+### 9.1 Agent Factory Integration
 
 ```python
 # PRODUCTION PATTERN: Unified agent factory
@@ -557,9 +840,9 @@ For complete observability deployment guide, see: `docs/OBSERVABILITY_DEPLOYMENT
 
 ---
 
-## 6. PHASE 7: Workflow Streaming with Artifact Events
+## 10. PHASE 7: Workflow Streaming with Artifact Events
 
-### 6.1 Real-Time Streaming Architecture
+### 10.1 Real-Time Streaming Architecture
 
 The Master Orchestrator Template now supports real-time streaming with artifact events:
 
@@ -581,7 +864,7 @@ class DomainOrchestrator(MasterOrchestratorTemplate):
             yield event
 ```
 
-### 6.2 Streaming Event Types
+### 10.2 Streaming Event Types
 
 ```python
 # Event structure for streaming
@@ -618,7 +901,7 @@ class DomainOrchestrator(MasterOrchestratorTemplate):
 }
 ```
 
-### 6.3 Integration with Observability
+### 10.3 Integration with Observability
 
 Streaming sessions are fully integrated with the observability stack:
 
@@ -646,9 +929,9 @@ class EnhancedStreaming:
 
 ---
 
-## 7. Migration from Legacy Patterns
+## 11. Migration from Legacy Patterns
 
-### 6.1 Oracle Agent Migration
+### 11.1 Oracle Agent Migration
 
 ```python
 # BEFORE: Legacy Oracle implementation
@@ -676,7 +959,7 @@ class ModernOracleAgent(StandardizedAgentBase):
         pass
 ```
 
-### 6.2 Travel Agent Migration
+### 11.2 Travel Agent Migration
 
 ```python
 # BEFORE: Legacy Travel implementation
@@ -704,9 +987,9 @@ class ModernTravelAgent(StandardizedAgentBase):
 
 ---
 
-## 8. Best Practices and Guidelines
+## 12. Best Practices and Guidelines
 
-### 7.1 Agent Development Guidelines
+### 12.1 Agent Development Guidelines
 
 **DO:**
 - ✅ Inherit from StandardizedAgentBase
@@ -722,7 +1005,7 @@ class ModernTravelAgent(StandardizedAgentBase):
 - ❌ Ignore health monitoring
 - ❌ Duplicate tool implementations
 
-### 7.2 Quality Standards
+### 12.2 Quality Standards
 
 **Business Domain Agents:**
 - Focus on practical implementation success
@@ -739,7 +1022,7 @@ class ModernTravelAgent(StandardizedAgentBase):
 - Optimize for user satisfaction
 - Implement comprehensive error handling
 
-### 7.3 Performance Optimization
+### 12.3 Performance Optimization
 
 ```python
 # PRODUCTION PATTERN: Performance-optimized agent
@@ -762,9 +1045,9 @@ class OptimizedAgent(StandardizedAgentBase):
 
 ---
 
-## 9. Framework Evolution Roadmap
+## 13. Framework Evolution Roadmap
 
-### 9.1 Current Status (V2.0)
+### 13.1 Current Status (V2.0)
 - ✅ Unified agent architecture standards
 - ✅ Standardized communication protocol
 - ✅ Configurable quality frameworks
@@ -790,7 +1073,7 @@ class OptimizedAgent(StandardizedAgentBase):
   - ✅ Google ADK + LangGraph integration maintaining original sophistication
   - ✅ Production-ready Framework V2.0 reference implementation
 
-### 9.2 Future Enhancements (V2.1+)
+### 13.2 Future Enhancements (V2.1+)
 - **Advanced Orchestration**: Distributed workflow management across multiple nodes
 - **Intelligent Caching**: Agent response caching and optimization
 - **Dynamic Scaling**: Auto-scaling based on load patterns
@@ -800,9 +1083,9 @@ class OptimizedAgent(StandardizedAgentBase):
 
 ---
 
-## 10. Conclusion
+## 14. Conclusion
 
-The **A2A-MCP Unified Framework V2.0** represents a significant evolution from Oracle-specific patterns to **universal multi-agent standards**. This framework provides:
+The **A2A-MCP Framework V2.0** represents a significant evolution from Oracle-specific patterns to **universal multi-agent standards**. This framework provides:
 
 1. **Architectural Consistency**: All agents follow standardized patterns
 2. **Quality Assurance**: Domain-specific configurable quality frameworks

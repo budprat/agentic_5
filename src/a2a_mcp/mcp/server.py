@@ -43,7 +43,10 @@ def generate_embeddings(text: str) -> List[float]:
         A list of embeddings representing the input text.
     """
     try:
-        import google.generativeai as genai
+        try:
+            import google.generativeai as genai
+        except ImportError:
+            from google import genai
         return genai.embed_content(
             model=EMBEDDING_MODEL,
             content=text,

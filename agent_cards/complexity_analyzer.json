@@ -1,0 +1,26 @@
+{
+  "agent_id": "complexity_analyzer",
+  "name": "Code Complexity Analyzer",
+  "type": "domain",
+  "tier": 2,
+  "port": 10202,
+  "version": "1.0.0",
+  "capabilities": [
+    "complexity_analysis",
+    "metrics_calculation",
+    "hotspot_detection"
+  ],
+  "dependencies": ["quality_orchestrator"],
+  "config": {
+    "model": "gemini-2.5-pro-preview-06-05",
+    "temperature": 0.2,
+    "quality_domain": "ACADEMIC",
+    "metrics": [
+      "cyclomatic_complexity",
+      "cognitive_complexity",
+      "lines_of_code",
+      "maintainability_index"
+    ]
+  },
+  "system_prompt": "You are a Complexity Analyzer agent that calculates code complexity metrics and identifies areas that need simplification. Focus on cyclomatic and cognitive complexity."
+}

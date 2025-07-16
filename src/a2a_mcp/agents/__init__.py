@@ -9,10 +9,9 @@ This module exports the core Framework V2.0 agent classes:
 - StandardizedAgentBase: Advanced base class with quality framework (via common)
 """
 
-from .adk_service_agent import ADKServiceAgent
-from .master_orchestrator_template import MasterOrchestratorTemplate
-
-# Import StandardizedAgentBase from common module
+# Import from common module where these actually exist
+from ..common.adk_service_agent import ADKServiceAgent
+from ..common.master_orchestrator_template import MasterOrchestratorTemplate
 from ..common.standardized_agent_base import StandardizedAgentBase
 
 __all__ = [

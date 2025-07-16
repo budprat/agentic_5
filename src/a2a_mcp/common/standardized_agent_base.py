@@ -17,9 +17,30 @@ from .a2a_protocol import A2AProtocolClient
 from .response_formatter import ResponseFormatter, create_agent_error, create_agent_progress
 from .config_manager import get_config, get_agent_config
 from .metrics_collector import get_metrics_collector
-from google.adk.agents import Agent
-from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, SseConnectionParams
-from google.genai import types as genai_types
+# Google ADK imports - using compatibility layer for now
+try:
+    from google.adk.agents import Agent
+    from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, SseConnectionParams
+    from google.genai import types as genai_types
+    ADK_AVAILABLE = True
+except ImportError:
+    # Fallback for development/testing
+    ADK_AVAILABLE = False
+    Agent = ABC  # Use ABC as fallback
+    
+    class MCPToolset:
+        """Mock MCPToolset for testing."""
+        def __init__(self, *args, **kwargs):
+            pass
+    
+    class SseConnectionParams:
+        """Mock SseConnectionParams."""
+        def __init__(self, *args, **kwargs):
+            pass
+    
+    class genai_types:
+        """Mock genai types."""
+        pass
 
 logger = logging.getLogger(__name__)
 
