@@ -135,6 +135,8 @@ class TrendAnalysis(BaseModel):
 trend_analysis_agent = LlmAgent(
     name="trend_analysis_agent",
     model=os.getenv("GEMINI_MODEL"),
+    disallow_transfer_to_parent=True,
+    disallow_transfer_to_peers=True,
     instruction="""
         You are a Strategic Trend Intelligence Analyst powered by Google ADK with session memory.
         Your task is to identify, analyze, and quantify content opportunities from emerging and growing trends.

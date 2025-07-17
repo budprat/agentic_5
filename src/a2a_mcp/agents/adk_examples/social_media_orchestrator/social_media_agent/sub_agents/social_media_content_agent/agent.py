@@ -111,6 +111,8 @@ class SocialMediaContent(BaseModel):
 social_media_content_agent = LlmAgent(
     name="social_media_content_agent",
     model=os.getenv("GEMINI_MODEL"),
+    disallow_transfer_to_parent=True,
+    disallow_transfer_to_peers=True,
     instruction="""
         You are a Multi-Platform Social Media Content Strategist powered by Google ADK with session memory.
         Your task is to create and optimize content for maximum engagement across multiple social media platforms.

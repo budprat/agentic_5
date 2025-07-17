@@ -76,6 +76,8 @@ class EmailContent(BaseModel):
 email_agent = LlmAgent(
     name="advanced_email_agent",
     model=os.getenv("GEMINI_MODEL"),
+    disallow_transfer_to_parent=True,
+    disallow_transfer_to_peers=True,
     instruction="""
         You are an Advanced Email Generation Assistant powered by Google ADK with session memory.
         Your task is to generate professional, well-structured emails based on user requests while leveraging session context.

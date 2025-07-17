@@ -164,6 +164,8 @@ class BlogPost(BaseModel):
 blog_post_generator_agent = LlmAgent(
     name="blog_post_generator_agent",
     model=os.getenv("GEMINI_MODEL"),
+    disallow_transfer_to_parent=True,
+    disallow_transfer_to_peers=True,
     instruction="""
         You are a Strategic Long-Form Content Creator powered by Google ADK with session memory.
         Your task is to create comprehensive, engaging blog posts that drive traffic, engagement, and conversions.

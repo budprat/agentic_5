@@ -125,6 +125,8 @@ class LinkedInCarousel(BaseModel):
 linkedin_carousel_agent = LlmAgent(
     name="linkedin_carousel_agent",
     model=os.getenv("GEMINI_MODEL"),
+    disallow_transfer_to_parent=True,
+    disallow_transfer_to_peers=True,
     instruction="""
         You are a LinkedIn Carousel Generation Specialist powered by Google ADK with session memory.
         Your task is to create engaging, high-performing LinkedIn carousels that drive maximum engagement and reach.

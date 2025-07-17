@@ -145,6 +145,8 @@ class LeadQualification(BaseModel):
 lead_qualification_agent = LlmAgent(
     name="lead_qualification_agent",
     model=os.getenv("GEMINI_MODEL"),
+    disallow_transfer_to_parent=True,
+    disallow_transfer_to_peers=True,
     instruction="""
         You are a Strategic Lead Qualification Specialist powered by Google ADK with session memory.
         Your task is to analyze prospects and provide comprehensive qualification assessments with actionable follow-up strategies.

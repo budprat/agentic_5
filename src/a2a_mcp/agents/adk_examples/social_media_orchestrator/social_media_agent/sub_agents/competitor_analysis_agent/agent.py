@@ -107,6 +107,8 @@ class CompetitorAnalysis(BaseModel):
 competitor_analysis_agent = LlmAgent(
     name="competitor_analysis_agent",
     model=os.getenv("GEMINI_MODEL"),
+    disallow_transfer_to_parent=True,
+    disallow_transfer_to_peers=True,
     instruction="""
         You are a Strategic Competitor Intelligence Analyst powered by Google ADK with session memory.
         Your task is to conduct comprehensive competitor analysis that provides actionable insights for competitive advantage.

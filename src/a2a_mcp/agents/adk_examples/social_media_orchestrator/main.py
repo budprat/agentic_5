@@ -57,6 +57,11 @@ async def main_async():
         if user_input.lower() in ["exit", "quit"]:
             print("Ending conversation. Goodbye!")
             break
+        
+        # Skip empty queries
+        if not user_input.strip():
+            print("Please enter a valid query.")
+            continue
 
         # Update interaction history with the user's query
         add_user_query_to_history(
