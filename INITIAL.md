@@ -13,8 +13,9 @@
 
 ## EXAMPLES:
 
-In the `agent-development-kit-crash-course` folder, there is a comprehensive set of examples demonstrating Google ADK integration:
+In the `agent-development-kit-crash-course` folder, there is a comprehensive set of examples demonstrating Google ADK integration.
 
+And some agents in folder src/a2a_mcp/agents/adk_examples/ as per the A2A MCP framework like below
 - `tier1_sequential_orchestrator.py` - ContentCreationOrchestrator showing sequential workflow with state management
 - `tier2_domain_specialist.py` - Domain specialists (Financial, Technical, Healthcare) with structured Pydantic outputs
 - `tier3_service_agent.py` - Service agents with MCP and custom tool integration
@@ -24,7 +25,7 @@ In the `agent-development-kit-crash-course` folder, there is a comprehensive set
 
 Key patterns demonstrated:
 - Using Google ADK's 5 agent types: Agent, LlmAgent, SequentialAgent, ParallelAgent, LoopAgent
-- Tool integration (remember: only ONE built-in tool per agent!)
+- Tool integration
 - Sub-agent delegation using AgentTool wrapper
 - Callbacks for monitoring and state management
 - Integration with A2A framework's StandardizedAgentBase
@@ -32,8 +33,8 @@ Key patterns demonstrated:
 ## DOCUMENTATION:
 
 - Google ADK Official Documentation https://google.github.io/adk-docs/
-- Google ADK Implementation Plan: `docs/GOOGLE_ADK_IMPLEMENTATION_PLAN.md`
-- A2A Framework Documentation: `docs/A2A_MCP_ORACLE_FRAMEWORK.md`
+- Google ADK Implementation Plan: `GOOGLE_ADK_IMPLEMENTATION_PLAN.md`
+- A2A Framework Documentation: `A2A_MCP_ORACLE_FRAMEWORK.md`
 - Architecture Guide: `ARCHITECTURE_ANALYSIS.md`
 - Multi-Agent Workflow Guide: `MULTI_AGENT_WORKFLOW_GUIDE.md`
 - ADK Crash Course Examples: `agent-development-kit-crash-course/`
