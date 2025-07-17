@@ -20,10 +20,8 @@ class SocialPlatform(str, Enum):
     LINKEDIN = "linkedin"
     TWITTER = "twitter"
     INSTAGRAM = "instagram"
-    FACEBOOK = "facebook"
+    X_POSTS = "x_posts"
     YOUTUBE = "youtube"
-    TIKTOK = "tiktok"
-    THREADS = "threads"
 
 
 # --- Define Content Format Enum ---
@@ -32,20 +30,15 @@ class ContentFormat(str, Enum):
     IMAGE_POST = "image_post"
     VIDEO_POST = "video_post"
     CAROUSEL = "carousel"
-    STORY = "story"
     THREAD = "thread"
-    REEL = "reel"
-    LIVE = "live"
 
 
 # --- Define Engagement Strategy Enum ---
 class EngagementStrategy(str, Enum):
     EDUCATIONAL = "educational"
     ENTERTAINMENT = "entertainment"
-    INSPIRATIONAL = "inspirational"
     PROMOTIONAL = "promotional"
     COMMUNITY = "community"
-    TRENDING = "trending"
 
 
 # --- Define Platform Adaptation Schema ---

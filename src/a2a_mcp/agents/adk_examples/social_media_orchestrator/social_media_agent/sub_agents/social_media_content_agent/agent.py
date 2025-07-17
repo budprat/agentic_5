@@ -20,10 +20,8 @@ class SocialPlatform(str, Enum):
     LINKEDIN = "linkedin"
     TWITTER = "twitter"
     INSTAGRAM = "instagram"
-    FACEBOOK = "facebook"
+    X_POSTS = "x_posts"
     YOUTUBE = "youtube"
-    TIKTOK = "tiktok"
-    THREADS = "threads"
 
 
 # --- Define Content Format Enum ---
@@ -32,59 +30,46 @@ class ContentFormat(str, Enum):
     IMAGE_POST = "image_post"
     VIDEO_POST = "video_post"
     CAROUSEL = "carousel"
-    STORY = "story"
     THREAD = "thread"
-    REEL = "reel"
-    LIVE = "live"
 
 
 # --- Define Engagement Strategy Enum ---
 class EngagementStrategy(str, Enum):
     EDUCATIONAL = "educational"
     ENTERTAINMENT = "entertainment"
-    INSPIRATIONAL = "inspirational"
     PROMOTIONAL = "promotional"
     COMMUNITY = "community"
-    TRENDING = "trending"
 
 
 # --- Define Platform Adaptation Schema ---
 class PlatformAdaptation(BaseModel):
     platform: SocialPlatform = Field(description="Target social media platform")
-    content: str = Field(description="Platform-optimized content")
-    character_limit: Optional[int] = Field(description="Character limit for this platform")
-    hashtags: List[str] = Field(description="Platform-specific hashtags", max_items=15)
-    mentions: List[str] = Field(description="Relevant mentions for this platform", max_items=5)
-    optimal_posting_time: str = Field(description="Best time to post on this platform")
+    content: str = Field(description="Platform-optimized content", max_length=1500)
+    hashtags: List[str] = Field(description="Platform-specific hashtags", max_items=5)
+    mentions: List[str] = Field(description="Relevant mentions for this platform", max_items=3)
     content_format: ContentFormat = Field(description="Recommended content format")
-    engagement_tactics: List[str] = Field(description="Platform-specific engagement tactics", max_items=5)
+    engagement_tactics: List[str] = Field(description="Platform-specific engagement tactics", max_items=3)
 
 
 # --- Define Visual Content Schema ---
 class VisualContent(BaseModel):
-    content_type: str = Field(description="Type of visual content (image, video, graphic)")
-    description: str = Field(description="Description of visual content needed")
-    dimensions: str = Field(description="Optimal dimensions for platform")
-    style_guidelines: List[str] = Field(description="Visual style recommendations", max_items=5)
-    text_overlay: Optional[str] = Field(description="Text to overlay on visual content")
+    content_type: str = Field(description="Type of visual content", max_length=50)
+    description: str = Field(description="Description of visual content needed", max_length=400)
+    style_guidelines: List[str] = Field(description="Visual style recommendations", max_items=3)
+    text_overlay: Optional[str] = Field(description="Text to overlay on visual content", max_length=200)
 
 
 # --- Define Cross-Promotion Schema ---
 class CrossPromotion(BaseModel):
     primary_platform: SocialPlatform = Field(description="Main platform for content launch")
-    secondary_platforms: List[SocialPlatform] = Field(description="Platforms for content amplification")
-    adaptation_strategy: str = Field(description="How to adapt content across platforms")
-    timing_sequence: List[str] = Field(description="Order and timing for cross-promotion")
-    engagement_linking: str = Field(description="How to link engagement across platforms")
+    secondary_platforms: List[SocialPlatform] = Field(description="Platforms for content amplification", max_items=3)
+    adaptation_strategy: str = Field(description="How to adapt content across platforms", max_length=500)
 
 
 # --- Define Performance Prediction Schema ---
 class PerformancePrediction(BaseModel):
     platform: SocialPlatform = Field(description="Platform for prediction")
-    estimated_reach: str = Field(description="Predicted reach range")
-    estimated_engagement: str = Field(description="Predicted engagement rate")
-    best_metrics: List[str] = Field(description="Metrics likely to perform best", max_items=3)
-    success_factors: List[str] = Field(description="Factors that will drive success", max_items=5)
+    estimated_reach: str = Field(description="Predicted reach range", max_length=50)
 
 
 # --- Define Social Media Content Schema ---
@@ -98,40 +83,27 @@ class SocialMediaContent(BaseModel):
     core_message: str = Field(
         description="Central message or key takeaway",
         min_length=20,
-        max_length=200
+        max_length=500
     )
     engagement_strategy: EngagementStrategy = Field(description="Primary engagement approach")
     platform_adaptations: List[PlatformAdaptation] = Field(
         description="Content adapted for each platform",
-        min_items=1,
-        max_items=7
+        max_items=3
     )
     visual_content: List[VisualContent] = Field(
         description="Visual content requirements",
-        max_items=5
+        max_items=2
     )
     cross_promotion: CrossPromotion = Field(description="Cross-platform promotion strategy")
-    target_audience: str = Field(description="Primary target audience for this content")
-    content_objectives: List[str] = Field(
-        description="Specific objectives for this content",
-        max_items=5
-    )
-    call_to_action: str = Field(description="Primary call-to-action across platforms")
+    target_audience: str = Field(description="Primary target audience for this content", max_length=200)
+    call_to_action: str = Field(description="Primary call-to-action across platforms", max_length=200)
     trending_elements: List[str] = Field(
         description="Trending topics or elements to incorporate",
-        max_items=5
-    )
-    performance_predictions: List[PerformancePrediction] = Field(
-        description="Performance predictions by platform",
-        max_items=7
-    )
-    content_calendar_notes: List[str] = Field(
-        description="Notes for content calendar integration",
         max_items=3
     )
     repurposing_opportunities: List[str] = Field(
         description="Future content repurposing ideas",
-        max_items=5
+        max_items=3
     )
 
 

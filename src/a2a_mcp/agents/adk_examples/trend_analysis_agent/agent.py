@@ -38,42 +38,40 @@ class ContentAngle(str, Enum):
     OPINION = "opinion"
     CASE_STUDY = "case_study"
     PREDICTION = "prediction"
-    TUTORIAL = "tutorial"
-    ANALYSIS = "analysis"
 
 
 # --- Define Trend Source Schema ---
 class TrendSource(BaseModel):
-    source_name: str = Field(description="Name of the trend source")
-    source_type: str = Field(description="Type of source (social, news, research, etc.)")
+    source_name: str = Field(description="Name of the trend source", max_length=100)
+    source_type: str = Field(description="Type of source (social, news, research, etc.)", max_length=50)
     credibility_score: float = Field(description="Source credibility from 1-10", ge=1.0, le=10.0)
     data_points: int = Field(description="Number of data points from this source")
 
 
 # --- Define Keyword Analysis Schema ---
 class KeywordAnalysis(BaseModel):
-    primary_keyword: str = Field(description="Main keyword for the trend")
-    related_keywords: List[str] = Field(description="Related keywords and variations", max_items=10)
-    search_volume: str = Field(description="Estimated monthly search volume")
-    competition_level: str = Field(description="Keyword competition (low/medium/high)")
-    trending_hashtags: List[str] = Field(description="Trending hashtags related to topic", max_items=8)
+    primary_keyword: str = Field(description="Main keyword for the trend", max_length=100)
+    related_keywords: List[str] = Field(description="Related keywords and variations", max_items=5)
+    search_volume: str = Field(description="Estimated monthly search volume", max_length=50)
+    competition_level: str = Field(description="Keyword competition (low/medium/high)", max_length=20)
+    trending_hashtags: List[str] = Field(description="Trending hashtags related to topic", max_items=5)
 
 
 # --- Define Content Opportunity Schema ---
 class ContentOpportunity(BaseModel):
     angle: ContentAngle = Field(description="Content angle to pursue")
-    title_suggestions: List[str] = Field(description="Suggested content titles", max_items=5)
-    target_platforms: List[str] = Field(description="Best platforms for this content")
-    estimated_reach: str = Field(description="Estimated potential reach")
-    content_format: str = Field(description="Recommended content format")
-    urgency_level: str = Field(description="How quickly to act (low/medium/high)")
+    title_suggestions: List[str] = Field(description="Suggested content titles", max_items=3)
+    target_platforms: List[str] = Field(description="Best platforms for this content", max_items=3)
+    estimated_reach: str = Field(description="Estimated potential reach", max_length=50)
+    content_format: str = Field(description="Recommended content format", max_length=50)
+    urgency_level: str = Field(description="How quickly to act (low/medium/high)", max_length=20)
 
 
 # --- Define Market Sentiment Schema ---
 class MarketSentiment(BaseModel):
-    overall_sentiment: str = Field(description="Overall market sentiment (positive/negative/neutral)")
+    overall_sentiment: str = Field(description="Overall market sentiment (positive/negative/neutral)", max_length=20)
     sentiment_score: float = Field(description="Sentiment score from -1 to 1", ge=-1.0, le=1.0)
-    key_drivers: List[str] = Field(description="Main factors driving sentiment", max_items=5)
+    key_drivers: List[str] = Field(description="Main factors driving sentiment", max_items=3)
     audience_emotions: List[str] = Field(description="Primary emotions in audience", max_items=3)
 
 
@@ -84,14 +82,14 @@ class TrendMetrics(BaseModel):
         ge=1.0,
         le=10.0
     )
-    velocity: str = Field(description="Speed of trend growth (slow/moderate/fast/explosive)")
+    velocity: str = Field(description="Speed of trend growth (slow/moderate/fast/explosive)", max_length=30)
     saturation_level: float = Field(
         description="Market saturation percentage",
         ge=0.0,
         le=100.0
     )
-    estimated_lifespan: str = Field(description="Predicted trend duration")
-    peak_timing: str = Field(description="When trend is expected to peak")
+    estimated_lifespan: str = Field(description="Predicted trend duration", max_length=50)
+    peak_timing: str = Field(description="When trend is expected to peak", max_length=50)
 
 
 # --- Define Trend Analysis Schema ---
@@ -109,27 +107,27 @@ class TrendAnalysis(BaseModel):
     market_sentiment: MarketSentiment = Field(description="Market sentiment analysis")
     content_opportunities: List[ContentOpportunity] = Field(
         description="Specific content opportunities identified",
-        max_items=7
+        max_items=3
     )
     trend_sources: List[TrendSource] = Field(
         description="Sources used for trend analysis",
-        max_items=5
+        max_items=3
     )
     risk_factors: List[str] = Field(
         description="Potential risks or challenges",
-        max_items=5
+        max_items=3
     )
     competitive_landscape: List[str] = Field(
         description="Key players already in this trend space",
-        max_items=8
+        max_items=5
     )
     recommended_actions: List[str] = Field(
         description="Specific immediate actions to take",
-        max_items=5
+        max_items=3
     )
     success_metrics: List[str] = Field(
         description="How to measure success in this trend",
-        max_items=5
+        max_items=3
     )
 
 

@@ -27,8 +27,6 @@ class CompetitorTier(str, Enum):
 class ContentCategory(str, Enum):
     EDUCATIONAL = "educational"
     PROMOTIONAL = "promotional"
-    PERSONAL = "personal"
-    INDUSTRY_NEWS = "industry_news"
     THOUGHT_LEADERSHIP = "thought_leadership"
 
 
@@ -87,11 +85,11 @@ class CompetitorAnalysis(BaseModel):
     swot_analysis: SWOTAnalysis = Field(description="Strengths, weaknesses, opportunities, threats")
     competitive_gaps: List[CompetitiveGap] = Field(
         description="Identified gaps and opportunities",
-        max_items=10
+        max_items=5
     )
     key_insights: List[str] = Field(
         description="Key takeaways from the analysis",
-        max_items=7
+        max_items=5
     )
     recommended_actions: List[str] = Field(
         description="Specific actions to outperform this competitor",

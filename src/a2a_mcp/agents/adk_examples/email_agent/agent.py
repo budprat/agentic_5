@@ -28,15 +28,13 @@ class EmailType(str, Enum):
     PERSONAL = "personal"
     MARKETING = "marketing"
     SUPPORT = "support"
-    FOLLOW_UP = "follow_up"
-    ANNOUNCEMENT = "announcement"
 
 
 # --- Define Attachment Schema ---
 class EmailAttachment(BaseModel):
-    filename: str = Field(description="Name of the attachment file")
-    description: str = Field(description="Brief description of what the attachment contains")
-    file_type: str = Field(description="File type/extension (e.g., 'pdf', 'docx', 'xlsx')")
+    filename: str = Field(description="Name of the attachment file", max_length=100)
+    description: str = Field(description="Brief description of what the attachment contains", max_length=200)
+    file_type: str = Field(description="File type/extension (e.g., 'pdf', 'docx', 'xlsx')", max_length=20)
 
 
 # --- Define Complete Email Content Schema ---
@@ -48,7 +46,8 @@ class EmailContent(BaseModel):
     )
     body: str = Field(
         description="The main content of the email. Should be well-formatted with proper greeting, paragraphs, and signature.",
-        min_length=20
+        min_length=20,
+        max_length=2000
     )
     priority: EmailPriority = Field(
         default=EmailPriority.NORMAL,
@@ -59,14 +58,17 @@ class EmailContent(BaseModel):
     )
     suggested_attachments: List[EmailAttachment] = Field(
         default=[],
-        description="List of suggested attachments if applicable"
+        description="List of suggested attachments if applicable",
+        max_items=3
     )
     call_to_action: Optional[str] = Field(
         default=None,
-        description="Specific action you want the recipient to take"
+        description="Specific action you want the recipient to take",
+        max_length=200
     )
     tone: str = Field(
-        description="The tone of the email (e.g., 'professional', 'friendly', 'formal', 'casual')"
+        description="The tone of the email (e.g., 'professional', 'friendly', 'formal', 'casual')",
+        max_length=50
     )
 
 

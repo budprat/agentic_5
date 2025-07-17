@@ -20,8 +20,6 @@ class DesignTheme(str, Enum):
     MODERN = "modern"
     MINIMALIST = "minimalist"
     BOLD = "bold"
-    CREATIVE = "creative"
-    CORPORATE = "corporate"
 
 
 # --- Define Content Type Enum ---
@@ -30,8 +28,6 @@ class ContentType(str, Enum):
     TIPS = "tips"
     PROCESS = "process"
     STATISTICS = "statistics"
-    STORY = "story"
-    COMPARISON = "comparison"
 
 
 # --- Define Slide Type Enum ---
@@ -58,11 +54,11 @@ class CarouselSlide(BaseModel):
     slide_type: SlideType = Field(description="Type of slide content")
     title: str = Field(
         description="Slide title - concise and impactful",
-        max_length=50
+        max_length=80
     )
     content: str = Field(
         description="Main slide content - bullet points or key message",
-        max_length=200
+        max_length=300
     )
     visual_elements: List[VisualElement] = Field(
         default=[],

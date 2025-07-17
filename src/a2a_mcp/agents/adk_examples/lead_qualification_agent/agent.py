@@ -26,10 +26,8 @@ class LeadStatus(str, Enum):
 
 # --- Define Budget Range Enum ---
 class BudgetRange(str, Enum):
-    UNDER_1K = "under_1k"
-    ONE_TO_5K = "1k_to_5k"
-    FIVE_TO_10K = "5k_to_10k"
-    TEN_TO_25K = "10k_to_25k"
+    UNDER_5K = "under_5k"
+    FIVE_TO_25K = "5k_to_25k"
     TWENTY_FIVE_TO_50K = "25k_to_50k"
     OVER_50K = "over_50k"
     UNKNOWN = "unknown"
@@ -51,26 +49,23 @@ class LeadSource(str, Enum):
     REFERRAL = "referral"
     CONTENT = "content"
     EMAIL = "email"
-    SOCIAL = "social"
-    EVENT = "event"
-    COLD_OUTREACH = "cold_outreach"
 
 
 # --- Define Pain Point Schema ---
 class PainPoint(BaseModel):
-    category: str = Field(description="Pain point category (e.g., 'growth', 'efficiency', 'cost')")
-    description: str = Field(description="Detailed description of the pain point")
-    severity: str = Field(description="Pain severity (low/medium/high/critical)")
-    impact: str = Field(description="Business impact if not solved")
-    urgency: str = Field(description="Timeline urgency (low/medium/high)")
+    category: str = Field(description="Pain point category", max_length=50)
+    description: str = Field(description="Detailed description of the pain point", max_length=200)
+    severity: str = Field(description="Pain severity (low/medium/high/critical)", max_length=20)
+    impact: str = Field(description="Business impact if not solved", max_length=150)
+    urgency: str = Field(description="Timeline urgency (low/medium/high)", max_length=20)
 
 
 # --- Define Decision Maker Schema ---
 class DecisionMaker(BaseModel):
-    role: str = Field(description="Role/title of decision maker")
-    influence_level: str = Field(description="Level of influence (low/medium/high)")
-    contact_status: str = Field(description="Contact status (not_contacted/contacted/engaged)")
-    relationship_strength: str = Field(description="Relationship strength (none/weak/moderate/strong)")
+    role: str = Field(description="Role/title of decision maker", max_length=100)
+    influence_level: str = Field(description="Level of influence (low/medium/high)", max_length=20)
+    contact_status: str = Field(description="Contact status (not_contacted/contacted/engaged)", max_length=30)
+    relationship_strength: str = Field(description="Relationship strength (none/weak/moderate/strong)", max_length=20)
 
 
 # --- Define Qualification Criteria Schema ---
@@ -84,17 +79,17 @@ class QualificationCriteria(BaseModel):
 
 # --- Define Follow Up Action Schema ---
 class FollowUpAction(BaseModel):
-    action_type: str = Field(description="Type of follow-up (email, call, content, demo, etc.)")
-    priority: str = Field(description="Priority level (low/medium/high/urgent)")
-    timeline: str = Field(description="When to execute (immediately/today/this_week/next_week)")
-    message_template: str = Field(description="Suggested message or talking points")
-    expected_outcome: str = Field(description="What you expect to achieve")
+    action_type: str = Field(description="Type of follow-up (email, call, content, demo, etc.)", max_length=50)
+    priority: str = Field(description="Priority level (low/medium/high/urgent)", max_length=20)
+    timeline: str = Field(description="When to execute (immediately/today/this_week/next_week)", max_length=30)
+    message_template: str = Field(description="Suggested message or talking points", max_length=500)
+    expected_outcome: str = Field(description="What you expect to achieve", max_length=200)
 
 
 # --- Define Lead Qualification Schema ---
 class LeadQualification(BaseModel):
     qualification_date: str = Field(description="Date of qualification", default_factory=lambda: datetime.now().isoformat())
-    lead_name: str = Field(description="Lead's name or company name")
+    lead_name: str = Field(description="Lead's name or company name", max_length=100)
     lead_source: LeadSource = Field(description="How the lead was acquired")
     company_info: Dict[str, str] = Field(description="Company information (size, industry, etc.)")
     lead_score: int = Field(
@@ -106,26 +101,26 @@ class LeadQualification(BaseModel):
     qualification_criteria: QualificationCriteria = Field(description="BANT qualification assessment")
     pain_points: List[PainPoint] = Field(
         description="Identified pain points and challenges",
-        max_items=5
+        max_items=3
     )
     decision_makers: List[DecisionMaker] = Field(
         description="Key decision makers and influencers",
-        max_items=5
+        max_items=3
     )
     budget_range: BudgetRange = Field(description="Estimated budget range")
-    decision_timeline: str = Field(description="Expected decision timeframe")
+    decision_timeline: str = Field(description="Expected decision timeframe", max_length=100)
     competitive_situation: List[str] = Field(
         description="Known competitors in consideration",
-        max_items=5
+        max_items=3
     )
-    value_proposition_fit: str = Field(description="How well your solution fits their needs")
+    value_proposition_fit: str = Field(description="How well your solution fits their needs", max_length=300)
     objections_concerns: List[str] = Field(
         description="Identified objections or concerns",
-        max_items=5
+        max_items=3
     )
     next_actions: List[FollowUpAction] = Field(
         description="Recommended next steps",
-        max_items=5
+        max_items=3
     )
     personalization_data: Dict[str, str] = Field(
         description="Personal details for relationship building"
@@ -137,7 +132,8 @@ class LeadQualification(BaseModel):
     )
     estimated_deal_value: Optional[str] = Field(
         default=None,
-        description="Estimated deal value if closed"
+        description="Estimated deal value if closed",
+        max_length=50
     )
     notes: List[str] = Field(
         description="Additional qualification notes",

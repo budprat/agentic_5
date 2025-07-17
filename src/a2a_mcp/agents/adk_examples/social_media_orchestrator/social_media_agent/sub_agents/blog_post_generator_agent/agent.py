@@ -13,17 +13,15 @@ from datetime import datetime
 
 # Load environment variables
 load_dotenv()
+
+
 # --- Define Blog Category Enum ---
 class BlogCategory(str, Enum):
     HOW_TO = "how_to"
     TUTORIAL = "tutorial"
     CASE_STUDY = "case_study"
-    INDUSTRY_ANALYSIS = "industry_analysis"
     OPINION = "opinion"
-    NEWS = "news"
-    REVIEW = "review"
     LISTICLE = "listicle"
-    COMPARISON = "comparison"
 
 
 # --- Define Content Tone Enum ---
@@ -32,8 +30,6 @@ class ContentTone(str, Enum):
     CONVERSATIONAL = "conversational"
     EDUCATIONAL = "educational"
     PERSUASIVE = "persuasive"
-    INSPIRATIONAL = "inspirational"
-    AUTHORITATIVE = "authoritative"
 
 
 # --- Define SEO Difficulty Enum ---
@@ -55,18 +51,16 @@ class BlogSection(BaseModel):
 # --- Define SEO Optimization Schema ---
 class SEOOptimization(BaseModel):
     primary_keyword: str = Field(description="Main target keyword")
-    secondary_keywords: List[str] = Field(description="Supporting keywords", max_items=8)
+    secondary_keywords: List[str] = Field(description="Supporting keywords", max_items=5)
     meta_description: str = Field(
         description="SEO meta description",
-        min_length=120,
-        max_length=160
+        max_length=200
     )
     title_tag: str = Field(
         description="SEO-optimized title tag",
-        min_length=30,
-        max_length=60
+        max_length=80
     )
-    keyword_density: float = Field(description="Target keyword density percentage", ge=0.5, le=3.0)
+    keyword_density: float = Field(description="Target keyword density percentage")
     internal_link_opportunities: List[str] = Field(
         description="Suggested internal linking opportunities",
         max_items=5
@@ -127,8 +121,7 @@ class BlogPost(BaseModel):
     estimated_read_time: int = Field(description="Estimated reading time in minutes")
     introduction: str = Field(
         description="Compelling introduction paragraph",
-        min_length=100,
-        max_length=300
+        max_length=600
     )
     blog_sections: List[BlogSection] = Field(
         description="Main content sections",
@@ -137,8 +130,7 @@ class BlogPost(BaseModel):
     )
     conclusion: str = Field(
         description="Strong conclusion that ties everything together",
-        min_length=100,
-        max_length=300
+        max_length=600
     )
     seo_optimization: SEOOptimization = Field(description="SEO strategy and optimization")
     content_engagement: ContentEngagement = Field(description="Engagement optimization strategy")
