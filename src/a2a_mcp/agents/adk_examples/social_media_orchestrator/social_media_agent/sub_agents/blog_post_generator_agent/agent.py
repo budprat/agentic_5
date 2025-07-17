@@ -121,7 +121,7 @@ class BlogPost(BaseModel):
     estimated_read_time: int = Field(description="Estimated reading time in minutes")
     introduction: str = Field(
         description="Compelling introduction paragraph",
-        max_length=600
+        max_length=800
     )
     blog_sections: List[BlogSection] = Field(
         description="Main content sections",
@@ -130,7 +130,7 @@ class BlogPost(BaseModel):
     )
     conclusion: str = Field(
         description="Strong conclusion that ties everything together",
-        max_length=600
+        max_length=800
     )
     seo_optimization: SEOOptimization = Field(description="SEO strategy and optimization")
     content_engagement: ContentEngagement = Field(description="Engagement optimization strategy")
