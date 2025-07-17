@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from google.adk.agents import Agent
+from google.adk.agents import LlmAgent
 
 # Load environment variables
 load_dotenv()
@@ -15,8 +15,8 @@ from .sub_agents.competitor_analysis_agent.agent import competitor_analysis_agen
 from .sub_agents.trend_analysis_agent.agent import trend_analysis_agent
 
 
-# Create the root customer service agent
-social_media_agent = Agent(
+# Create the root social media orchestrator agent  
+social_media_agent = LlmAgent(
     name="social_media",
     model=os.getenv("GEMINI_MODEL"),
     description="Personal Social Media Agent",
@@ -55,37 +55,36 @@ Name: {user_name}
 {interaction_history}
 </interaction_history>
 
-**Specialized Sub-Agents and Tools:**
-
-1. **Email Agent**
+You have access to the following specialized agents Specialized Sub-Agents and Tools:
+1. Email Agent
    - Crafts personalized email campaigns or follow-ups for users asking about outreach or updates.
    - Example: Creates a welcome email for new subscribers.
 
-2. **LinkedIn Agent**
+2. LinkedIn Agent
    - Handles LinkedIn-specific queries, like optimizing profiles or sharing professional content.
    - Example: Suggests a LinkedIn post to showcase a user’s expertise.
 
-3. **Carousel Lead Qualification Agent**
+3. Carousel Lead Qualification Agent
    - Identifies and qualifies leads from social media carousels or campaigns.
    - Example: Assesses interest in a service from an Instagram carousel interaction.
 
-4. **Social Media Content Agent**
+4. Social Media Content Agent
    - Creates engaging, platform-specific content (e.g., X posts, Instagram reels, LinkedIn updates).
    - Example: Designs a snappy X post about industry trends or a vibrant Instagram story.
 
-5. **Blog Post Agent**
+5. Blog Post Agent 
    - Writes in-depth blog posts for users seeking detailed insights on relevant topics.
    - Example: Produces a blog on “Top Marketing Trends for 2025.”
 
-6. **Competitor Analysis Agent**
+6. Competitor Analysis Agent
    - Delivers insights on competitors’ strategies using verified data.
    - Example: Compares service offerings with real-time market data.
 
-7. **Trend Analysis Agent**
+7. Trend Analysis Agent
    - Spots and explains trending topics, backed by the News Analyst Tool.
    - Example: Highlights “personalization in marketing” as a 2025 trend.
 
-8. **News Analyst Tool**
+8. News Analyst Tool
    - Provides real-time data from trusted sources for trend, competitor, or industry queries.
    - Flags unverified claims (e.g., “Developing Story — subject to updates”).
    - Example: Pulls stats on market trends from a July 16, 2025, report.
@@ -139,4 +138,5 @@ Hi {user_name}, thanks for connecting! Marketing in 2025 is all about personaliz
 By leveraging sub-agents, real-time tools, and interactive follow-ups, you deliver engaging, ethical, and personalized responses that keep users excited and connected across platforms.
     """,
     sub_agents=[email_agent, news_analyst, blog_post_generator_agent, competitor_analysis_agent, trend_analysis_agent, lead_qualification_agent, linkedin_carousel_agent, social_media_content_agent],
+    tools=[]
 )

@@ -44,7 +44,7 @@ class EngagementStrategy(str, Enum):
 # --- Define Platform Adaptation Schema ---
 class PlatformAdaptation(BaseModel):
     platform: SocialPlatform = Field(description="Target social media platform")
-    content: str = Field(description="Platform-optimized content", max_length=1500)
+    content: str = Field(description="Platform-optimized content", max_length=2000)
     hashtags: List[str] = Field(description="Platform-specific hashtags", max_items=5)
     mentions: List[str] = Field(description="Relevant mentions for this platform", max_items=3)
     content_format: ContentFormat = Field(description="Recommended content format")

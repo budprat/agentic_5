@@ -108,7 +108,7 @@ class BlogPost(BaseModel):
     )
     subtitle: Optional[str] = Field(
         description="Optional subtitle for additional context",
-        max_length=150
+        max_length=250
     )
     category: BlogCategory = Field(description="Blog post category")
     content_tone: ContentTone = Field(description="Overall tone and style")
