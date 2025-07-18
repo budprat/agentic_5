@@ -1,0 +1,13 @@
+google-adk[database]==0.3.0
+google-generativeai==0.8.5
+python-dotenv==1.1.0
+pydantic==2.5.0
+asyncio==3.4.3
+aiohttp==3.9.0
+beautifulsoup4==4.12.0
+lxml==4.9.0
+scholarly==1.7.11
+arxiv==2.1.0
+biopython==1.81
+pytest==7.4.0
+pytest-asyncio==0.21.0
