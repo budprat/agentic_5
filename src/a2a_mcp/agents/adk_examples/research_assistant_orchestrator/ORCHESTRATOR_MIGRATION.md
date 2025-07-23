@@ -52,6 +52,14 @@ All features are preserved in the new `A2AEnhancedOrchestrator`:
 - ✅ Quality-based ranking
 - ✅ Filter-based searching
 
+### New Enhanced Features:
+- ✅ Advanced pattern extraction (code, JSON, equations)
+- ✅ `extract_structured_content()` method in Literature Review Agent
+- ✅ Citation network analysis with H-index calculation
+- ✅ Seminal work identification
+- ✅ ResponseFormatter integration with pattern matching
+- ✅ Enhanced metadata enrichment
+
 ## Migration Steps
 
 1. **Update Imports**:

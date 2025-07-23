@@ -50,15 +50,100 @@ The Research Orchestrator system successfully integrates **A2A-MCP Framework V2.
   - Error formatting with context
   - Metadata enrichment
   - Content type handling
-- **Implementation**:
+  - **Advanced Pattern Extraction**: Extract structured content from LLM responses
+  - **Multi-format Support**: Code blocks, JSON, tool outputs, equations
+  - **Intelligent Parsing**: Context-aware content extraction
+- **Pattern Extraction Details**:
+  ```python
+  # ResponseFormatter now includes sophisticated pattern matching capabilities
+  # Patterns supported:
+  # - Code blocks (generic): ```\n...\n```
+  # - JSON blocks: ```json...```
+  # - Tool outputs: ```tool_outputs...```
+  # - Python code: ```python...```
+  # - Mathematical equations: ```equation...```
+  # - Markdown sections, lists, tables
+  ```
+- **Enhanced Implementation**:
   ```python
   # In literature_review_agent/a2a_enhanced_agent.py
   from a2a_mcp.common.response_formatter import ResponseFormatter, create_agent_error
+  import re
+  from typing import Dict, Any, List
   
-  # Used for formatting all agent responses
-  response = ResponseFormatter.format_response(
-      content=results,
-      metadata={"quality_score": 0.85}
+  # Extract structured content with advanced pattern matching
+  def extract_structured_content(self, response: str) -> Dict[str, Any]:
+      """Extract structured content from LLM responses using pattern matching.
+      
+      This method identifies and extracts:
+      - Code blocks in various languages
+      - JSON data structures
+      - Tool execution outputs
+      - Mathematical equations
+      - Plain text sections
+      """
+      patterns = {
+          "code": r'```\n(.*?)\n```',              # Generic code blocks
+          "json": r'```json\s*(.*?)\s*```',        # JSON blocks
+          "tool": r'```tool_outputs\s*(.*?)\s*```', # Tool output blocks
+          "python": r'```python\s*(.*?)\s*```',     # Python code
+          "equation": r'```equation\s*(.*?)\s*```',  # Mathematical equations
+      }
+      
+      extracted_content = {
+          "raw_response": response,
+          "code_blocks": [],
+          "json_blocks": [],
+          "tool_outputs": [],
+          "python_blocks": [],
+          "equations": [],
+          "plain_text": response,
+          "metadata": {
+              "has_structured_content": False,
+              "extraction_timestamp": datetime.now().isoformat(),
+              "content_types": []
+          }
+      }
+      
+      # Extract each pattern type
+      for pattern_type, pattern in patterns.items():
+          matches = re.findall(pattern, response, re.DOTALL)
+          if matches:
+              extracted_content["metadata"]["has_structured_content"] = True
+              extracted_content["metadata"]["content_types"].append(pattern_type)
+              
+              if pattern_type == "code":
+                  extracted_content["code_blocks"].extend(matches)
+              elif pattern_type == "json":
+                  extracted_content["json_blocks"].extend(matches)
+              elif pattern_type == "tool":
+                  extracted_content["tool_outputs"].extend(matches)
+              elif pattern_type == "python":
+                  extracted_content["python_blocks"].extend(matches)
+              elif pattern_type == "equation":
+                  extracted_content["equations"].extend(matches)
+      
+      # Remove structured content from plain text
+      plain_text = response
+      for pattern in patterns.values():
+          plain_text = re.sub(pattern, '', plain_text, flags=re.DOTALL)
+      extracted_content["plain_text"] = plain_text.strip()
+      
+      return extracted_content
+  
+  # Format response with extracted content and enhanced metadata
+  formatted_response = ResponseFormatter.standardize_response_format(
+      content=parsed_result,
+      is_interactive=False,
+      is_complete=True,
+      agent_name=self.agent_name,
+      metadata={
+          "extraction_info": extracted["metadata"],
+          "has_code_snippets": len(extracted["code_blocks"]) > 0,
+          "has_tool_outputs": len(extracted["tool_outputs"]) > 0,
+          "has_json_data": len(extracted["json_blocks"]) > 0,
+          "content_richness": len(extracted["metadata"]["content_types"])
+      }
   )
   ```
 
@@ -153,15 +238,77 @@ The Research Orchestrator system successfully integrates **A2A-MCP Framework V2.
 - **Location**: `/src/a2a_mcp/common/citation_tracker.py`
 - **Status**: FULLY INTEGRATED
 - **Features**:
-  - Citation metadata tracking
-  - DOI resolution
-  - Network analysis
+  - Citation metadata tracking with unique IDs
+  - DOI resolution and validation
+  - **Advanced Network Analysis**:
+    - Citation network graph building
+    - H-index calculation
+    - Seminal work identification
+    - Citation pattern analysis
+    - Forward and backward citation tracking
   - Export formats (BibTeX, JSON, CSV)
-- **Usage**:
+  - Citation quality scoring
+- **Network Analysis Features**:
   ```python
-  # In literature_review_agent
+  # Citation network analysis capabilities:
+  # 1. Build multi-level citation graphs
+  # 2. Calculate author/paper h-index
+  # 3. Identify highly cited seminal works
+  # 4. Analyze temporal citation patterns
+  # 5. Detect citation bursts and trends
+  # 6. Map research lineages and influences
+  ```
+- **Enhanced Usage**:
+  ```python
+  # In literature_review_agent/a2a_enhanced_agent.py
+  from a2a_mcp.common.citation_tracker import CitationTracker
+  
   self.citation_tracker = CitationTracker()
+  
+  # Track citations with automatic metadata extraction
   citation_data = self.citation_tracker.track_citation(paper, "arxiv")
+  # Returns: {id, title, authors, year, venue, doi, citations_count}
+  
+  # Build comprehensive citation network
+  network = await self._build_citation_network(papers, max_depth=2)
+  # Returns detailed network structure:
+  # {
+  #   "nodes": [{"id": "...", "title": "...", "year": ..., "citations": ...}],
+  #   "edges": [{"source": "...", "target": "...", "weight": ...}],
+  #   "metrics": {
+  #     "density": 0.XX,
+  #     "clustering_coefficient": 0.XX,
+  #     "avg_path_length": X.XX
+  #   }
+  # }
+  
+  # Analyze citation patterns with temporal insights
+  analysis = self._analyze_citation_patterns(papers, network)
+  # Returns comprehensive analysis:
+  # {
+  #   "h_index": XX,
+  #   "most_cited": [{"paper": "...", "citations": XXX}],
+  #   "citation_distribution": {"0-10": X, "11-50": Y, "51-100": Z, "100+": W},
+  #   "temporal_analysis": {
+  #     "citations_by_year": {"2020": X, "2021": Y, ...},
+  #     "growth_rate": X.XX,
+  #     "peak_year": XXXX
+  #   },
+  #   "network_metrics": {
+  #     "central_papers": [...],
+  #     "bridge_papers": [...],
+  #     "clusters": [...]
+  #   }
+  # }
+  
+  # Find seminal works using citation threshold
+  seminal = await self.find_seminal_works(papers, threshold=100)
+  # Returns papers with >100 citations, sorted by influence
+  
+  # Export citation data in multiple formats
+  bibtex = self.citation_tracker.export_bibtex()
+  json_data = self.citation_tracker.export_json()
+  csv_data = self.citation_tracker.export_csv()
   ```
 
 ### ✅ **9. Reference Intelligence**

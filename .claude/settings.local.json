@@ -146,7 +146,13 @@
       "Bash(BRIGHTDATA_API_KEY=\"\" /opt/anaconda3/envs/a2a-mcp/bin/python run_integration_tests.py)",
       "Bash(BRIGHTDATA_API_KEY=\"\" /opt/anaconda3/envs/a2a-mcp/bin/python -m pytest test_citation_tracker_simple.py -v)",
       "Bash(BRIGHTDATA_API_KEY=\"\" /opt/anaconda3/envs/a2a-mcp/bin/python -m pytest test_citation_tracker_simple.py::TestCitationTrackerSimple::test_citation_tracker_exists -v)",
-      "Bash(BRIGHTDATA_API_KEY=\"\" /opt/anaconda3/envs/a2a-mcp/bin/python test_standalone.py)"
+      "Bash(BRIGHTDATA_API_KEY=\"\" /opt/anaconda3/envs/a2a-mcp/bin/python test_standalone.py)",
+      "mcp__coderabbitai__get_coderabbit_reviews",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_close",
+      "mcp__snap-happy__ListWindows",
+      "WebFetch(domain:docs.anthropic.com)",
+      "Bash(mcp list:*)"
     ],
     "deny": []
   },
